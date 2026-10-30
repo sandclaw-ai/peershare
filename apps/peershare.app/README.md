@@ -16,6 +16,37 @@ client (`src/vendor/`, see [PROVENANCE.md](PROVENANCE.md)).
 
 ## How to use
 
+### Run it on this machine
+
+```sh
+apps/peershare.app/local/peershare.sh --demo --open        # Node
+apps/peershare.app/local/peershare.sh --bun --demo --open  # the server under Bun
+```
+
+The script installs, builds, and starts a relay, the page, the session shell and the
+Bridge, each on loopback (`local/serve.mjs`). Nothing is deployed and nothing native is built:
+
+| | |
+|---|---|
+| `http://localhost:8080` | the page, for the Sharer and for Guests |
+| `http://<name>.localhost:8081` | Guests' isolated sessions (`*.localhost` is a secure context in Chromium and Firefox) |
+| `ws://127.0.0.1:8082` | the relay; its key is kept in `local/state/`, so its address survives restarts |
+| `http://127.0.0.1:9090` | the Bridge, with a new Pairing token on every start |
+| `http://127.0.0.1:3999` | with `--demo`: an app to share, with a WebSocket and a cookie |
+
+It prints the link that pairs the page with the Bridge: open it (or pass `--open`), add a
+Service (the demo app, or anything on your machine or LAN), invite, and open the Invite in
+another browser profile or another browser. Everything is on loopback, so Guests are on this
+machine. Options: `--port` (page; sessions and relay take the next two), `--bridge-port`,
+`--demo-port`, `--no-cookie-jars`, `--no-build` (reuse the last build).
+
+Until `@statewalker/httpeers-share` is on npm, run it with a checkout of statewalker/httpeers:
+`HTTPEERS_DIR=../httpeers apps/peershare.app/local/peershare.sh --demo`. The script builds
+that package there and links it in without touching the lockfile. `tests/local.test.ts` runs the
+whole scenario against `local/serve.mjs` (`PEERSHARE_RUNTIME=bun` for Bun).
+
+### Develop
+
 ```sh
 pnpm build                # dist/
 pnpm dev                  # vite

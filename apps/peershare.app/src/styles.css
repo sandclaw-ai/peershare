@@ -1,3 +1,10 @@
 @import "@statewalker/peershare.share-react/styles.css";
 @source "../node_modules/@statewalker/peershare.share-react/src/**/*.tsx";
 @source "./**/*.tsx";
+
+/* The page is the whole window: the Viewer's frame fills what is left under its bar. */
+html,
+body,
+#root {
+  height: 100%;
+}
