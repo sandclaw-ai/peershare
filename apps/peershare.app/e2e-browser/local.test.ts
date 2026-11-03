@@ -10,12 +10,13 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { type Browser, chromium } from "playwright";
 import { afterAll, beforeAll, describe, it } from "vitest";
+import { freePorts } from "./free-ports.js";
 import { dirkSharesClaudiaViews, startDirksApp } from "./scenario.js";
 
 const local = resolve(dirname(fileURLToPath(import.meta.url)), "../local");
 const runtime = process.env.PEERSHARE_RUNTIME ?? "node";
-const PORT = 18080;
 
+let port: number;
 let server: ChildProcess;
 let sharerUrl: URL;
 let app: Awaited<ReturnType<typeof startDirksApp>>;
@@ -24,9 +25,10 @@ let browser: Browser;
 beforeAll(async () => {
   await promisify(execFile)("node", [resolve(local, "build.mjs")]);
   app = await startDirksApp();
+  port = await freePorts(3);
   server = spawn(
     runtime,
-    [resolve(local, "serve.mjs"), "--port", `${PORT}`, "--bridge-port", "0"],
+    [resolve(local, "serve.mjs"), "--port", `${port}`, "--bridge-port", "0"],
     {
       stdio: ["ignore", "pipe", "inherit"],
     },
@@ -56,7 +58,7 @@ describe("PeerShare, run locally", () => {
       pageOrigin: sharerUrl.origin,
       bridge: { origin: pairing.get("localUrl") ?? "", token: pairing.get("t") ?? "" },
       appOrigin: app.origin,
-      sessionUrl: new RegExp(`^http://[a-z0-9]+\\.localhost:${PORT + 1}/`),
+      sessionUrl: new RegExp(`^http://[a-z0-9]+\\.localhost:${port + 1}/`),
     });
   });
 });

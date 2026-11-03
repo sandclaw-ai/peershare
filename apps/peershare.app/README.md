@@ -40,10 +40,16 @@ another browser profile or another browser. Everything is on loopback, so Guests
 machine. Options: `--port` (page; sessions and relay take the next two), `--bridge-port`,
 `--demo-port`, `--no-cookie-jars`, `--no-build` (reuse the last build).
 
-Until `@statewalker/httpeers-share` is on npm, run it with a checkout of statewalker/httpeers:
-`HTTPEERS_DIR=../httpeers apps/peershare.app/local/peershare.sh --demo`. The script builds
-that package there and links it in without touching the lockfile. `e2e-browser/local.test.ts` runs the
-whole scenario against `local/serve.mjs` (`PEERSHARE_RUNTIME=bun` for Bun).
+`HTTPEERS_DIR=../httpeers` runs it against a checkout of statewalker/httpeers instead of the
+npm package: the script builds that package there and links it in without touching the
+lockfile. `e2e-browser/local.test.ts` runs the whole scenario against `local/serve.mjs`
+(`PEERSHARE_RUNTIME=bun` for Bun).
+
+**Under Bun the relay accepts no connections.** The page stays on "Bridge connected" and
+never offers "Turn off server". `@libp2p/websockets` accepts each TCP socket itself and hands
+it to an `http.Server` with `server.emit("connection", socket)`; Bun's `node:http` ignores a
+socket handed over that way, so the WebSocket upgrade never answers. Run the server under
+Node until Bun supports it.
 
 ### Develop
 
@@ -83,7 +89,8 @@ origins built from the vendored shell (`e2e-browser/e2e-harness.ts`). `e2e-brows
 scenario through the Docker deployment (`apps/peershare.app/deploy`). The two files run one at a time
 (`fileParallelism: false`): each starts Chromium, a relay and a page build. `pnpm test` skips
 them; `pnpm test:e2e-browser` runs them and needs Chromium (`pnpm exec playwright install
-chromium`), plus Docker and a free port 18080 for `deploy.test.ts`. The scenario checks:
+chromium`), plus Docker for `deploy.test.ts`. Each run picks free ports
+(`e2e-browser/free-ports.ts`), so it does not collide with other services. The scenario checks:
 - Dirk pairs with the Bridge, starts sharing, exposes his app and makes an Invite;
 - Claudia opens it, joins, and sees the app in her own origin;
 - the app's WebSocket to its own host works (the shim, `src/ws-shim.ts`, hands it to the Viewer,

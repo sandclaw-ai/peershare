@@ -20,11 +20,10 @@ import { createBridge, type Listening, listenLoopback } from "@statewalker/httpe
 import { type Browser, chromium } from "playwright";
 import { afterAll, beforeAll, describe, it } from "vitest";
 import { startRelay } from "./e2e-harness.js";
+import { freePorts } from "./free-ports.js";
 import { dirkSharesClaudiaViews, startDirksApp } from "./scenario.js";
 
 const DEPLOY = resolve(import.meta.dirname, "../deploy");
-const PORT = "18443";
-const PAGE = `https://peershare.localhost:${PORT}`;
 const TOKEN = "peershare-deploy";
 
 const hasDocker = (() => {
@@ -36,6 +35,8 @@ const hasDocker = (() => {
   }
 })();
 
+let port: number;
+let page: string;
 let env: NodeJS.ProcessEnv;
 let spki: string;
 let app: Awaited<ReturnType<typeof startDirksApp>>;
@@ -54,10 +55,10 @@ async function caddyUp(): Promise<void> {
       get(
         {
           host: "127.0.0.1",
-          port: Number(PORT),
+          port,
           path: "/peershare.json",
           servername: "peershare.localhost",
-          headers: { host: `peershare.localhost:${PORT}` },
+          headers: { host: `peershare.localhost:${port}` },
           rejectUnauthorized: false,
         },
         (res) => {
@@ -93,13 +94,15 @@ beforeAll(async () => {
     .digest("base64");
 
   relay = await startRelay();
+  port = await freePorts(2);
+  page = `https://peershare.localhost:${port}`;
   env = {
     ...process.env,
     PAGE_HOST: "peershare.localhost",
     PARENT_ZONE: "localhost",
     SESSION_ZONE: "p.localhost",
-    HTTPS_PORT: PORT,
-    HTTP_PORT: "18080",
+    HTTPS_PORT: `${port}`,
+    HTTP_PORT: `${port + 1}`,
     RELAY_ADDRS: relay.addr,
     DEV: "true",
     TLS: "/certs/cert.pem /certs/key.pem",
@@ -111,7 +114,7 @@ beforeAll(async () => {
 
   app = await startDirksApp();
   bridge = await listenLoopback(
-    createBridge({ token: TOKEN, allowedOrigin: PAGE, cookieJars: true }),
+    createBridge({ token: TOKEN, allowedOrigin: page, cookieJars: true }),
   );
   browser = await chromium.launch({ args: [`--ignore-certificate-errors-spki-list=${spki}`] });
 }, 300_000);
@@ -127,10 +130,10 @@ describe.skipIf(!hasDocker)("M8 — the deployment, under Docker Compose", () =>
   it("serves the page and the session zone; the whole scenario works through it", async () => {
     await dirkSharesClaudiaViews({
       browser,
-      pageOrigin: PAGE,
+      pageOrigin: page,
       bridge: { origin: bridge.origin, token: TOKEN },
       appOrigin: app.origin,
-      sessionUrl: /^https:\/\/[a-z0-9]+\.p\.localhost:18443\//,
+      sessionUrl: new RegExp(`^https://[a-z0-9]+\\.p\\.localhost:${port}/`),
     });
   });
 });
