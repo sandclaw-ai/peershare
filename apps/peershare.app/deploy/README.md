@@ -47,7 +47,7 @@ docker compose -f apps/peershare.app/deploy/docker-compose.yml up -d
   environment. The shell is built with `__PEERSHARE_SESSION_ZONE__` and
   `__PEERSHARE_PARENT_ZONE__` (vendored shell, edit 4 in
   `apps/peershare.app/PROVENANCE.md`).
-- `apps/peershare.app/tests/deploy.test.ts` brings this stack up with Compose under real
+- `apps/peershare.app/e2e-browser/deploy.test.ts` brings this stack up with Compose under real
   host names (`peershare.localhost`, `*.p.localhost`, one wildcard certificate trusted by
   its SPKI hash) and runs the whole scenario through it in Chromium. The relay runs on the
   test host there, because the relay image's registry is not reachable from every machine.

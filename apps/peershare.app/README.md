@@ -42,7 +42,7 @@ machine. Options: `--port` (page; sessions and relay take the next two), `--brid
 
 Until `@statewalker/httpeers-share` is on npm, run it with a checkout of statewalker/httpeers:
 `HTTPEERS_DIR=../httpeers apps/peershare.app/local/peershare.sh --demo`. The script builds
-that package there and links it in without touching the lockfile. `tests/local.test.ts` runs the
+that package there and links it in without touching the lockfile. `e2e-browser/local.test.ts` runs the
 whole scenario against `local/serve.mjs` (`PEERSHARE_RUNTIME=bun` for Bun).
 
 ### Develop
@@ -71,17 +71,19 @@ rclone sync site/peershare.httpeers.net httpeers:sites/peershare.httpeers.net
 `build:site` reads the relay's addresses from its own document
 (`https://relay.httpeers.net/.well-known/httpeers-relay.json`), points sessions at
 `*.p.httpeers.net`, and sets `spa: true` so `/peer-share/invite` is served too. `SITE`,
-`SESSION_ZONE` and `RELAY_DOCUMENT_URL` override the defaults. `tests/site.test.ts` checks
+`SESSION_ZONE` and `RELAY_DOCUMENT_URL` override the defaults. `test/site.test.ts` checks
 the folder.
 
 ## Internals
 
-`tests/e2e.test.ts` runs the whole scenario in Chromium. Dirk and Claudia are two
+`e2e-browser/e2e.test.ts` runs the whole scenario in Chromium. Dirk and Claudia are two
 browser contexts, with two IndexedDBs and two mesh nodes. Everything around them is real:
 a relay, Dirk's Bridge and app, the built page on a public https origin, and session
-origins built from the vendored shell (`tests/e2e-harness.ts`). `tests/deploy.test.ts` runs the same
+origins built from the vendored shell (`e2e-browser/e2e-harness.ts`). `e2e-browser/deploy.test.ts` runs the same
 scenario through the Docker deployment (`apps/peershare.app/deploy`). The two files run one at a time
-(`fileParallelism: false`): each starts Chromium, a relay and a page build. The scenario checks:
+(`fileParallelism: false`): each starts Chromium, a relay and a page build. `pnpm test` skips
+them; `pnpm test:e2e-browser` runs them and needs Chromium (`pnpm exec playwright install
+chromium`), plus Docker and a free port 18080 for `deploy.test.ts`. The scenario checks:
 - Dirk pairs with the Bridge, starts sharing, exposes his app and makes an Invite;
 - Claudia opens it, joins, and sees the app in her own origin;
 - the app's WebSocket to its own host works (the shim, `src/ws-shim.ts`, hands it to the Viewer,

@@ -6,7 +6,7 @@ export default defineConfig({
     // The test files are whole-stack runs (Chromium, a relay, a page build, Docker):
     // one at a time, so none starves another's 30 s waits.
     fileParallelism: false,
-    include: ["tests/**/*.test.ts"],
+    include: ["test/**/*.test.ts", "e2e-browser/**/*.test.ts"],
     testTimeout: 180_000,
     hookTimeout: 180_000,
   },

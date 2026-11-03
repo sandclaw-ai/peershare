@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest run",
+    "test": "vitest run test/",
+    "test:e2e-browser": "vitest run e2e-browser/",
     "typecheck": "tsc --noEmit",
     "build:site": "node scripts/build-site.mjs site"
   },
