@@ -45,11 +45,11 @@ npm package: the script builds that package there and links it in without touchi
 lockfile. `e2e-browser/local.test.ts` runs the whole scenario against `local/serve.mjs`
 (`PEERSHARE_RUNTIME=bun` for Bun).
 
-**Under Bun the relay accepts no connections.** The page stays on "Bridge connected" and
-never offers "Turn off server". `@libp2p/websockets` accepts each TCP socket itself and hands
-it to an `http.Server` with `server.emit("connection", socket)`; Bun's `node:http` ignores a
-socket handed over that way, so the WebSocket upgrade never answers. Run the server under
-Node until Bun supports it.
+**`--bun` needs Bun 1.4 or later.** `@libp2p/websockets` accepts each TCP socket itself and
+hands it to an `http.Server` with `server.emit("connection", socket)`. Bun's `node:http` ignored a
+socket handed over that way up to 1.3.x (checked with 1.1.45, 1.2.23 and 1.3.14), so the relay
+accepted no connections and the page stayed on "Bridge connected". Bun 1.4.0 to 1.4.4 answer it.
+`peershare.sh --bun` and `serve.mjs` refuse an older Bun; `bun upgrade`, or run under Node.
 
 ### Develop
 
