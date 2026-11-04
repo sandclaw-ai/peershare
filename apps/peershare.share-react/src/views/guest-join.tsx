@@ -28,8 +28,8 @@ export interface GuestJoinProps {
 export function GuestJoin({ sharerName, stage, onJoin, onDecline }: GuestJoinProps) {
   if (stage === "invite-used") {
     return (
-      <EndPage title="This invite link has already been used">
-        <span>Each link works once, for one person. Ask {sharerName} for a new link.</span>
+      <EndPage title="This invite has already been used">
+        <span>Each invite works once, for one person. Ask {sharerName} to invite you again.</span>
       </EndPage>
     );
   }

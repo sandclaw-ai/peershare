@@ -19,7 +19,8 @@ import { GuestScreen, PeerShareProvider } from "../src/connected/index.js";
 
 afterEach(cleanup);
 
-function standInPeerShare() {
+/** `answer`: what Join says; a refused or unreachable Join leaves the Guest at "no-link". */
+function standInPeerShare(answer: GuestState["stage"] = "joined") {
   const rt = createRuntime();
   let snapshot: PeerShareSnapshot = {
     sharer: { name: "", services: [] },
@@ -41,8 +42,8 @@ function standInPeerShare() {
   });
   const joined = vi.fn(async ({ link }: { link: string }) => {
     void link;
-    const state: GuestState = { stage: "joined", sharerName: "Dirk", sharerPeerId: "12D3KooWDirk" };
-    setGuest(state);
+    const state: GuestState = { stage: answer, sharerName: "Dirk", sharerPeerId: "12D3KooWDirk" };
+    if (answer === "joined") setGuest(state);
     return state;
   });
   rt.commands.listen(Join, (cmd) => joined(cmd.payload));
@@ -87,4 +88,25 @@ describe("M7 — GuestScreen", () => {
     expect(closed).toHaveBeenCalled();
     expect(await screen.findByRole("button", { name: /Join Dirk/ })).toBeTruthy();
   });
+
+  it.each([
+    ["invite-used", /This invite has already been used/],
+    ["machine-offline", /Dirk's computer isn't answering/],
+  ] as const)(
+    "a Join that does not get in (%s) says why, and opens no Viewer",
+    async (stage, what) => {
+      const { rt } = standInPeerShare(stage);
+      render(
+        <PeerShareProvider rt={rt}>
+          <GuestScreen link="https://x/peer-share/invite#join=x&from=Dirk" sharerName="Dirk" />
+        </PeerShareProvider>,
+      );
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Join Dirk/ }));
+      });
+      expect(await screen.findByText(what)).toBeTruthy();
+      expect(screen.queryByText(/Team wiki/)).toBeNull();
+    },
+  );
 });

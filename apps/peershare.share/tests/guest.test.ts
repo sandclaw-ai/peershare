@@ -150,13 +150,19 @@ describe("M5 — lifecycle", () => {
     expect(await again.call(ListSharedServices, undefined)).toHaveLength(1);
   });
 
-  it("Close session forgets her: nothing to resume, and the link is spent", async () => {
+  it("Close session forgets her: nothing to resume, Dirk no longer lists her, and the link is spent", async () => {
     const mesh = meshFor(relay.addr);
     const tab = guest(mesh);
     const { url } = await dirk.call(Invite, undefined);
+    const before = new Set((await dirk.call(ListGuests, undefined)).map((g) => g.peerId));
     await tab.call(Join, { link: url });
+    const peerId = (await dirk.call(ListGuests, undefined)).find(
+      (g) => !before.has(g.peerId),
+    )?.peerId;
+    expect(peerId).toBeDefined();
 
     expect(await tab.call(CloseSession, undefined)).toEqual({ stage: "no-link" });
+    expect((await dirk.call(ListGuests, undefined)).map((g) => g.peerId)).not.toContain(peerId);
     expect(await tab.call(Resume, undefined)).toEqual({ stage: "no-link" });
     expect(await tab.call(Join, { link: url })).toMatchObject({ stage: "invite-used" });
   });
@@ -231,5 +237,30 @@ describe("M9 — live connections", () => {
     expect(await reply).toBe("echo ping");
     expect(socket.protocol).toBe("vite-hmr");
     socket.close();
+  });
+
+  it("Revoke ends Claudia's open live connections too, not only her next requests", async () => {
+    const claudia = guest();
+    const before = new Set((await dirk.call(ListGuests, undefined)).map((g) => g.peerId));
+    await claudia.call(Join, { link: (await dirk.call(Invite, undefined)).url });
+    const peerId = (await dirk.call(ListGuests, undefined)).find((g) => !before.has(g.peerId))
+      ?.peerId as string;
+    let open: GuestSocket | undefined;
+    claudia.rt.slots.observe(guestSocketSlot, (v) => {
+      open = v[0];
+    })();
+    const socket = (open as GuestSocket)("fooservice", "/live", []);
+    await new Promise<unknown>((r) => {
+      socket.onmessage = r;
+    });
+    const closed = new Promise<unknown>((r) => {
+      socket.onclose = r;
+    });
+
+    await dirk.call(RevokeGuest, { peerId });
+
+    await expect(
+      Promise.race([closed, new Promise((_, no) => setTimeout(no, 10_000, "still open"))]),
+    ).resolves.toBeDefined();
   });
 });

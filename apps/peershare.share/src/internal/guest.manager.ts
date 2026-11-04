@@ -93,6 +93,9 @@ export class GuestManager {
   }
 
   async closeSession(): Promise<GuestState> {
+    // Tell the Sharer first, so it stops listing this Guest. An offline Sharer
+    // cannot hear it; the Guest leaves anyway and Dirk can still Revoke.
+    await this.fetch("/session/leave", { method: "POST" }).catch(() => {});
     await this.leave();
     await this.mesh.guestStore.clear();
     this.current = { stage: "no-link" };

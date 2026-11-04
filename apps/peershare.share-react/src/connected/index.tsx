@@ -157,6 +157,10 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
   const { guest } = usePeerShare();
   const call = useCall();
   const [joining, setJoining] = useState(false);
+  // What the last Join answered when it did not get in: the hub's refusal or
+  // an unreachable Sharer. The Guest's state stays "no-link" then, so without
+  // this the page would show the Join button again and nothing else.
+  const [refused, setRefused] = useState<JoinStage>();
   const [declined, setDeclined] = useState(false);
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const [selected, setSelected] = useState<string>();
@@ -175,16 +179,17 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
       ? "declined"
       : joining
         ? "joining"
-        : guest.stage === "no-link"
-          ? "invite"
-          : (guest.stage as JoinStage); // not joined here: see `joined` above
+        : guest.stage !== "no-link"
+          ? (guest.stage as JoinStage) // not joined here: see `joined` above
+          : (refused ?? "invite");
     return (
       <GuestJoin
         sharerName={guest.sharerName ?? sharerName}
         stage={stage}
         onJoin={async () => {
           setJoining(true);
-          await call(Join, { link });
+          const answer = await call(Join, { link });
+          setRefused(answer.stage === "joined" ? undefined : (answer.stage as JoinStage));
           setJoining(false);
         }}
         onDecline={() => setDeclined(true)}
