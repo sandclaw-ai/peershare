@@ -60,7 +60,7 @@ describe("2.8 — the site for httpeers' static host", () => {
   it("names httpeers' relay (from its own document) and httpeers' session zone", () => {
     expect(JSON.parse(readFileSync(join(site(), "peershare.json"), "utf8"))).toEqual({
       relayAddrs: [RELAY],
-      sessionOrigin: "https://{name}.p.httpeers.net",
+      sessionOrigin: "https://{name}.s.httpeers.net",
     });
   });
 });

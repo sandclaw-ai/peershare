@@ -3,7 +3,7 @@ name: PeerShare site
 # Publishes the PeerShare page to https://peershare.httpeers.net (decision 2.8) with
 # statewalker/.github's publish-site.yml: the files go to httpeers' `sites` bucket under that
 # name, and the sites host serves them at once. `build:site` writes the page, `peershare.json`
-# (the relay's addresses, read from its own document, and the session zone *.p.httpeers.net) and
+# (the relay's addresses, read from its own document, and the session zone *.s.httpeers.net, whose shell is published by hand: see the app's README) and
 # `.site/config.json` (`spa: true`, so /peer-share/invite is the page too).
 #
 # Needs the SITES_S3_ACCESS_KEY_ID and SITES_S3_SECRET_ACCESS_KEY secrets (organization or

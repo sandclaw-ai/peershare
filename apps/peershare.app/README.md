@@ -76,7 +76,7 @@ rclone sync site/peershare.httpeers.net httpeers:sites/peershare.httpeers.net
 
 `build:site` reads the relay's addresses from its own document
 (`https://relay.httpeers.net/.well-known/httpeers-relay.json`), points sessions at
-`*.p.httpeers.net`, and sets `spa: true` so `/peer-share/invite` is served too. `SITE`,
+`*.s.httpeers.net`, and sets `spa: true` so `/peer-share/invite` is served too. `SITE`,
 `SESSION_ZONE` and `RELAY_DOCUMENT_URL` override the defaults. `test/site.test.ts` checks
 the folder.
 
@@ -97,9 +97,23 @@ chromium`), plus Docker for `deploy.test.ts`. Each run picks free ports
   which carries it over the mesh);
 - Dirk sees her in his Guests list.
 
-The deployed `*.p.httpeers.net` shell accepts parent pages on `*.httpeers.net` only, which
-is why the page is published there (decision 2.8). `apps/peershare.app/deploy` runs it under a zone
-of one's own instead.
+Sessions live on `*.s.httpeers.net`, not on httpeers' shared `*.p.httpeers.net`. The Viewer
+injects `/_shell/ws-shim.js` into every page a Service returns, and only this app's shell
+(`src/vendor/session-shell`, built with the shim by `deploy/build.mjs`) has that file; the
+shared shell on `*.p` does not, and there every shared app's WebSocket fails while its page
+loads fine. Publish the shell to the `s.httpeers.net` prefix (relay.html last, as below):
+
+```sh
+SESSION_ZONE=s.httpeers.net PARENT_ZONE=httpeers.net RELAY_ADDRS=<relay multiaddr> node deploy/build.mjs
+cd deploy/srv/shell && mkdir -p .site && echo '{ "notFound": "/index.html" }' > .site/config.json
+rclone copy _shell <remote>:sites/s.httpeers.net/_shell
+rclone copy . <remote>:sites/s.httpeers.net --exclude relay.html --exclude "_shell/**"
+rclone copy relay.html <remote>:sites/s.httpeers.net
+```
+
+Either shell accepts parent pages on `*.httpeers.net` only, which is why the page is
+published there (decision 2.8). `apps/peershare.app/deploy` runs it under a zone of one's
+own instead.
 
 ## License
 
