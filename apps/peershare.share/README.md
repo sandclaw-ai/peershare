@@ -72,9 +72,20 @@ before then, add to `pnpm-workspace.yaml`'s `overrides` (and do not commit it):
 - `SharingManager` is the Sharer on its mesh. It carries every fix the prototypes found:
   `revocation: hub.revocations`, `serveOnLimitedConnection`, `stampGuest` on `/s`, and one
   static advertisement with the catalog at `/s/`.
+- Revoke drops the Guest from the hub's members and revokes its peer id, then ends every
+  `/s` response it is still reading. Revocation is checked only when a request starts, so
+  without that a Service's WebSocket or event stream that was already open would keep
+  delivering to a revoked Guest. Hanging up the Guest's libp2p connection instead does
+  not end those streams, and makes its next request a `502` ("the Sharer is offline")
+  where it should be refused (`401`/`403`).
+- `/session/leave` is the Guest's own way out: `POST`ed on Close session, it revokes the
+  peer the mesh proved, never one the request names, so the Guest leaves Dirk's Guests
+  list. A Guest that only closes its tab stays listed: it can come back without an Invite.
+  A Guest that closes its session while the Sharer is offline cannot be heard, and stays
+  listed until Dirk revokes it.
 - `GuestManager` is the Guest. Join redeems the Invite once; `resume` uses the saved
-  identity; `close-session` forgets it; a Sharer that went offline is noticed on the next
-  request and cleared when it answers again.
+  identity; `close-session` tells the Sharer and forgets it; a Sharer that went offline is
+  noticed on the next request and cleared when it answers again.
 - The M5 tests passed on their first run: the GuestManager was written whole in the M3
   cycle. They guard behaviour that already existed, not red→green slices.
 - `src/public/suite.ts` is the slice of the sandclaw suite runtime a Feature sees (copied

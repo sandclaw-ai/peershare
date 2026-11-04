@@ -2,8 +2,9 @@ import { ruleSet } from "@statewalker/httpeers-access";
 
 /**
  * PeerShare's mesh rules. A Guest may reach the Sharer's Services (`/s/…`)
- * and the hub endpoints a member needs to stay a member (`/.well-known/…`),
- * nothing else (apps/peershare-protos rung 05).
+ * the hub endpoints a member needs to stay a member (`/.well-known/…`) and
+ * `/session/leave` to end its own membership, nothing else (apps/peershare-protos
+ * rung 05).
  */
 export const PEERSHARE_RULES = ruleSet({
   version: 1,
@@ -11,6 +12,7 @@ export const PEERSHARE_RULES = ruleSet({
   policies: [
     'allow if capability("peershare:view"), resource($r), $r.starts_with("/s/");',
     'allow if capability("peershare:view"), resource($r), $r.starts_with("/.well-known/");',
+    'allow if capability("peershare:view"), resource($r), $r.starts_with("/session/");',
   ],
 });
 

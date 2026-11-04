@@ -79,7 +79,19 @@ export class SharingManager {
       policies: PEERSHARE_RULES,
       storage: hubStorage,
       mintToken: async (sub, roles) => mintToken({ signer, sub, roles, ttlMs: 10 * 60_000 }),
-      extraMounts: { "/s": stampGuest(this.mount) },
+      extraMounts: {
+        "/s": stampGuest(this.track(this.mount)),
+        // A Guest's Close session: it leaves the Sharer's Guests list. The
+        // peer is the one the mesh proved, never one the request names.
+        "/session": async (request) => {
+          const guest = lookupPeer(request);
+          if (request.method !== "POST" || guest == null || guest === ANONYMOUS) {
+            return new Response(null, { status: 404 });
+          }
+          this.revoke(guest);
+          return new Response(null, { status: 204 });
+        },
+      },
       ownAdvertisements: [
         { id: "peershare", kind: "peershare", title: `${this.sharerName()}'s services` },
       ],
@@ -160,9 +172,68 @@ export class SharingManager {
     }));
   }
 
+  /**
+   * Revocation is checked when a request starts; a response still streaming
+   * (a Service's WebSocket or event stream over the mesh) would outlive it,
+   * so the Guest's open responses are ended too (see `track`).
+   */
   revoke(peerId: string): void {
     revokeGuest(this.required().hub, peerId);
+    for (const end of this.open.get(peerId) ?? []) end();
     this.notify();
+  }
+
+  /** Each Guest's responses still streaming, by peer id: what `revoke` ends. */
+  private readonly open = new Map<string, Set<() => void>>();
+
+  /**
+   * Wraps the `/s` mount so each response body a Guest is still reading can be
+   * ended from here: the Guest sees its stream close, and cancelling the
+   * Service's side closes the socket to the app.
+   */
+  private track(handler: FetchHandler): FetchHandler {
+    return async (request) => {
+      const response = await handler(request);
+      const guest = lookupPeer(request);
+      if (response.body == null || guest == null || guest === ANONYMOUS) return response;
+      const reader = response.body.getReader();
+      const ends = this.open.get(guest) ?? new Set<() => void>();
+      this.open.set(guest, ends);
+      let ended = false;
+      const forget = () => {
+        ends.delete(end);
+        if (ends.size === 0) this.open.delete(guest);
+      };
+      let output: ReadableStreamDefaultController<Uint8Array>;
+      const end = () => {
+        if (ended) return;
+        ended = true;
+        forget();
+        void reader.cancel().catch(() => {});
+        output.close();
+      };
+      ends.add(end);
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          output = controller;
+        },
+        async pull(controller) {
+          const { done, value } = await reader.read();
+          if (ended) return;
+          if (done) {
+            ended = true;
+            forget();
+            controller.close();
+          } else controller.enqueue(value);
+        },
+        cancel(reason) {
+          ended = true;
+          forget();
+          return reader.cancel(reason);
+        },
+      });
+      return new Response(body, response);
+    };
   }
 
   private required(): Running {

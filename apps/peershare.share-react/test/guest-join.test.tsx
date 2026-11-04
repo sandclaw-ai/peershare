@@ -9,7 +9,7 @@ const noop = () => {};
 describe("U3 — the Guest opens the invite", () => {
   it.each<[JoinStage, RegExp, RegExp]>([
     ["invite-expired", /This invite has expired/, /Ask Dirk for a new link/],
-    ["invite-used", /already been used/, /Ask Dirk for a new link/],
+    ["invite-used", /This invite has already been used/, /Ask Dirk to invite you again/],
     ["machine-offline", /Dirk's computer isn't answering/, /Try again/],
     ["declined", /You declined Dirk's invite/, /close this tab/],
   ])("%s: says what happened and what to do next", (stage, what, next) => {
