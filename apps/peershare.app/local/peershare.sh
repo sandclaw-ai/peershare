@@ -36,6 +36,9 @@ node -e 'process.exit(Number(process.versions.node.split(".")[0]) >= 22 ? 0 : 1)
   fail "needs Node.js 22 or later, found $(node --version)"
 if [ "$runtime" = bun ]; then
   command -v bun >/dev/null || fail "--bun needs Bun (https://bun.sh)"
+  # Older Bun ignores sockets handed to node:http, so the relay would accept none (serve.mjs).
+  bun -e 'const [a, b] = Bun.version.split(".").map(Number); process.exit(a * 100 + b >= 104 ? 0 : 1)' ||
+    fail "--bun needs Bun 1.4 or later, found $(bun --version): run 'bun upgrade'"
 fi
 if ! command -v pnpm >/dev/null; then
   corepack enable pnpm 2>/dev/null || true

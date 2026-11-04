@@ -45,6 +45,18 @@ const { values } = parseArgs({
   },
 });
 
+// Bun before 1.4 ignores a socket handed to node:http with `emit("connection")`, which is how
+// @libp2p/websockets accepts each connection: the relay would accept none.
+if (
+  typeof Bun !== "undefined" &&
+  Number(Bun.version.split(".")[0]) * 100 + Number(Bun.version.split(".")[1]) < 104
+) {
+  console.error(
+    `Bun ${Bun.version} cannot run the relay: use Bun 1.4 or later (bun upgrade), or Node.`,
+  );
+  process.exit(1);
+}
+
 const here = import.meta.dirname;
 const built = join(here, "build");
 if (!existsSync(join(built, "page/index.html"))) {
