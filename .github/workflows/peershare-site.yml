@@ -6,8 +6,12 @@ name: PeerShare site
 # (the relay's addresses, read from its own document, and the session zone *.s.httpeers.net, whose shell is published by hand: see the app's README) and
 # `.site/config.json` (`spa: true`, so /peer-share/invite is the page too).
 #
-# Needs the SITES_S3_ACCESS_KEY_ID and SITES_S3_SECRET_ACCESS_KEY secrets (organization or
-# repository) with write access to the bucket.
+# Needs the HTTPEERS_S3_ACCESS_KEY_ID and HTTPEERS_S3_SECRET_ACCESS_KEY repository secrets: a
+# RustFS user that may write only the peershare.httpeers.net and s.httpeers.net prefixes of the
+# bucket, made and stored by statewalker/cellb.dev's site/scripts/setup-publish-secrets.sh
+# (REPO=statewalker/sandclaw SITE_USER=peershare-site SITE_DOMAIN=peershare.httpeers.net
+# SITE_DOMAINS="peershare.httpeers.net s.httpeers.net"). They are the names cellb.dev uses;
+# publish-site.yml calls them SITES_S3_*, so they are passed explicitly below.
 
 on:
   push:
@@ -35,4 +39,6 @@ jobs:
         pnpm --filter "@statewalker/peershare.app^..." run --if-present build
         pnpm --filter @statewalker/peershare.app build:site
       path: apps/peershare.app/site/peershare.httpeers.net
-    secrets: inherit
+    secrets:
+      SITES_S3_ACCESS_KEY_ID: ${{ secrets.HTTPEERS_S3_ACCESS_KEY_ID }}
+      SITES_S3_SECRET_ACCESS_KEY: ${{ secrets.HTTPEERS_S3_SECRET_ACCESS_KEY }}
