@@ -8,7 +8,7 @@
  *   <outDir>/<SITE>/peershare.json         httpeers' relay and session zone
  *   <outDir>/<SITE>/.site/config.json      { "spa": true }: every route is the page
  *
- * SITE (default peershare.httpeers.net), SESSION_ZONE (default p.httpeers.net),
+ * SITE (default peershare.httpeers.net), SESSION_ZONE (default s.httpeers.net),
  * RELAY_DOCUMENT_URL (default the relay's own published document).
  */
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -16,7 +16,7 @@ import { join, resolve } from "node:path";
 import { build } from "vite";
 
 const SITE = process.env.SITE ?? "peershare.httpeers.net";
-const SESSION_ZONE = process.env.SESSION_ZONE ?? "p.httpeers.net";
+const SESSION_ZONE = process.env.SESSION_ZONE ?? "s.httpeers.net";
 const RELAY_DOCUMENT_URL =
   process.env.RELAY_DOCUMENT_URL ?? "https://relay.httpeers.net/.well-known/httpeers-relay.json";
 
