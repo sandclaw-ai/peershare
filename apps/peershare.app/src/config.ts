@@ -7,6 +7,11 @@ export interface PeerShareConfig {
    * `https://{name}.p.sandclaw.ai`. Its shell must accept this page as a parent.
    */
   sessionOrigin: string;
+  /**
+   * The page every invite link opens, `https://peershare.httpeers.net/invite`
+   * when published. Absent: `/invite` on this page's own origin.
+   */
+  invitePage?: string;
   /** Let the browser dial a plain `ws://` relay on loopback (development, tests). */
   dev?: boolean;
 }

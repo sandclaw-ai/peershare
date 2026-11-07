@@ -40,7 +40,7 @@ const others: { dispose(): void }[] = [];
 beforeAll(async () => {
   relay = await startRelay();
   bridge = await listenLoopback(
-    createBridge({ token: TOKEN, allowedOrigin: "https://tools.sandclaw.ai" }),
+    createBridge({ token: TOKEN, allowedOrigins: ["https://tools.sandclaw.ai"] }),
   );
   const server = createServer((req, res) => {
     res

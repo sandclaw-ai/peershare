@@ -114,7 +114,7 @@ beforeAll(async () => {
 
   app = await startDirksApp();
   bridge = await listenLoopback(
-    createBridge({ token: TOKEN, allowedOrigin: page, cookieJars: true }),
+    createBridge({ token: TOKEN, allowedOrigins: [page], cookieJars: true }),
   );
   browser = await chromium.launch({ args: [`--ignore-certificate-errors-spki-list=${spki}`] });
 }, 300_000);

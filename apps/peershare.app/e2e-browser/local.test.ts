@@ -37,7 +37,7 @@ beforeAll(async () => {
     let out = "";
     server.stdout?.on("data", (chunk) => {
       out += chunk;
-      const link = /http:\/\/localhost:\d+\/peer-share#\S+/.exec(out)?.[0];
+      const link = /http:\/\/localhost:\d+\/#\S+/.exec(out)?.[0];
       if (link != null) ok(new URL(link));
     });
     server.on("exit", (code) => fail(new Error(`serve.mjs exited with ${code}:\n${out}`)));

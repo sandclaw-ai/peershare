@@ -22,7 +22,7 @@ import "@statewalker/peershare.share-react/styles.css";
 |---|---|
 | `SharerScreen` | Services (add, edit, Test again, Turn off), server on/off, Invite dialog, Guests (Revoke) |
 | `GuestScreen` | the Join page with every outcome, then the Viewer (picker, paused, offline, Close session). `frameFor` supplies the isolated origin per Service |
-| `SharerServices`, `InviteDialog`, `GuestList`, `BridgeStatus`, `GuestJoin`, `ViewerFrame` | the screens on their own: props in, callbacks out |
+| `SharerServices`, `InviteDialog`, `GuestList`, `BridgeStatus`, `ProxySettings`, `GuestJoin`, `ViewerFrame` | the screens on their own: props in, callbacks out. `ProxySettings` takes the proxy's address and key, shows the command that starts it, and on a browser that cannot reach it (`supported={false}`) says which browsers can |
 
 ## Internals
 

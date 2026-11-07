@@ -10,6 +10,7 @@
     "build": "vite build",
     "test": "vitest run test/",
     "test:e2e-browser": "vitest run e2e-browser/",
+    "test:runtimes": "vitest run runtimes/",
     "typecheck": "tsc --noEmit",
     "build:site": "node scripts/build-site.mjs site"
   },

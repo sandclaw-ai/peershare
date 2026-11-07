@@ -32,7 +32,7 @@ beforeAll(async () => {
     sessionOrigin: `https://{name}.localhost:${sessions.port}`,
     dev: true,
   }));
-  bridge = await listenLoopback(createBridge({ token: TOKEN, allowedOrigin: page.origin }));
+  bridge = await listenLoopback(createBridge({ token: TOKEN, allowedOrigins: [page.origin] }));
   browser = await launch(page, sessions);
 });
 afterAll(async () => {

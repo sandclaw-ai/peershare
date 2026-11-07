@@ -34,7 +34,7 @@ let app: { origin: string; close(): Promise<void> };
 
 beforeAll(async () => {
   bridge = await listenLoopback(
-    createBridge({ token: TOKEN, allowedOrigin: "https://tools.sandclaw.ai" }),
+    createBridge({ token: TOKEN, allowedOrigins: ["https://tools.sandclaw.ai"] }),
   );
   const server = createServer((_req, res) => {
     res.writeHead(200, { "content-type": "text/html", "set-cookie": "s=1" });

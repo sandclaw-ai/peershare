@@ -1,5 +1,5 @@
 /**
- * A Guest's page: `/peer-share/invite#join=…&from=Dirk`. Each Service opens
+ * A Guest's page: `/invite#join=…&from=Dirk` (or `/peer-share/invite#…`). Each Service opens
  * in its own isolated session origin (ADR 0003), answered over the mesh
  * through PeerShare's `guest-fetch`.
  */
@@ -36,7 +36,7 @@ export function GuestApp({ config }: { config: PeerShareConfig }) {
       store: idbSharerStore(),
       mesh: browserMesh({
         relayAddrs: config.relayAddrs,
-        invitePage: `${location.origin}/peer-share/invite`,
+        invitePage: config.invitePage ?? `${location.origin}/invite`,
         dev: config.dev ?? false,
       }),
     }).contribute(runtime);

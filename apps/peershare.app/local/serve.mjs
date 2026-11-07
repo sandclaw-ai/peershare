@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `node local/serve.mjs [--port 8080] [--open] [--demo] [--no-cookie-jars]` (or `bun local/serve.mjs …`)
+ * `node local/serve.mjs [--port 8080] [--open] [--demo] [--no-cookie-jars] [--public]` (or `bun local/serve.mjs …`)
  *
  * PeerShare on this machine, nothing deployed: a relay, the page, the session
  * shell and the Bridge, each on loopback. Run `local/build.mjs` first (or use
@@ -15,6 +15,10 @@
  * Everything is on loopback, so Sharer and Guests are browser profiles (or
  * browsers) on this machine. `*.localhost` session origins are secure contexts
  * in Chromium and Firefox, so ServiceWorkers run there over plain http.
+ *
+ * `--public`: real Guests, anywhere. No local relay: the page uses httpeers'
+ * relay, and invite links open https://peershare.httpeers.net/invite, so
+ * Guests join through the published page and its session zone.
  */
 
 import { spawn } from "node:child_process";
@@ -42,6 +46,7 @@ const { values } = parseArgs({
     open: { type: "boolean", default: false },
     demo: { type: "boolean", default: false },
     "no-cookie-jars": { type: "boolean", default: false },
+    public: { type: "boolean", default: false },
   },
 });
 
@@ -106,45 +111,68 @@ async function listenLocal(handler, port) {
   return servers;
 }
 
+const PUBLIC_RELAY_DOCUMENT = "https://relay.httpeers.net/.well-known/httpeers-relay.json";
+
 // --- the relay, with a key kept across runs so its address stays the same
-const state = join(here, "state");
-mkdirSync(state, { recursive: true });
-const keyFile = join(state, "relay.key");
-const relayKey = existsSync(keyFile)
-  ? privateKeyFromProtobuf(readFileSync(keyFile))
-  : await generateKeyPair("Ed25519");
-if (!existsSync(keyFile)) writeFileSync(keyFile, privateKeyToProtobuf(relayKey), { mode: 0o600 });
+// (none with --public: httpeers' own relay states its addresses)
+const relay = values.public ? null : await startRelay();
+const relayAddrs = relay != null ? [relay.addr] : await publicRelayAddrs();
 
-const relay = await createLibp2p({
-  privateKey: relayKey,
-  addresses: { listen: [`/ip4/127.0.0.1/tcp/${RELAY_PORT}/ws`] },
-  transports: [webSockets()],
-  connectionEncrypters: [noise()],
-  streamMuxers: [yamux()],
-  // One machine: every peer comes from the same host, so no per-host limits.
-  connectionManager: { inboundConnectionThreshold: 1000, maxIncomingPendingConnections: 1000 },
-  services: {
-    identify: identify(),
-    relay: circuitRelayServer({
-      reservations: {
-        applyDefaultLimit: true,
-        defaultDataLimit: 1n << 30n,
-        defaultDurationLimit: 6 * 3600_000,
+async function publicRelayAddrs() {
+  const res = await fetch(PUBLIC_RELAY_DOCUMENT);
+  if (!res.ok) throw new Error(`${PUBLIC_RELAY_DOCUMENT}: ${res.status}`);
+  return (await res.json()).relayAddrs;
+}
+
+async function startRelay() {
+  const state = join(here, "state");
+  mkdirSync(state, { recursive: true });
+  const keyFile = join(state, "relay.key");
+  const relayKey = existsSync(keyFile)
+    ? privateKeyFromProtobuf(readFileSync(keyFile))
+    : await generateKeyPair("Ed25519");
+  if (!existsSync(keyFile)) writeFileSync(keyFile, privateKeyToProtobuf(relayKey), { mode: 0o600 });
+
+  const node = await createLibp2p({
+    privateKey: relayKey,
+    addresses: { listen: [`/ip4/127.0.0.1/tcp/${RELAY_PORT}/ws`] },
+    transports: [webSockets()],
+    connectionEncrypters: [noise()],
+    streamMuxers: [yamux()],
+    // One machine: every peer comes from the same host, so no per-host limits.
+    connectionManager: { inboundConnectionThreshold: 1000, maxIncomingPendingConnections: 1000 },
+    services: {
+      identify: identify(),
+      relay: circuitRelayServer({
+        reservations: {
+          applyDefaultLimit: true,
+          defaultDataLimit: 1n << 30n,
+          defaultDurationLimit: 6 * 3600_000,
+        },
+      }),
+    },
+  });
+  const addr = node
+    .getMultiaddrs()
+    .map(String)
+    .find((a) => a.includes("/ws/"));
+  return { addr, stop: () => node.stop() };
+}
+
+const config = JSON.stringify(
+  values.public
+    ? {
+        relayAddrs,
+        sessionOrigin: "https://{name}.s.httpeers.net",
+        invitePage: "https://peershare.httpeers.net/invite",
+      }
+    : {
+        relayAddrs,
+        sessionOrigin: `http://{name}.localhost:${SESSION_PORT}`,
+        // Lets the page dial a plain ws:// relay on loopback.
+        dev: true,
       },
-    }),
-  },
-});
-const relayAddr = relay
-  .getMultiaddrs()
-  .map(String)
-  .find((a) => a.includes("/ws/"));
-
-const config = JSON.stringify({
-  relayAddrs: [relayAddr],
-  sessionOrigin: `http://{name}.localhost:${SESSION_PORT}`,
-  // Lets the page dial a plain ws:// relay on loopback.
-  dev: true,
-});
+);
 
 // --- the page: every route is index.html, /peershare.json beside it
 const pageRoot = join(built, "page");
@@ -179,7 +207,7 @@ const sessions = await listenLocal(async (req, res) => {
 // --- the Bridge: a new Pairing token on every launch, never stored
 const token = randomBytes(32).toString("base64url");
 const bridge = await listenLoopback(
-  createBridge({ token, allowedOrigin: pageOrigin, cookieJars: !values["no-cookie-jars"] }),
+  createBridge({ token, allowedOrigins: [pageOrigin], cookieJars: !values["no-cookie-jars"] }),
   Number(values["bridge-port"]),
 );
 
@@ -187,18 +215,22 @@ const bridge = await listenLoopback(
 let demo = null;
 if (values.demo) demo = await startDemo(Number(values["demo-port"]));
 
-const sharerUrl = `${pageOrigin}/peer-share#${new URLSearchParams({ localUrl: bridge.origin, t: token })}`;
+const sharerUrl = `${pageOrigin}/#${new URLSearchParams({ localUrl: bridge.origin, t: token })}`;
 console.log(`
 PeerShare, running locally
   page      ${pageOrigin}
-  sessions  http://<name>.localhost:${SESSION_PORT}
-  relay     ${relayAddr}
+  sessions  ${values.public ? "https://<name>.s.httpeers.net" : `http://<name>.localhost:${SESSION_PORT}`}
+  relay     ${relayAddrs.join(", ")}
   Bridge    ${bridge.origin}${demo ? `\n  demo app  ${demo.origin}  (add it as a Service)` : ""}
 
 Open this to share (the link pairs the page with this Bridge; it changes on every start):
   ${sharerUrl}
 
-Open Invites in another browser profile, or another browser, on this machine.
+${
+  values.public
+    ? "Invites open https://peershare.httpeers.net/invite: send them to anyone."
+    : "Open Invites in another browser profile, or another browser, on this machine."
+}
 Ctrl+C stops everything.
 `);
 if (values.open) openInBrowser(sharerUrl);
@@ -211,7 +243,7 @@ async function stop() {
     s.closeAllConnections?.();
     s.close();
   }
-  await Promise.allSettled([bridge.close(), relay.stop(), demo?.close()]);
+  await Promise.allSettled([bridge.close(), relay?.stop(), demo?.close()]);
   process.exit(0);
 }
 process.on("SIGINT", stop);

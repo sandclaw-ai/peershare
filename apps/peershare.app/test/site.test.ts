@@ -51,16 +51,27 @@ describe("2.8 — the site for httpeers' static host", () => {
     expect(existsSync(join(site(), "index.html"))).toBe(true);
   });
 
-  it("serves index.html for every route (/peer-share, /peer-share/invite): spa", () => {
+  it("serves index.html for every route (/, /invite, /peer-share, /peer-share/invite): spa", () => {
     expect(JSON.parse(readFileSync(join(site(), ".site/config.json"), "utf8"))).toMatchObject({
       spa: true,
     });
   });
 
-  it("names httpeers' relay (from its own document) and httpeers' session zone", () => {
+  it("names httpeers' relay (from its own document), httpeers' session zone and the invite page", () => {
     expect(JSON.parse(readFileSync(join(site(), "peershare.json"), "utf8"))).toEqual({
       relayAddrs: [RELAY],
       sessionOrigin: "https://{name}.s.httpeers.net",
+      invitePage: "https://peershare.httpeers.net/invite",
     });
+  });
+
+  it("serves the proxy launcher and the proxy as static files under /proxy/", () => {
+    const launcher = readFileSync(join(site(), "proxy/peershare-proxy.sh"), "utf8");
+    expect(launcher.split("\n")[0]).toBe("#!/bin/sh");
+    expect(launcher).toContain('SITE="https://peershare.httpeers.net"');
+    expect(launcher).not.toContain("@SITE@");
+    expect(readFileSync(join(site(), "proxy/peershare-proxy.mjs"), "utf8")).toContain(
+      "createBridge",
+    );
   });
 });

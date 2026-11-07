@@ -22,6 +22,14 @@
     "noEmit": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["./src", "./test", "./e2e-browser", "vite.config.ts", "vitest.config.ts"],
+  "include": [
+    "./src",
+    "./proxy",
+    "./runtimes",
+    "./test",
+    "./e2e-browser",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

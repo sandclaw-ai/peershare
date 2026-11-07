@@ -11,7 +11,7 @@
 		root * /srv/config
 		file_server
 	}
-	# Every route is the one page: /peer-share, /peer-share/invite.
+	# Every route is the one page: /, /invite (and /peer-share, /peer-share/invite).
 	handle {
 		root * /srv/page
 		try_files {path} /index.html

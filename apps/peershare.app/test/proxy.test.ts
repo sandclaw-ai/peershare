@@ -1,0 +1,105 @@
+/** The downloadable proxy: today's Bridge, behind a command line. */
+
+import { execFile } from "node:child_process";
+import { createServer } from "node:http";
+import { resolve } from "node:path";
+import { promisify } from "node:util";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { DEFAULT_ORIGINS, parseProxyArgs, startProxy } from "../proxy/proxy.ts";
+
+const TARGET = "x-peershare-target";
+const TOKEN = "x-peershare-bridge-token";
+let app: { origin: string; close(): Promise<void> };
+
+beforeAll(async () => {
+  const server = createServer((req, res) => res.end(`echo ${req.url}`));
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  const address = server.address();
+  if (address == null || typeof address === "string") throw new Error("no address");
+  app = {
+    origin: `http://127.0.0.1:${address.port}`,
+    close: () => new Promise((r) => server.close(() => r())),
+  };
+});
+afterAll(() => app?.close());
+
+describe("parseProxyArgs", () => {
+  it("defaults to port 9090, no key, the hub and local pages", () => {
+    expect(parseProxyArgs([])).toEqual({
+      port: 9090,
+      key: "",
+      origins: DEFAULT_ORIGINS,
+      cookieJars: true,
+    });
+    expect(DEFAULT_ORIGINS).toEqual([
+      "https://peershare.httpeers.net",
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+    ]);
+  });
+
+  it("replaces the origins with repeated or comma-separated --origin", () => {
+    expect(parseProxyArgs(["--origin", "*"]).origins).toEqual(["*"]);
+    expect(
+      parseProxyArgs(["--origin", "https://a.example,https://b.example", "--origin", "http://c:*"])
+        .origins,
+    ).toEqual(["https://a.example", "https://b.example", "http://c:*"]);
+    expect(parseProxyArgs(["--port", "0", "--key", "k", "--no-cookie-jars"])).toMatchObject({
+      port: 0,
+      key: "k",
+      cookieJars: false,
+    });
+  });
+});
+
+describe("startProxy", () => {
+  it("relays for a local page with the defaults, and refuses another website", async () => {
+    const proxy = await startProxy({ ...parseProxyArgs([]), port: 0 });
+    try {
+      expect(proxy.origin).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
+      const ok = await fetch(`${proxy.origin}/x`, {
+        headers: { origin: "http://localhost:8080", [TARGET]: app.origin },
+      });
+      expect(ok.status).toBe(200);
+      expect(await ok.text()).toBe("echo /x");
+      const evil = await fetch(`${proxy.origin}/x`, {
+        headers: { origin: "https://evil.example", [TARGET]: app.origin },
+      });
+      expect(evil.status).toBe(403);
+    } finally {
+      await proxy.close();
+    }
+  });
+
+  it("requires the key when one is set, and links the hub to itself", async () => {
+    const proxy = await startProxy({ ...parseProxyArgs([]), port: 0, key: "k" });
+    try {
+      const none = await fetch(`${proxy.origin}/x`, {
+        headers: { origin: "http://localhost:8080", [TARGET]: app.origin },
+      });
+      expect(none.status).toBe(401);
+      const keyed = await fetch(`${proxy.origin}/x`, {
+        headers: { origin: "http://localhost:8080", [TARGET]: app.origin, [TOKEN]: "k" },
+      });
+      expect(keyed.status).toBe(200);
+      expect(proxy.hubLink).toBe(
+        `https://peershare.httpeers.net/#${new URLSearchParams({ localUrl: proxy.origin, t: "k" })}`,
+      );
+    } finally {
+      await proxy.close();
+    }
+  });
+});
+
+describe("the command", () => {
+  it("warns that --origin '*' lets every website use the proxy", async () => {
+    const run = promisify(execFile)(
+      "node",
+      [resolve(import.meta.dirname, "../proxy/main.ts"), "--port", "0", "--origin", "*"],
+      { timeout: 3_000, killSignal: "SIGINT" },
+    );
+    const { stdout, stderr } = await run.catch((e: { stdout: string; stderr: string }) => e);
+    expect(stdout).toMatch(/http:\/\/127\.0\.0\.1:\d+/);
+    expect(stderr).toContain("every website");
+  });
+});

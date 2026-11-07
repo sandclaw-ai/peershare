@@ -15,30 +15,30 @@ export interface BridgeStatusProps {
 
 const said: Record<BridgeDiagnosis, { title: string; text: ReactNode; tone: string }> = {
   ok: {
-    title: "Bridge connected",
+    title: "Proxy connected",
     text: "You can share services on this computer, such as http://localhost:5173.",
     tone: "border-success/50",
   },
   "permission-needed": {
     title: "Your browser blocked access to your local network",
-    text: "PeerShare needs it to reach the Bridge. Allow “local network access” for this site in the browser's site settings (the icon left of the address), then check again.",
+    text: "PeerShare needs it to reach the local proxy. Allow “local network access” for this site in the browser's site settings (the icon left of the address), then check again.",
     tone: "border-warning/60 bg-warning/10",
   },
   "bridge-not-running": {
-    title: "The Bridge isn't running",
-    text: "Start the PeerShare Bridge on this computer, then open the link it prints. Remote https:// services work without it.",
+    title: "No proxy is running at that address",
+    text: "Start it with the command above, then check again. Services that allow calls from PeerShare, and remote https:// services, work without it.",
     tone: "border-destructive/50 bg-destructive/5",
   },
   "token-rejected": {
-    title: "The Bridge was restarted",
-    text: "It now expects a new pairing. Open the link the Bridge printed when it started.",
+    title: "The proxy refused the key",
+    text: "Enter the key it was started with (--key), or start it without one.",
     tone: "border-warning/60 bg-warning/10",
   },
 };
 
 /**
  * Rung 03's findings as a screen: the browser asks the Sharer before the page
- * may reach the Bridge, a refusal looks exactly like a stopped Bridge, and the
+ * may reach the local proxy (the Bridge), a refusal looks exactly like a stopped Bridge, and the
  * permission state is what tells them apart.
  */
 export function BridgeStatus({ permission, diagnosis, onCheck }: BridgeStatusProps) {
@@ -50,7 +50,7 @@ export function BridgeStatus({ permission, diagnosis, onCheck }: BridgeStatusPro
           <div className="grid gap-1 text-sm">
             <p className="font-medium">Your browser will ask one question</p>
             <p className="text-muted-foreground">
-              To reach the Bridge on this computer, PeerShare needs access to devices on your local
+              To reach the proxy on this computer, PeerShare needs access to devices on your local
               network. When the browser asks, choose “Allow”. Nothing outside this computer and its
               network is reached this way.
             </p>
@@ -58,7 +58,7 @@ export function BridgeStatus({ permission, diagnosis, onCheck }: BridgeStatusPro
         </div>
         <div>
           <Button onClick={onCheck}>
-            <Laptop /> Connect to the Bridge
+            <Laptop /> Connect to the proxy
           </Button>
         </div>
       </Card>
@@ -71,7 +71,7 @@ export function BridgeStatus({ permission, diagnosis, onCheck }: BridgeStatusPro
         <Loader2 className="size-4 animate-spin" />
         {permission === "prompt"
           ? "Waiting for your answer in the browser's prompt…"
-          : "Reaching the Bridge…"}
+          : "Reaching the proxy…"}
       </Card>
     );
   }

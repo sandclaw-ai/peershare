@@ -4,11 +4,14 @@
 
 The standalone PeerShare page, with two routes:
 
-- `/peer-share#localUrl=…&t=…` is the Sharer. The fragment pairs the page with the
-  Bridge (the Bridge prints or opens this link). Sharing starts when the page opens and
-  stops with the tab (ADR 0001).
-- `/peer-share/invite#join=…&from=Dirk` is a Guest. Join, then the Viewer: each Service
-  in its own isolated session origin (ADR 0003), answered over the mesh.
+- `/` (and `/peer-share`) is the Sharer, the hub. Sharing starts when the page opens and
+  stops with the tab. Services that allow calls from the page (CORS) need nothing
+  installed; the others go through the local proxy (below).
+- `/invite#join=…&from=Dirk` is a Guest (`/peer-share/invite` is also served). Join, then
+  the Viewer: each Service in its own isolated session origin, answered over the mesh. Every invite link opens `invitePage` from `peershare.json`
+  (`https://peershare.httpeers.net/invite` when published), or `/invite` on the page's own
+  origin when it is not set. So a Sharer on any copy of the page, a local one included, hands
+  out links that work for Guests anywhere.
 
 It is `@statewalker/peershare.share` (logic) + `@statewalker/peershare.share-react` (views) +
 `@statewalker/peershare.share/browser` (browser mesh platform, IndexedDB) + the session-shell
@@ -40,6 +43,12 @@ another browser profile or another browser. Everything is on loopback, so Guests
 machine. Options: `--port` (page; sessions and relay take the next two), `--bridge-port`,
 `--demo-port`, `--no-cookie-jars`, `--no-build` (reuse the last build).
 
+`--public` is for real Guests on other machines. No local relay starts. The page uses httpeers'
+relay (read from `https://relay.httpeers.net/.well-known/httpeers-relay.json`, so it needs the
+network), and invites open `https://peershare.httpeers.net/invite`. Guests then join through
+the published page and its session zone, while the Sharer's page, proxy and services stay on
+this machine.
+
 `HTTPEERS_DIR=../httpeers` runs it against a checkout of statewalker/httpeers instead of the
 npm package: the script builds that package there and links it in without touching the
 lockfile. `e2e-browser/local.test.ts` runs the whole scenario against `local/serve.mjs`
@@ -48,8 +57,59 @@ lockfile. `e2e-browser/local.test.ts` runs the whole scenario against `local/ser
 **`--bun` needs Bun 1.4 or later.** `@libp2p/websockets` accepts each TCP socket itself and
 hands it to an `http.Server` with `server.emit("connection", socket)`. Bun's `node:http` ignored a
 socket handed over that way up to 1.3.x (checked with 1.1.45, 1.2.23 and 1.3.14), so the relay
-accepted no connections and the page stayed on "Bridge connected". Bun 1.4.0 to 1.4.4 answer it.
+accepted no connections and the page stayed on "Proxy connected". Bun 1.4.0 to 1.4.4 answer it.
 `peershare.sh --bun` and `serve.mjs` refuse an older Bun; `bun upgrade`, or run under Node.
+
+### The proxy reaches services that send no CORS headers
+
+A page can fetch a local service only if the service allows it with CORS. For the others, the
+Sharer runs the proxy, which is the Bridge as a command:
+
+```sh
+curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh
+curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh -s -- --port 9091 --key s3cret
+```
+
+The launcher fetches the proxy (`/proxy/peershare-proxy.mjs`, one file) into
+`~/.cache/peershare/` and runs it with the first of Deno, Bun or Node it finds. With none of
+them, it downloads Deno once into `~/.cache/peershare/deno-<version>/` (it needs `unzip`), and
+never installs anything system-wide. It runs on macOS and Linux.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--port` | `9090` | listens on `127.0.0.1` only |
+| `--key` | none | when set, pages must send it; a wrong one is refused with 401 |
+| `--origin` | `https://peershare.httpeers.net`, `http://localhost:*`, `http://127.0.0.1:*` | the pages allowed to use it; repeat it or use commas; it replaces the list |
+| `--no-cookie-jars` | jars on | one cookie jar per Guest |
+
+**Why the origin list, and why the key is optional.** A loopback port that answers
+cross-origin requests can be reached by every website the Sharer visits. The origin list is
+the guard: a page from any other origin gets 403 with no CORS grant. With that in place, the
+key protects only against local pages, so it is off by default. `--origin '*'` lets every
+site in, and the proxy prints a warning that says so. Targets are limited the same way as the
+Bridge's: this machine and the private network.
+
+**How the hub finds the proxy.** The hub's *Local proxy* card holds the proxy's address
+(default `http://127.0.0.1:9090`) and key, which are kept in this browser's `localStorage`
+(`peershare:proxy`, `src/proxy-settings.ts`). A link with `#localUrl=…&t=…`, as printed by the
+proxy and `local/serve.mjs`, fills them in. The fragment is then removed from the address bar,
+so the key doesn't stay on screen or in the history. The page checks the proxy only when it is
+in use: after a save, after such a link, or on the first request a Service sends through it.
+Opening the hub never probes the Sharer's machine. When a check fails, the page says why:
+"No proxy is running at that address", "The proxy refused the key", or "Your browser blocked
+access to your local network" (Chromium's Local Network Access). Chromium's refusal looks
+exactly like a closed port, so the page reads the permission state to tell them apart
+(`src/bridge-diagnosis.ts`). Safari blocks a secure page's calls to `http://127.0.0.1`, so
+there the card says the proxy needs Chrome or Firefox. Services that send CORS headers still
+work in Safari.
+
+**Why one file runs on three runtimes.** `scripts/build-proxy.mjs` inlines every dependency
+except `node:*`. The one exception is `ws`, which is picked at run time
+(`proxy/ws-for-runtime.ts`). Under Bun, the bundled `ws` connects to the app but never
+finishes the page's upgrade: the page waits with no error. So Bun gets its own built-in `ws`,
+and Node and Deno get the inlined copy. `pnpm test:runtimes` runs the built file under all
+three, and needs `bun` and `deno` installed. `test/launcher.test.ts` runs the launcher as a
+real `sh`, with stub runtimes on `PATH`.
 
 ### Develop
 
@@ -70,13 +130,14 @@ Serve `dist/` with every route falling back to `index.html`, and `/peershare.jso
 ## Publishing (decision 2.8)
 
 ```sh
-pnpm build:site            # site/peershare.httpeers.net/: the page, peershare.json, .site/config.json
+pnpm build:site            # site/peershare.httpeers.net/: the page, peershare.json, proxy/, .site/config.json
 rclone sync site/peershare.httpeers.net httpeers:sites/peershare.httpeers.net
 ```
 
 `build:site` reads the relay's addresses from its own document
 (`https://relay.httpeers.net/.well-known/httpeers-relay.json`), points sessions at
-`*.s.httpeers.net`, and sets `spa: true` so `/peer-share/invite` is served too. `SITE`,
+`*.s.httpeers.net`, sets `invitePage` to `https://peershare.httpeers.net/invite`, and sets
+`spa: true` so `/invite` is served too. `SITE`,
 `SESSION_ZONE` and `RELAY_DOCUMENT_URL` override the defaults. `test/site.test.ts` checks
 the folder.
 

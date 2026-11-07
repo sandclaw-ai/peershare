@@ -5,14 +5,14 @@ import type { BridgeDiagnosis } from "../src/views/model.js";
 
 afterEach(cleanup);
 
-describe("Bridge status — what the page tells the Sharer about the Bridge", () => {
+describe("Bridge status — what the page tells the Sharer about the local proxy", () => {
   it("before the first call, explains the browser's local network prompt and waits for a click", () => {
     const onCheck = vi.fn();
     render(<BridgeStatus permission="prompt" onCheck={onCheck} />);
 
     expect(screen.getByText(/devices on your local network/)).toBeTruthy();
     expect(screen.getByText(/choose “Allow”/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Connect to the Bridge" }));
+    fireEvent.click(screen.getByRole("button", { name: "Connect to the proxy" }));
     expect(onCheck).toHaveBeenCalled();
   });
 
@@ -22,10 +22,10 @@ describe("Bridge status — what the page tells the Sharer about the Bridge", ()
   });
 
   it.each<[BridgeDiagnosis, RegExp, RegExp]>([
-    ["ok", /Bridge connected/, /share services on this computer/],
+    ["ok", /Proxy connected/, /share services on this computer/],
     ["permission-needed", /blocked access to your local network/, /site settings/],
-    ["bridge-not-running", /Bridge isn't running/, /Start the PeerShare Bridge/],
-    ["token-rejected", /restarted/, /link the Bridge printed/],
+    ["bridge-not-running", /No proxy is running/, /Start it with the command above/],
+    ["token-rejected", /refused the key/, /--key/],
   ])("%s: says what happened and what to do", (diagnosis, what, todo) => {
     render(<BridgeStatus permission="granted" diagnosis={diagnosis} onCheck={() => {}} />);
     expect(screen.getByText(what)).toBeTruthy();

@@ -41,9 +41,9 @@ async function viewerFrame(tab: Page, sessionUrl: RegExp): Promise<Frame> {
 export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> {
   const dirk = await person(init.browser);
   await dirk.tab.goto(
-    `${init.pageOrigin}/peer-share#localUrl=${encodeURIComponent(init.bridge.origin)}&t=${init.bridge.token}`,
+    `${init.pageOrigin}/#localUrl=${encodeURIComponent(init.bridge.origin)}&t=${init.bridge.token}`,
   );
-  await dirk.tab.getByText("Bridge connected").waitFor({ timeout: 30_000 });
+  await dirk.tab.getByText("Proxy connected").waitFor({ timeout: 30_000 });
   await dirk.tab.getByRole("button", { name: /Turn off server/ }).waitFor({ timeout: 60_000 }); // sharing
 
   await dirk.tab.getByLabel("Your name").fill("Dirk");
@@ -57,6 +57,8 @@ export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> 
   await field.waitFor({ timeout: 30_000 });
   const link = await field.inputValue();
   expect(link).toContain("from=Dirk");
+  // With no `invitePage` in peershare.json, invites open /invite on the page's own site.
+  expect(link.startsWith(`${init.pageOrigin}/invite#`)).toBe(true);
 
   const claudia = await person(init.browser);
   await claudia.tab.goto(link);
