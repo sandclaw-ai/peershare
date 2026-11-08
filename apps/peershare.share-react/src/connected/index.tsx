@@ -1,5 +1,5 @@
 /**
- * The views, wired: they read PeerShare's model (`peershare:model`) and act
+ * The screens, wired: they read PeerShare's model (`peershare:model`) and act
  * only through its commands. Nothing here knows about the mesh.
  */
 
@@ -16,7 +16,9 @@ import {
   type PeerShareSnapshot,
   ProbeService,
   peershareModelSlot,
+  RemoveService,
   RevokeGuest,
+  SetDefault,
   SetName,
   StartSharing,
   StopSharing,
@@ -32,12 +34,9 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { GuestJoin, type JoinStage } from "../views/guest-join.js";
-import { GuestList } from "../views/guests.js";
-import { InviteDialog } from "../views/invite-dialog.js";
+import { GuestLanding, type GuestStage, GuestViewer, type ViewerTab } from "../kit/guest.js";
+import { SharerPage } from "../kit/sharer-page.js";
 import type { Guest, Service } from "../views/model.js";
-import { SharerServices } from "../views/sharer-services.js";
-import { ViewerFrame, type ViewerService } from "../views/viewer-frame.js";
 
 const Runtime = createContext<AppRuntime | null>(null);
 
@@ -79,7 +78,7 @@ function useCall() {
   );
 }
 
-/** The logic's Service, as the view draws it. */
+/** The logic's Service, as the screens draw it. */
 function toView(s: PeerShareSnapshot["sharer"]["services"][number]): Service {
   const warnings: Service["warnings"] = [...(s.warnings ?? [])];
   if (s.cause === "cors-missing") warnings.push("cors-missing");
@@ -95,52 +94,57 @@ function toView(s: PeerShareSnapshot["sharer"]["services"][number]): Service {
   };
 }
 
-export function SharerScreen() {
+export interface SharerScreenProps {
+  /** The local proxy's card (`ProxyCard`): the page that knows the proxy draws it. */
+  proxy?: ReactNode;
+}
+
+/** The Sharer's page (scenarios S1–S7). */
+export function SharerScreen({ proxy }: SharerScreenProps = {}) {
   const snapshot = usePeerShare();
   const call = useCall();
   const [inviteOpen, setInviteOpen] = useState(false);
   const services = snapshot.sharer.services;
 
+  // The mesh says who joined, not who is connected now: no presence is claimed.
   const guests: Guest[] = snapshot.guests.map((g) => ({
     peerId: g.peerId,
     name: `Guest ${g.peerId.slice(-6)}`,
     joinedAt: new Date(g.joinedAt),
-    online: true,
   }));
 
   return (
-    <div className="flex flex-col gap-4">
-      <SharerServices
-        sharerName={snapshot.sharer.name}
-        onSharerNameChange={(name) => void call(SetName, { name })}
-        services={services.map(toView)}
-        serverOn={snapshot.sharing.sharing}
-        onExpose={(draft, kind) => void call(AddService, { ...draft, kind })}
-        onEdit={(id, draft, kind) => void call(EditService, { id, draft: { ...draft, kind } })}
-        onProbe={(id) => void call(ProbeService, { id })}
-        onToggle={(id) => {
-          const service = services.find((s) => s.id === id);
-          if (service != null) void call(ToggleService, { id, enabled: !service.enabled });
-        }}
-        onInvite={async () => {
-          await call(Invite, undefined);
-          setInviteOpen(true);
-        }}
-        onServer={(on) => void call(on ? StartSharing : StopSharing, undefined)}
-      />
-      <GuestList guests={guests} onRevoke={(peerId) => void call(RevokeGuest, { peerId })} />
-      {snapshot.invite != null && (
-        <InviteDialog
-          open={inviteOpen}
-          invite={{
-            url: snapshot.invite.url,
-            expiresAt: new Date(snapshot.invite.expiresAt),
-            used: false,
-          }}
-          onClose={() => setInviteOpen(false)}
-        />
-      )}
-    </div>
+    <SharerPage
+      name={snapshot.sharer.name}
+      onNameChange={(name) => void call(SetName, { name })}
+      sharing={snapshot.sharing.sharing}
+      onSharingChange={(on) => void call(on ? StartSharing : StopSharing, undefined)}
+      proxy={proxy}
+      services={services.map(toView)}
+      guests={guests}
+      invite={
+        snapshot.invite != null
+          ? {
+              url: snapshot.invite.url,
+              expiresAt: new Date(snapshot.invite.expiresAt),
+              used: false,
+            }
+          : undefined
+      }
+      inviteOpen={inviteOpen && snapshot.invite != null}
+      onInviteOpenChange={setInviteOpen}
+      onInvite={async () => {
+        await call(Invite, undefined);
+        setInviteOpen(true);
+      }}
+      onAdd={(draft, kind) => void call(AddService, { ...draft, kind })}
+      onEdit={(id, draft, kind) => void call(EditService, { id, draft: { ...draft, kind } })}
+      onToggle={(id, enabled) => void call(ToggleService, { id, enabled })}
+      onProbe={(id) => void call(ProbeService, { id })}
+      onMakeDefault={(id) => void call(SetDefault, { id })}
+      onRemove={(id) => void call(RemoveService, { id })}
+      onRevoke={(peerId) => void call(RevokeGuest, { peerId })}
+    />
   );
 }
 
@@ -149,10 +153,11 @@ export interface GuestScreenProps {
   link: string;
   /** The Sharer's name as the link states it, shown before joining. */
   sharerName: string;
-  /** What the frame shows for a Service: in the page, its isolated session origin (ADR 0003). */
-  frameFor?: (service: ViewerService) => { src?: string; srcDoc?: string };
+  /** What the frame shows for a Service: in the page, its isolated session origin. */
+  frameFor?: (service: ViewerTab) => { src?: string; srcDoc?: string };
 }
 
+/** A Guest's page (scenarios G1–G4): the invite and its outcomes, then the Viewer. */
 export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
   const { guest } = usePeerShare();
   const call = useCall();
@@ -160,8 +165,9 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
   // What the last Join answered when it did not get in: the hub's refusal or
   // an unreachable Sharer. The Guest's state stays "no-link" then, so without
   // this the page would show the Join button again and nothing else.
-  const [refused, setRefused] = useState<JoinStage>();
+  const [refused, setRefused] = useState<GuestStage>();
   const [declined, setDeclined] = useState(false);
+  const [closed, setClosed] = useState(false);
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const [selected, setSelected] = useState<string>();
 
@@ -170,26 +176,30 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
     if (!joined) return;
     void call(ListSharedServices, undefined).then((entries) => {
       setCatalog(entries);
-      setSelected((current) => current ?? entries[0]?.id);
+      setSelected((current) => current ?? entries.find((e) => e.isDefault)?.id ?? entries[0]?.id);
     });
   }, [joined, call]);
 
+  const name = guest.sharerName ?? sharerName;
+
   if (!joined) {
-    const stage: JoinStage = declined
-      ? "declined"
-      : joining
-        ? "joining"
-        : guest.stage !== "no-link"
-          ? (guest.stage as JoinStage) // not joined here: see `joined` above
-          : (refused ?? "invite");
+    const stage: GuestStage = closed
+      ? "closed"
+      : declined
+        ? "declined"
+        : joining
+          ? "joining"
+          : guest.stage !== "no-link"
+            ? (guest.stage as GuestStage) // not joined here: see `joined` above
+            : (refused ?? "invite");
     return (
-      <GuestJoin
-        sharerName={guest.sharerName ?? sharerName}
+      <GuestLanding
+        sharerName={name}
         stage={stage}
         onJoin={async () => {
           setJoining(true);
           const answer = await call(Join, { link });
-          setRefused(answer.stage === "joined" ? undefined : (answer.stage as JoinStage));
+          setRefused(answer.stage === "joined" ? undefined : (answer.stage as GuestStage));
           setJoining(false);
         }}
         onDecline={() => setDeclined(true)}
@@ -197,20 +207,29 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
     );
   }
 
-  const services: ViewerService[] = catalog.map((c) => ({
-    id: c.id,
-    name: c.name,
-    paused: c.paused,
-  }));
+  const services: ViewerTab[] = catalog.map((c) => ({ id: c.id, name: c.name, paused: c.paused }));
   return (
-    <ViewerFrame
-      sharerName={guest.sharerName ?? sharerName}
+    <GuestViewer
+      sharerName={name}
       services={services}
       selected={selected ?? services[0]?.id ?? ""}
-      link={guest.stage === "machine-offline" ? "offline" : "connected"}
+      presence={guest.stage === "machine-offline" ? "offline" : "online"}
       onSelect={setSelected}
-      onCloseSession={() => void call(CloseSession, undefined)}
-      {...(frameFor != null ? { frameFor } : {})}
+      onCloseSession={async () => {
+        await call(CloseSession, undefined);
+        setClosed(true);
+      }}
+      renderService={(service) => (
+        <iframe
+          title={`${service.name}, shared by ${name}`}
+          className="w-full flex-1 border-0"
+          // A srcdoc frame shares this page's origin: static text only, never the
+          // Sharer's words (a Service name is theirs to choose).
+          {...(frameFor?.(service) ?? {
+            srcDoc: `<!doctype html><p style="font-family:system-ui;margin:2rem">Opening…</p>`,
+          })}
+        />
+      )}
     />
   );
 }

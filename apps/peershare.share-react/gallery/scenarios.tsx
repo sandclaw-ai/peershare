@@ -5,9 +5,9 @@
 
 import { Card } from "@statewalker/ui.view.shadcn";
 import type { ReactNode } from "react";
-import { BridgeCard, type BridgeState, HealthBadge, KindBadge } from "../src/kit/index.js";
+import { HealthBadge, KindBadge, ProxyCard, type ProxyStatus } from "../src/kit/index.js";
 import type { Health } from "../src/views/model.js";
-import { GuestDemo, guests, SharerDemo, services } from "./demos.js";
+import { GuestDemo, guests, PROXY, PROXY_COMMAND, SharerDemo, services } from "./demos.js";
 import { click, type Play, type } from "./play.js";
 
 export type Device = "desktop" | "phone";
@@ -32,23 +32,28 @@ export interface Scenario {
   frames: Frame[];
 }
 
-const bridgeStates: { state: BridgeState; label: string }[] = [
-  { state: "prompt", label: "Paired, before the browser's question" },
-  { state: "checking", label: "Calling the Bridge" },
-  { state: "ok", label: "Connected" },
-  { state: "permission-needed", label: "Local network access blocked" },
-  { state: "bridge-not-running", label: "Bridge not running" },
-  { state: "token-rejected", label: "Bridge restarted" },
-  { state: "none", label: "Opened without a pairing link" },
+const proxyStates: { status: ProxyStatus; label: string; supported?: boolean }[] = [
+  { status: "unchecked", label: "Not used yet" },
+  { status: "checking", label: "Calling the proxy" },
+  { status: "ok", label: "Connected" },
+  { status: "permission-needed", label: "Local network access blocked" },
+  { status: "bridge-not-running", label: "No proxy at that address (settings open)" },
+  { status: "token-rejected", label: "Wrong key (settings open)" },
+  { status: "unchecked", label: "Safari", supported: false },
 ];
 
-function BridgeSheet() {
+function ProxySheet() {
   return (
     <div className="bg-muted/30 grid min-h-full content-start gap-3 p-6">
-      {bridgeStates.map(({ state, label }) => (
-        <div key={state} className="grid gap-1.5">
+      {proxyStates.map(({ status, label, supported = true }) => (
+        <div key={label} className="grid gap-1.5">
           <p className="text-muted-foreground font-mono text-xs">{label}</p>
-          <BridgeCard state={state} />
+          <ProxyCard
+            status={status}
+            settings={PROXY}
+            command={PROXY_COMMAND}
+            supported={supported}
+          />
         </div>
       ))}
     </div>
@@ -87,26 +92,35 @@ export const scenarios: Scenario[] = [
   {
     id: "s1",
     actor: "Sharer",
-    title: "Pair the page with the Bridge",
+    title: "Connect the local proxy",
     summary:
-      "The Bridge prints a pairing link. The page explains the browser's local-network question before calling, then shows what it found.",
+      "Services without CORS on this computer or its network go through the local proxy. One card says what it is for, how to start it, and whether it answers; its address and key stay in this browser.",
     frames: [
       {
         id: "s1-prompt",
-        title: "First open, before the browser's question",
+        title: "First open",
         caption:
-          "Opened from the Bridge's link. One card says what the browser will ask and why; nothing is called until the Sharer clicks.",
+          "Nothing is called yet: the proxy is checked when its settings are saved, when a pairing link fills them in, or on the first request through it.",
         device: "desktop",
-        render: () => <SharerDemo bridge="prompt" services={[]} guests={[]} />,
+        render: () => <SharerDemo proxy="unchecked" services={[]} guests={[]} />,
+      },
+      {
+        id: "s1-setup",
+        title: "Set up",
+        caption:
+          "The command that starts the proxy, with a copy button, and its address and key. Saving checks it; a link printed by the proxy fills both in.",
+        device: "desktop",
+        render: () => <SharerDemo proxy="unchecked" services={[]} guests={[]} />,
+        play: () => click("Set up"),
       },
       {
         id: "s1-states",
-        title: "Every Bridge state",
+        title: "Every proxy state",
         caption:
-          "Connected, checking, blocked by the browser, not running, restarted (stale pairing), and no Bridge at all (remote services only).",
+          "Not used yet, checking, connected, blocked by the browser, nothing at that address, wrong key, and Safari (which cannot reach it).",
         device: "desktop",
-        height: 900,
-        render: () => <BridgeSheet />,
+        height: 1250,
+        render: () => <ProxySheet />,
       },
     ],
   },
@@ -121,7 +135,7 @@ export const scenarios: Scenario[] = [
         id: "s2-first",
         title: "The first service",
         caption:
-          "Typing http://localhost:5173 shows “reached through the Bridge”. The first service is the default.",
+          "Typing http://localhost:5173 shows “reached through the local proxy”. The first service is the default.",
         commands: ["SetName", "AddService"],
         device: "desktop",
         render: () => <SharerDemo services={[]} guests={[]} />,
@@ -173,7 +187,7 @@ export const scenarios: Scenario[] = [
         id: "s3-health",
         title: "Three services, three states",
         caption:
-          "Working on this computer; slow on the network (cookies kept per guest by the Bridge); a remote wiki that doesn't allow calls from PeerShare.",
+          "Working on this computer; slow on the network (cookies kept per guest by the proxy); a remote wiki that doesn't allow calls from PeerShare.",
         commands: ["GetSharer", "ProbeService"],
         device: "desktop",
         height: 980,
@@ -190,7 +204,7 @@ export const scenarios: Scenario[] = [
       {
         id: "s3-phone",
         title: "On a phone",
-        caption: "The same page in one column: header, Bridge, services, then guests.",
+        caption: "The same page in one column: header, proxy, services, then guests.",
         device: "phone",
         height: 1400,
         render: () => <SharerDemo />,

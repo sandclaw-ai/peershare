@@ -136,14 +136,20 @@ export interface GuestsCardProps {
 }
 
 export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCardProps) {
-  const online = guests.filter((g) => g.online).length;
+  // Presence, where the caller knows it: who is connected right now.
+  const known = guests.some((g) => g.online != null);
+  const online = guests.filter((g) => g.online === true).length;
   return (
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b p-4">
         <div>
           <h2 className="font-semibold">Guests</h2>
           <p className="text-muted-foreground text-xs">
-            {guests.length === 0 ? "Nobody yet" : `${guests.length} joined · ${online} online now`}
+            {guests.length === 0
+              ? "Nobody yet"
+              : known
+                ? `${guests.length} joined · ${online} online now`
+                : `${guests.length} joined`}
           </p>
         </div>
         <Button size="sm" onClick={onInvite} disabled={!canInvite}>
@@ -163,15 +169,22 @@ export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCard
             <li key={guest.peerId} className="flex items-center gap-3 px-4 py-3">
               <span className="relative">
                 <NameAvatar name={guest.name} />
-                <PresenceDot
-                  value={guest.online ? "online" : "offline"}
-                  className="ring-card absolute -right-0.5 -bottom-0.5 rounded-full ring-2"
-                />
+                {guest.online != null && (
+                  <PresenceDot
+                    value={guest.online ? "online" : "offline"}
+                    className="ring-card absolute -right-0.5 -bottom-0.5 rounded-full ring-2"
+                  />
+                )}
               </span>
               <span className="grid min-w-0 flex-1">
                 <span className="truncate text-sm font-medium">{guest.name}</span>
                 <span className="text-muted-foreground text-xs">
-                  {guest.online ? "Online" : "Away"} · joined {clock(guest.joinedAt)}
+                  {guest.online == null
+                    ? "Joined"
+                    : guest.online
+                      ? "Online · joined"
+                      : "Away · joined"}{" "}
+                  {clock(guest.joinedAt)}
                 </span>
               </span>
               <RevokeButton name={guest.name} onConfirm={() => onRevoke?.(guest.peerId)} />

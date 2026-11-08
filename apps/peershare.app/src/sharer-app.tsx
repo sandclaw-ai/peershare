@@ -7,12 +7,7 @@
 
 import { createRuntime, peershare, StartSharing } from "@statewalker/peershare.share";
 import { browserMesh, idbSharerStore } from "@statewalker/peershare.share/browser";
-import {
-  BridgeStatus,
-  PeerShareProvider,
-  ProxySettings,
-  SharerScreen,
-} from "@statewalker/peershare.share-react";
+import { PeerShareProvider, ProxyCard, SharerScreen } from "@statewalker/peershare.share-react";
 import { useEffect, useRef, useState } from "react";
 import { type BridgeDiagnosis, diagnoseBridge } from "./bridge-diagnosis.js";
 import type { PeerShareConfig } from "./config.js";
@@ -76,18 +71,18 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
 
   return (
     <PeerShareProvider rt={rt}>
-      <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-        <ProxySettings
-          value={settings}
-          command={PROXY_COMMAND}
-          supported={proxySupported(navigator.userAgent)}
-          onSave={save}
-        />
-        {diagnosis != null && (
-          <BridgeStatus permission="prompt" diagnosis={diagnosis} onCheck={check} />
-        )}
-        <SharerScreen />
-      </main>
+      <SharerScreen
+        proxy={
+          <ProxyCard
+            status={diagnosis ?? "unchecked"}
+            settings={settings}
+            command={PROXY_COMMAND}
+            supported={proxySupported(navigator.userAgent)}
+            onSave={save}
+            onCheck={() => void check()}
+          />
+        }
+      />
     </PeerShareProvider>
   );
 }

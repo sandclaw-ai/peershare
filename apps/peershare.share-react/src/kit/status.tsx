@@ -41,7 +41,10 @@ export function HealthBadge({ value }: { value: Health }) {
 
 export function KindBadge({ kind }: { kind: UpstreamKind }) {
   return kind === "bridged" ? (
-    <Badge variant="outline" title="On this computer or its network, reached through the Bridge">
+    <Badge
+      variant="outline"
+      title="On this computer or its network, reached through the local proxy"
+    >
       <Laptop /> Local
     </Badge>
   ) : (

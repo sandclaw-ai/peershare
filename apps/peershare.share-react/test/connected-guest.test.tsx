@@ -1,5 +1,5 @@
 /**
- * M7 — the Guest's screen, wired. The real Guest needs a mesh, which jsdom
+ * The Guest's screen, wired. The real Guest needs a mesh, which jsdom
  * cannot host; here a stand-in PeerShare answers at the views' seam (the
  * model and the commands). The real one is tested in @statewalker/peershare.
  */
@@ -61,7 +61,7 @@ function standInPeerShare(answer: GuestState["stage"] = "joined") {
   return { rt, joined, closed };
 }
 
-describe("M7 — GuestScreen", () => {
+describe("GuestScreen", () => {
   it("Join sends the link; the Viewer then lists Dirk's Services; Close session ends it", async () => {
     const { rt, joined, closed } = standInPeerShare();
     render(
@@ -86,11 +86,13 @@ describe("M7 — GuestScreen", () => {
       fireEvent.click(await screen.findByRole("button", { name: "Close and forget" }));
     });
     expect(closed).toHaveBeenCalled();
-    expect(await screen.findByRole("button", { name: /Join Dirk/ })).toBeTruthy();
+    // The invite was used up and this browser forgot it: no Join button, a page that says so.
+    expect(await screen.findByText("Session closed")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Join Dirk/ })).toBeNull();
   });
 
   it.each([
-    ["invite-used", /This invite has already been used/],
+    ["invite-used", /This invite was already used/],
     ["machine-offline", /Dirk's computer isn't answering/],
   ] as const)(
     "a Join that does not get in (%s) says why, and opens no Viewer",

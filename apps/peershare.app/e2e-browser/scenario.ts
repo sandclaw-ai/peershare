@@ -44,16 +44,23 @@ export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> 
     `${init.pageOrigin}/#localUrl=${encodeURIComponent(init.bridge.origin)}&t=${init.bridge.token}`,
   );
   await dirk.tab.getByText("Proxy connected").waitFor({ timeout: 30_000 });
-  await dirk.tab.getByRole("button", { name: /Turn off server/ }).waitFor({ timeout: 60_000 }); // sharing
+  await dirk.tab.getByRole("button", { name: /Stop sharing/ }).waitFor({ timeout: 60_000 }); // sharing
 
   await dirk.tab.getByLabel("Your name").fill("Dirk");
   await dirk.tab.getByLabel("Name", { exact: true }).fill("fooService");
-  await dirk.tab.getByLabel("Local URL to expose").fill(init.appOrigin);
-  await dirk.tab.getByRole("button", { name: "Expose service" }).click();
-  await dirk.tab.getByText("fooService").first().waitFor();
+  await dirk.tab.getByLabel("Address", { exact: true }).fill(init.appOrigin);
+  await dirk.tab.getByRole("button", { name: "Share service" }).click();
+  await dirk.tab.getByRole("heading", { name: "fooService" }).waitFor();
+  // Its Probe, through the proxy: the badge says it works.
+  await dirk.tab.getByText("Working").waitFor({ timeout: 30_000 });
+  // The service's menu: Test again runs the Probe again.
+  await dirk.tab.getByRole("button", { name: "More for fooService" }).click();
+  await dirk.tab.getByRole("menuitem", { name: "Test again" }).click();
+  await dirk.tab.getByText("Working").waitFor({ timeout: 30_000 });
 
-  await dirk.tab.getByRole("button", { name: /Invite Guest User/ }).click();
-  const field = dirk.tab.getByLabel("Link", { exact: true });
+  // The header's Invite (the Guests card has one too).
+  await dirk.tab.getByRole("button", { name: "Invite", exact: true }).first().click();
+  const field = dirk.tab.getByLabel("Invite link", { exact: true });
   await field.waitFor({ timeout: 30_000 });
   const link = await field.inputValue();
   expect(link).toContain("from=Dirk");
@@ -63,7 +70,7 @@ export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> 
   const claudia = await person(init.browser);
   await claudia.tab.goto(link);
   await claudia.tab.getByRole("button", { name: /Join Dirk/ }).click();
-  await claudia.tab.getByText("SandClaw.ai presents:").waitFor({ timeout: 60_000 });
+  await claudia.tab.getByRole("button", { name: /Close session/ }).waitFor({ timeout: 60_000 });
 
   const frame = await viewerFrame(claudia.tab, init.sessionUrl);
   await frame.getByText("hello from Dirk's app").waitFor({ timeout: 30_000 });
@@ -73,6 +80,7 @@ export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> 
   expect(new URL(frame.url()).origin).not.toBe(init.pageOrigin);
   // And Dirk sees who joined.
   await dirk.tab.keyboard.press("Escape");
+  await dirk.tab.getByRole("dialog").waitFor({ state: "hidden", timeout: 5_000 });
   await dirk.tab.getByText(/Guest \S{6}/).waitFor({ timeout: 10_000 });
   expect([...dirk.errors, ...claudia.errors]).toEqual([]);
 

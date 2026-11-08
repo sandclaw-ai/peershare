@@ -69,7 +69,7 @@ function Advice({ service }: { service: Service }) {
         <AlertTitle>PeerShare can't reach it</AlertTitle>
         <AlertDescription>
           {service.kind === "bridged"
-            ? "Check that it is running on this computer and that the Bridge is still open, then test again."
+            ? "Check that it is running, and that the local proxy is running and connected, then test again."
             : "Check the address and that the service is online, then test again."}
         </AlertDescription>
       </Alert>,
@@ -98,7 +98,7 @@ function WarningNote({ warning }: { warning: Warning }) {
         <AlertDescription>
           <p>
             Add <span className="text-foreground font-mono">{PAGE_ORIGIN}</span> to its CORS
-            settings, or run it on this computer and share it through the Bridge.
+            settings, or share it through the local proxy.
           </p>
         </AlertDescription>
       </Alert>
@@ -110,7 +110,7 @@ function WarningNote({ warning }: { warning: Warning }) {
         <Cookie />
         <AlertTitle>It signs people in with cookies</AlertTitle>
         <AlertDescription>
-          The Bridge keeps each guest's cookies apart, so each guest signs in once.
+          The local proxy keeps each guest's cookies apart, so each guest signs in once.
         </AlertDescription>
       </Alert>
     );
@@ -229,7 +229,7 @@ export function ServiceCard({
 const kindLine: Record<UpstreamKind, { icon: ReactNode; text: string }> = {
   bridged: {
     icon: <Laptop />,
-    text: "On this computer or its network: reached through the Bridge.",
+    text: "On this computer or its network: reached through the local proxy.",
   },
   direct: {
     icon: <Globe />,
@@ -363,22 +363,14 @@ export function ServiceDialog({
 
 // ——— The list, and the first run ——————————————————————————————————————
 
-export function ServicesEmpty({
-  bridged,
-  children,
-}: {
-  /** A Bridge is paired (connected or not yet): local services can be shared. */
-  bridged: boolean;
-  children: ReactNode;
-}) {
+export function ServicesEmpty({ children }: { children: ReactNode }) {
   return (
     <Card className="grid gap-5 p-6">
       <div className="grid gap-1">
         <h2 className="text-lg font-semibold">Share your first service</h2>
         <p className="text-muted-foreground text-sm">
-          {bridged
-            ? "Anything with a web page: a dev server, a dashboard, a notebook. It stays on your computer; guests see it through your browser."
-            : "A remote https:// service that allows calls from PeerShare. Pair the Bridge to share services on this computer."}
+          Anything with a web page: a dev server, a dashboard, a notebook. It stays where it runs;
+          guests see it through your browser.
         </p>
       </div>
       {children}

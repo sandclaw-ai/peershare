@@ -12,9 +12,8 @@ import {
   Input,
 } from "@statewalker/ui.view.shadcn";
 import { Power, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import type { Guest, Invite, Service, ServiceDraft, UpstreamKind } from "../views/model.js";
-import { BridgeCard, type BridgeState } from "./bridge.js";
 import { GuestsCard, InviteDialog, KeepTabOpen } from "./people.js";
 import { Alert, AlertDescription, AlertTitle } from "./primitives.js";
 import {
@@ -39,8 +38,8 @@ export interface SharerPageProps {
   sharing: boolean;
   /** `StartSharing` / `StopSharing`. */
   onSharingChange?: (on: boolean) => void;
-  bridge: BridgeState;
-  onConnectBridge?: () => void;
+  /** The local proxy's card (`ProxyCard`), shown above the services. */
+  proxy?: ReactNode;
   services: Service[];
   guests: Guest[];
   /** The last Invite made, shown while `inviteOpen`. */
@@ -69,12 +68,14 @@ export interface SharerPageProps {
 }
 
 export function SharerPage(props: SharerPageProps) {
-  const { name, sharing, bridge, services, guests, invite, inviteOpen = false, now } = props;
+  const { name, sharing, proxy, services, guests, invite, inviteOpen = false, now } = props;
   const [dialog, setDialog] = useState(props.dialog);
   const [confirmStop, setConfirmStop] = useState(false);
   const editing = dialog?.mode === "edit" ? services.find((s) => s.id === dialog.id) : undefined;
   const canInvite = sharing && services.some((s) => s.enabled);
-  const online = guests.filter((g) => g.online).length;
+  const presence = guests.some((g) => g.online != null);
+  const online = guests.filter((g) => g.online === true).length;
+  const count = presence ? online : guests.length;
 
   return (
     <div className="bg-muted/30 min-h-full">
@@ -98,7 +99,7 @@ export function SharerPage(props: SharerPageProps) {
           >
             <PresenceDot value={sharing ? "online" : "offline"} />
             {sharing
-              ? `Sharing · ${online} ${online === 1 ? "guest" : "guests"} online`
+              ? `Sharing · ${count} ${count === 1 ? "guest" : "guests"}${presence ? " online" : ""}`
               : "Not sharing"}
           </span>
           <Button
@@ -116,7 +117,7 @@ export function SharerPage(props: SharerPageProps) {
 
       <main className="mx-auto grid max-w-5xl gap-6 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="grid content-start gap-4">
-          <BridgeCard state={bridge} onConnect={props.onConnectBridge} />
+          {proxy}
           {!sharing && (
             <Alert variant="warning">
               <Power />
@@ -128,7 +129,7 @@ export function SharerPage(props: SharerPageProps) {
             </Alert>
           )}
           {services.length === 0 ? (
-            <ServicesEmpty bridged={bridge !== "none"}>
+            <ServicesEmpty>
               <ServiceForm
                 services={services}
                 initial={{ name: "", target: "", isDefault: true }}

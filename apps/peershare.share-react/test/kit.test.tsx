@@ -1,6 +1,7 @@
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { frames, scenarios } from "../gallery/scenarios.js";
+import { SharerPage } from "../src/kit/sharer-page.js";
 import { initials } from "../src/kit/status.js";
 
 afterEach(cleanup);
@@ -44,5 +45,52 @@ describe("initials", () => {
     expect(initials("Dirk")).toBe("D");
     expect(initials("Guest 3fa9c2")).toBe("3F");
     expect(initials("  ")).toBe("?");
+  });
+});
+
+describe("SharerPage", () => {
+  it("Stop sharing asks first, then stops; Start sharing does not ask", async () => {
+    const onSharingChange = vi.fn();
+    const { rerender } = render(
+      <SharerPage
+        name="Dirk"
+        sharing
+        services={[]}
+        guests={[]}
+        onSharingChange={onSharingChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Stop sharing/ }));
+    expect(onSharingChange).not.toHaveBeenCalled();
+    await act(async () => {
+      fireEvent.click(await screen.findByRole("button", { name: "Stop sharing" }));
+    });
+    expect(onSharingChange).toHaveBeenCalledWith(false);
+
+    rerender(
+      <SharerPage
+        name="Dirk"
+        sharing={false}
+        services={[]}
+        guests={[]}
+        onSharingChange={onSharingChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Start sharing/ }));
+    expect(onSharingChange).toHaveBeenLastCalledWith(true);
+  });
+
+  it("claims no presence it does not know", () => {
+    render(
+      <SharerPage
+        name="Dirk"
+        sharing
+        services={[]}
+        guests={[{ peerId: "p1", name: "Guest 3fa9c2", joinedAt: new Date(0) }]}
+      />,
+    );
+    expect(screen.getByText("Sharing · 1 guest")).toBeTruthy();
+    expect(screen.getByText("1 joined")).toBeTruthy();
+    expect(screen.queryByText(/online/)).toBeNull();
   });
 });

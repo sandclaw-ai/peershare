@@ -23,7 +23,8 @@ export interface Guest {
   peerId: string;
   name: string;
   joinedAt: Date;
-  online: boolean;
+  /** Connected right now; absent where presence is not known. */
+  online?: boolean;
 }
 
 /** One link, for one Guest, once, within 24 hours. */

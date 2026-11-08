@@ -5,15 +5,21 @@
 
 import { useState } from "react";
 import {
-  type BridgeState,
   GuestLanding,
   type GuestStage,
   GuestViewer,
   type Presence,
+  ProxyCard,
+  type ProxySettingsValue,
+  type ProxyStatus,
   SharerPage,
   type ViewerTab,
 } from "../src/kit/index.js";
 import type { Guest, Invite, Service } from "../src/views/model.js";
+
+export const PROXY_COMMAND =
+  "curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh";
+export const PROXY: ProxySettingsValue = { url: "http://127.0.0.1:9090", key: "" };
 
 /** "Now" in every frame, so screenshots do not change from one run to the next. */
 export const NOW = new Date("2026-11-07T10:30:00Z");
@@ -75,7 +81,7 @@ const inviteFor = (n: number): Invite => ({
 export interface SharerDemoProps {
   name?: string;
   sharing?: boolean;
-  bridge?: BridgeState;
+  proxy?: ProxyStatus;
   services?: Service[];
   guests?: Guest[];
 }
@@ -83,7 +89,8 @@ export interface SharerDemoProps {
 export function SharerDemo(props: SharerDemoProps) {
   const [name, setName] = useState(props.name ?? "Dirk");
   const [sharing, setSharing] = useState(props.sharing ?? true);
-  const [bridge, setBridge] = useState<BridgeState>(props.bridge ?? "ok");
+  const [proxy, setProxy] = useState<ProxyStatus>(props.proxy ?? "ok");
+  const [settings, setSettings] = useState<ProxySettingsValue>(PROXY);
   const [list, setList] = useState(props.services ?? services);
   const [people, setPeople] = useState(props.guests ?? guests);
   const [invites, setInvites] = useState(0);
@@ -102,11 +109,23 @@ export function SharerDemo(props: SharerDemoProps) {
       onNameChange={setName}
       sharing={sharing}
       onSharingChange={setSharing}
-      bridge={bridge}
-      onConnectBridge={() => {
-        setBridge("checking");
-        setTimeout(() => setBridge("ok"), 1200);
-      }}
+      proxy={
+        <ProxyCard
+          status={proxy}
+          settings={settings}
+          command={PROXY_COMMAND}
+          supported
+          onSave={(next) => {
+            setSettings(next);
+            setProxy("checking");
+            setTimeout(() => setProxy("ok"), 1200);
+          }}
+          onCheck={() => {
+            setProxy("checking");
+            setTimeout(() => setProxy("ok"), 1200);
+          }}
+        />
+      }
       services={list}
       guests={people}
       invite={invites > 0 ? inviteFor(invites) : undefined}
