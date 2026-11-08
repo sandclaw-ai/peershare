@@ -12,7 +12,8 @@ name: PeerShare site
 # RustFS user that may write only the peershare.httpeers.net and s.httpeers.net prefixes of the
 # bucket, made and stored by statewalker/cellb.dev's site/scripts/setup-publish-secrets.sh
 # (REPO=statewalker/sandclaw SITE_USER=peershare-site SITE_DOMAIN=peershare.httpeers.net
-# SITE_DOMAINS="peershare.httpeers.net s.httpeers.net"). They are the names cellb.dev uses;
+# SITE_DOMAINS="peershare.httpeers.net s.httpeers.net peershare-demo.httpeers.net"; the last
+# is the example site's, peershare-demo-site.yml: re-running without it takes it away). They are the names cellb.dev uses;
 # publish-site.yml calls them SITES_S3_*, so they are passed explicitly below.
 
 on:

@@ -103,6 +103,7 @@ main {
   margin: 0 0 28px;
 }
 .prose h2 {
+  scroll-margin-top: 72px;
   font-size: 22px;
   letter-spacing: -0.01em;
   margin: 40px 0 8px;

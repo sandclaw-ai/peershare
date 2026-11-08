@@ -1,8 +1,9 @@
 /** Small status pieces every PeerShare screen shares: health, kind, presence, the brand mark. */
 
-import { cn } from "@statewalker/ui.view.shadcn";
+import { Avatar, AvatarFallback, Button, cn } from "@statewalker/ui.view.shadcn";
 import { CircleHelp, CircleOff, Globe, Laptop, Loader2, Share2 } from "lucide-react";
 import type { Health, UpstreamKind } from "../views/model.js";
+import { HELP_URL } from "./help-tip.js";
 import { Badge } from "./primitives.js";
 
 const health: Record<
@@ -85,15 +86,11 @@ export function initials(name: string): string {
 
 export function NameAvatar({ name, className }: { name: string; className?: string }) {
   return (
-    <span
-      aria-hidden
-      className={cn(
-        "bg-muted text-muted-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-        className,
-      )}
-    >
-      {initials(name)}
-    </span>
+    <Avatar aria-hidden className={cn("size-8", className)}>
+      <AvatarFallback className="text-muted-foreground text-xs font-semibold">
+        {initials(name)}
+      </AvatarFallback>
+    </Avatar>
   );
 }
 
@@ -108,21 +105,12 @@ export function BrandMark({ className }: { className?: string }) {
   );
 }
 
-/** PeerShare's help site: how to use it, how it works, why it is safe. */
-export const HELP_URL = "https://peershare.httpeers.net/help/";
-
 export function HelpLink({ className }: { className?: string }) {
   return (
-    <a
-      href={HELP_URL}
-      target="_blank"
-      rel="noreferrer"
-      className={cn(
-        "text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm",
-        className,
-      )}
-    >
-      <CircleHelp className="size-4" /> Help
-    </a>
+    <Button asChild variant="ghost" size="sm" className={cn("text-muted-foreground", className)}>
+      <a href={HELP_URL} target="_blank" rel="noreferrer">
+        <CircleHelp /> Help
+      </a>
+    </Button>
   );
 }

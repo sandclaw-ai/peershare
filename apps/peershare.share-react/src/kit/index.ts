@@ -3,6 +3,7 @@
  * screen is a composition of these; `gallery/` shows them, scenario by scenario.
  */
 export * from "./guest.js";
+export * from "./help-tip.js";
 export * from "./people.js";
 export * from "./primitives.js";
 export * from "./proxy.js";

@@ -125,6 +125,64 @@ reads it with `fetch`, so the site has to allow that. Its `.site/config.json` li
 that PeerShare's own `x-peershare-guest` header causes. Its links and data paths are relative,
 so in a Guest's isolated origin every page, image and JSON file comes over the mesh.
 
+#### Publishing it on every merge
+
+`.github/workflows/peershare-demo-site.yml` publishes `example-site/` as it is (no build step)
+whenever a push to `main` changes it, which includes merging a pull request. It can also be run by
+hand. It uses statewalker/.github's `publish-site.yml`, which copies the files to httpeers' `sites`
+bucket under the prefix `peershare-demo.httpeers.net`. The sites host serves them from there at
+once, and the wildcard DNS and certificate for `*.httpeers.net` cover the name, so there is no DNS
+or certificate step.
+
+It uses the same two repository secrets as the PeerShare site, `HTTPEERS_S3_ACCESS_KEY_ID` and
+`HTTPEERS_S3_SECRET_ACCESS_KEY`. They hold a RustFS user, `peershare-site`, whose policy lets it
+write only the prefixes it is given. That user must be given the demo's prefix too; until then
+the publish fails with "is a file not a directory". This is a one-time step:
+
+1. On a computer with ssh access to the httpeers server, Docker, `openssl` and `gh` (logged in
+   with admin rights on statewalker/sandclaw), check out statewalker/cellb.dev and run:
+
+   ```sh
+   REPO=statewalker/sandclaw \
+   SITE_USER=peershare-site \
+   SITE_DOMAIN=peershare.httpeers.net \
+   SITE_DOMAINS="peershare.httpeers.net s.httpeers.net peershare-demo.httpeers.net" \
+     site/scripts/setup-publish-secrets.sh
+   ```
+
+   The script reads RustFS's root key over ssh and uses it only on the server. It then:
+   - rewrites the `peershare-site` policy for these three prefixes;
+   - gives the user a new secret key and checks it can write under
+     `peershare.httpeers.net/.site/`, a path that is never served;
+   - stores the new pair in both repository secrets.
+
+   The old key stops working at once, so the PeerShare site picks up the new one too.
+   Always pass all three domains: a domain left out of `SITE_DOMAINS` loses its write access.
+2. Publish without waiting for a change: run the **PeerShare example site** workflow from the
+   Actions tab, or run `gh workflow run peershare-demo-site.yml -R statewalker/sandclaw --ref main`.
+   Its last step fails unless `https://peershare-demo.httpeers.net/` answers.
+3. Check that the CORS headers come back for the PeerShare page and not for other origins:
+
+   ```sh
+   curl -sI -H 'Origin: https://peershare.httpeers.net' https://peershare-demo.httpeers.net/data/status.json
+   #   access-control-allow-origin: https://peershare.httpeers.net
+   #   vary: Origin
+   curl -sI -H 'Origin: https://example.org' https://peershare-demo.httpeers.net/data/status.json
+   #   (no access-control-allow-origin)
+   curl -si -X OPTIONS -H 'Origin: https://peershare.httpeers.net' \
+     -H 'Access-Control-Request-Method: GET' \
+     -H 'Access-Control-Request-Headers: x-peershare-guest' \
+     https://peershare-demo.httpeers.net/data/status.json
+   #   204, with access-control-allow-headers: x-peershare-guest
+   ```
+
+   The sites host answers `cors` since statewalker/httpeers#65. If no CORS header comes back, the
+   sites host running on the server predates that change and needs a redeploy.
+
+To allow another origin, add it to `cors` in `example-site/.site/config.json` and merge. The next
+publish applies it; there is nothing to change on the server. `test/example-site.test.ts` checks
+the config and that every link in the site is relative.
+
 ### The help site
 
 `apps/peershare.help` (Astro) is published under https://peershare.httpeers.net/help/: what

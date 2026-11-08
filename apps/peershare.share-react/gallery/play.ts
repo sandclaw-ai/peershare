@@ -28,12 +28,16 @@ async function find(name: string | RegExp, selector: string): Promise<HTMLElemen
 
 const CONTROLS = 'button, [role="menuitem"], [role="switch"], a';
 
-/** Clicks a button, menu item or switch. Radix menus open on pointerdown, so that is sent too. */
+/**
+ * Clicks a button, menu item, tab or switch the way a mouse does: Radix menus open on
+ * pointerdown and Radix tabs switch on mousedown, so both are sent before the click.
+ */
 export async function click(name: string | RegExp): Promise<void> {
   const el = await find(name, CONTROLS);
   el.dispatchEvent(
     new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerType: "mouse" }),
   );
+  el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 }));
   el.click();
   await wait(150);
 }

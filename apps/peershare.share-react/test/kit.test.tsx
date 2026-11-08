@@ -7,7 +7,7 @@ import { initials } from "../src/kit/status.js";
 afterEach(cleanup);
 
 describe("the kit, frame by frame", () => {
-  it("covers every scenario of the description (S1–S7, G1–G4)", () => {
+  it("covers every scenario of the description (S1–S7, G1–G4) and the safety tips (H1)", () => {
     expect(scenarios.map((s) => s.id)).toEqual([
       "s1",
       "s2",
@@ -20,6 +20,7 @@ describe("the kit, frame by frame", () => {
       "g2",
       "g3",
       "g4",
+      "h1",
     ]);
     expect(new Set(frames.map((f) => f.id)).size).toBe(frames.length);
   });

@@ -14,7 +14,7 @@ import { u } from "../lib/url.ts";
     and no server keeps them.
   </p>
 
-  <h2>1. Sharing happens between browser tabs</h2>
+  <h2 id="tabs">1. Sharing happens between browser tabs</h2>
   <p>
     The hub is <strong>your own browser tab</strong>. Guests connect to it, and every request a
     guest makes is answered by your tab, from your computer. There is no PeerShare server that
@@ -31,7 +31,7 @@ import { u } from "../lib/url.ts";
     (<code>*.s.httpeers.net</code>), and the relay, which forwards encrypted bytes.
   </p>
 
-  <h2>2. Connections are encrypted end to end (Noise)</h2>
+  <h2 id="encryption">2. Connections are encrypted end to end (Noise)</h2>
   <p>
     Before any request is sent, the two browsers run a
     <a href="https://noiseprotocol.org">Noise</a> handshake, the libp2p secure channel.
@@ -55,7 +55,7 @@ import { u } from "../lib/url.ts";
     traffic to the relay or between two browsers, not your services.
   </p>
 
-  <h2>3. A peer ID is a public key</h2>
+  <h2 id="peer-ids">3. A peer ID is a public key</h2>
   <p>
     Every browser on the mesh has an Ed25519 key pair. Its <strong>peer ID</strong> is not a
     name someone assigns: it is derived from, and contains, the public key. Two consequences:
@@ -74,7 +74,7 @@ import { u } from "../lib/url.ts";
     </li>
   </ul>
 
-  <h2>4. Membership is a signed token, checked by your tab</h2>
+  <h2 id="membership">4. Membership is a signed token, checked by your tab</h2>
   <p>
     When a guest joins, your hub gives them a <a href="https://www.biscuitsec.org">Biscuit</a>
     token signed with your key. It names your mesh and is <strong>bound to the guest's peer
@@ -95,7 +95,7 @@ import { u } from "../lib/url.ts";
     </li>
   </ul>
 
-  <h2>5. Invites are single-use, short-lived, and kept out of server logs</h2>
+  <h2 id="invites">5. Invites are single-use, short-lived, and kept out of server logs</h2>
   <ul>
     <li>An invite works <strong>once</strong>; the second person to join with it is refused.</li>
     <li>It expires after <strong>24 hours</strong>.</li>
@@ -109,7 +109,7 @@ import { u } from "../lib/url.ts";
     you notice, and revoke the stranger.
   </p>
 
-  <h2>6. A shared service cannot reach the guest's PeerShare page</h2>
+  <h2 id="isolation">6. A shared service cannot reach the guest's PeerShare page</h2>
   <p>
     A service is a web app; its pages are code. A guest runs it in its <strong>own
     origin</strong>, a random name under <code>s.httpeers.net</code>, never in the PeerShare
@@ -129,7 +129,7 @@ import { u } from "../lib/url.ts";
     parent page.
   </p>
 
-  <h2>7. The local proxy only works for you, and only nearby</h2>
+  <h2 id="proxy">7. The local proxy only works for you, and only nearby</h2>
   <p>The <a href={u("/local-proxy")}>local proxy</a> is the one piece on your computer:</p>
   <ul>
     <li>it listens on <code>127.0.0.1</code> only, never on your network;</li>
@@ -146,7 +146,7 @@ import { u } from "../lib/url.ts";
     <li>your browser itself asks you before the page may reach it (local network access).</li>
   </ul>
 
-  <h2>What PeerShare does not protect against</h2>
+  <h2 id="limits">What PeerShare does not protect against</h2>
   <div class="callout warn">
     <p>
       <strong>Your guests see what you share.</strong> Encryption protects the way there, not what

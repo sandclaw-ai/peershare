@@ -16,7 +16,7 @@ import { u } from "../lib/url.ts";
 
   <Architecture />
 
-  <h2>Your tab is the hub</h2>
+  <h2 id="hub">Your tab is the hub</h2>
   <p>
     When you open PeerShare, your browser creates (or reloads) a key pair and becomes the hub of
     a mesh built with <a href="https://github.com/statewalker/httpeers">httpeers</a>, on
@@ -33,7 +33,7 @@ import { u } from "../lib/url.ts";
     reconnect by themselves. Closing the tab stops it: sharing lives exactly as long as your tab.
   </p>
 
-  <h2>How two browsers find each other</h2>
+  <h2 id="connections">How two browsers find each other</h2>
   <p>
     A browser cannot accept incoming connections, so both sides first connect to a
     <strong>relay</strong> (<code>relay.httpeers.net</code>) over a secure WebSocket. Your tab
@@ -50,7 +50,7 @@ import { u } from "../lib/url.ts";
     <a href={u("/security")}>Why it is safe</a>.
   </p>
 
-  <h2>Joining with an invite</h2>
+  <h2 id="joining">Joining with an invite</h2>
   <ol>
     <li>
       <strong>Invite</strong> asks your hub for a fresh invitation: a single-use secret that
@@ -70,7 +70,7 @@ import { u } from "../lib/url.ts";
     </li>
   </ol>
 
-  <h2>One request, end to end</h2>
+  <h2 id="one-request">One request, end to end</h2>
   <p>
     Each service opens for the guest in its own origin, a random name under
     <code>s.httpeers.net</code>. That origin is empty: a ServiceWorker there answers every
@@ -90,7 +90,7 @@ import { u } from "../lib/url.ts";
     local proxy, which keeps each guest's cookies apart.
   </p>
 
-  <h2>What runs where</h2>
+  <h2 id="what-runs-where">What runs where</h2>
   <table>
     <thead><tr><th>Piece</th><th>Where</th><th>Role</th></tr></thead>
     <tbody>

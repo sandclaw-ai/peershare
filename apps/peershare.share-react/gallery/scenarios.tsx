@@ -482,4 +482,51 @@ export const scenarios: Scenario[] = [
   },
 ];
 
+// The tips, open: what a person reads when they wonder whether this is safe.
+scenarios.push({
+  id: "h1",
+  actor: "Sharer",
+  title: "Why it is safe, where it matters",
+  summary:
+    "A light ? pill sits next to every element where safety matters. It opens a short explanation of how that part is protected, with a link to the help site.",
+  frames: [
+    {
+      id: "h1-sharing",
+      title: "Shared from this tab",
+      caption:
+        "Next to the sharing status: who can see the services, and that no server keeps them.",
+      device: "desktop",
+      render: () => <SharerDemo />,
+      play: () => click("How this is kept safe: Shared from this tab"),
+    },
+    {
+      id: "h1-invite",
+      title: "Invites",
+      caption: "In the invite dialog: one person, once, 24 hours, and the secret after the #.",
+      device: "desktop",
+      render: () => <SharerDemo />,
+      play: async () => {
+        await click("Invite");
+        await click("How this is kept safe: Invites");
+      },
+    },
+    {
+      id: "h1-guest",
+      title: "Encrypted end to end",
+      caption: "On the invite page: how the guest's browser knows it reached the sharer's tab.",
+      device: "phone",
+      render: () => <GuestDemo />,
+      play: () => click("How this is kept safe: Encrypted end to end"),
+    },
+    {
+      id: "h1-viewer",
+      title: "A private, isolated page",
+      caption: "In the Viewer's bar: where the pages come from, and what they cannot reach.",
+      device: "desktop",
+      render: () => <GuestDemo stage="joined" />,
+      play: () => click("How this is kept safe: A private, isolated page"),
+    },
+  ],
+});
+
 export const frames: Frame[] = scenarios.flatMap((s) => s.frames);

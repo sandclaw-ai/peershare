@@ -1,22 +1,28 @@
 /**
  * The shadcn/ui primitives PeerShare needs that `@statewalker/ui.view.shadcn` does not export
- * (Badge, Switch, Alert, DropdownMenu), written the way shadcn ships them: radix-ui underneath,
- * Tailwind classes on top, the same tokens.
+ * (Badge, Switch, Alert, DropdownMenu, Popover), as shadcn ships them: radix-ui underneath,
+ * Tailwind classes on top, the same tokens. Everything else in the kit is built from these and
+ * from `@statewalker/ui.view.shadcn`; radix-ui is used here only.
  */
 
 import { cn } from "@statewalker/ui.view.shadcn";
 import { cva, type VariantProps } from "class-variance-authority";
-import { DropdownMenu as DropdownMenuPrimitive, Switch as SwitchPrimitive } from "radix-ui";
+import {
+  DropdownMenu as DropdownMenuPrimitive,
+  Popover as PopoverPrimitive,
+  Slot,
+  Switch as SwitchPrimitive,
+} from "radix-ui";
 import type * as React from "react";
 
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium [&>svg]:size-3 [&>svg]:pointer-events-none",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground border-transparent",
         secondary: "bg-secondary text-secondary-foreground border-transparent",
-        outline: "text-foreground",
+        outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         success: "border-success/30 bg-success/10 text-success",
         warning: "border-warning/40 bg-warning/15 text-foreground",
         destructive: "border-destructive/30 bg-destructive/10 text-destructive",
@@ -29,10 +35,12 @@ const badgeVariants = cva(
 export function Badge({
   className,
   variant,
+  asChild = false,
   ...props
-}: React.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+}: React.ComponentProps<"span"> & VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+  const Comp = asChild ? Slot.Root : "span";
   return (
-    <span data-slot="badge" className={cn(badgeVariants({ variant }), className)} {...props} />
+    <Comp data-slot="badge" className={cn(badgeVariants({ variant }), className)} {...props} />
   );
 }
 
@@ -173,5 +181,31 @@ export function DropdownMenuLabel({
       className={cn("text-muted-foreground px-2 py-1.5 text-xs font-medium", className)}
       {...props}
     />
+  );
+}
+
+export const Popover = PopoverPrimitive.Root;
+export const PopoverTrigger = PopoverPrimitive.Trigger;
+export const PopoverAnchor = PopoverPrimitive.Anchor;
+
+export function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        data-slot="popover-content"
+        align={align}
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
+          className,
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
   );
 }

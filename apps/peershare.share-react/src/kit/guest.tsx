@@ -11,6 +11,10 @@ import {
   Button,
   Card,
   cn,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "@statewalker/ui.view.shadcn";
 import {
   Ban,
@@ -27,6 +31,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { HelpTip } from "./help-tip.js";
 import { Alert, AlertDescription } from "./primitives.js";
 import { BrandMark, HelpLink, NameAvatar, type Presence, PresenceDot } from "./status.js";
 
@@ -157,6 +162,13 @@ export function GuestLanding({ sharerName, stage, onJoin, onDecline }: GuestLand
           </li>
           <li className="flex items-center gap-2.5">
             <Lock className="size-4 shrink-0" /> End-to-end encrypted, even on public Wi-Fi.
+            <HelpTip title="Encrypted end to end" help="security#encryption">
+              <p>
+                The link carries the key of the browser that created it, and the connection proves
+                it reached that browser.
+              </p>
+              <p>The relay that helps you connect only forwards bytes it cannot read.</p>
+            </HelpTip>
           </li>
           <li className="flex items-center gap-2.5">
             <Globe className="size-4 shrink-0" /> Each service opens in its own isolated page.
@@ -266,32 +278,42 @@ export function GuestViewer({
     );
   }
 
+  const tabbed = !revoked && services.length > 1 && service != null;
+  // The services are Tabs: the list in the bar controls the panel below it.
   return (
-    <div className="bg-background flex h-full min-h-0 flex-col">
+    <Tabs
+      value={service?.id ?? ""}
+      onValueChange={(id) => onSelect?.(id)}
+      className="bg-background flex h-full min-h-0 flex-col"
+    >
       <header className="flex items-center gap-3 border-b px-3 py-2">
         <BrandMark className="text-sm [&>span]:size-6" />
         <span className="bg-border h-5 w-px" />
         <span className="flex min-w-0 items-center gap-2 text-sm">
           <PresenceDot value={revoked ? "offline" : presence} />
           <span className="truncate font-medium">{sharerName}</span>
+          {!revoked && (
+            <HelpTip title="A private, isolated page" help="security#isolation">
+              <p>
+                {service?.name ?? "This service"} comes from {sharerName}'s computer, encrypted end
+                to end, to people {sharerName} invited.
+              </p>
+              <p>
+                It runs in its own isolated page, so it cannot read your PeerShare key, token or
+                other services.
+              </p>
+            </HelpTip>
+          )}
         </span>
-        {!revoked && services.length > 1 && (
-          <nav className="bg-muted ml-2 flex min-w-0 gap-1 overflow-x-auto rounded-lg p-1">
+        {tabbed && (
+          <TabsList className="ml-2 h-8 max-w-full min-w-0 overflow-x-auto">
             {services.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => onSelect?.(s.id)}
-                className={cn(
-                  "text-muted-foreground inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors",
-                  s.id === service?.id && "bg-background text-foreground shadow-sm",
-                )}
-              >
+              <TabsTrigger key={s.id} value={s.id} className="gap-1.5 text-xs">
                 {s.paused && <PauseCircle className="size-3" />}
                 {s.name}
-              </button>
+              </TabsTrigger>
             ))}
-          </nav>
+          </TabsList>
         )}
         <span className="flex-1" />
         {!revoked && <CloseSessionButton sharerName={sharerName} onClose={onCloseSession} />}
@@ -307,8 +329,14 @@ export function GuestViewer({
           <Loader2 className="size-4 animate-spin" /> Reconnecting to {sharerName}…
         </div>
       )}
-      {body}
-    </div>
+      {tabbed ? (
+        <TabsContent value={service.id} className="mt-0 flex flex-1 flex-col">
+          {body}
+        </TabsContent>
+      ) : (
+        body
+      )}
+    </Tabs>
   );
 }
 

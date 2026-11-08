@@ -40,6 +40,7 @@ import {
   validateDraft,
   type Warning,
 } from "../views/model.js";
+import { HelpTip } from "./help-tip.js";
 import {
   Alert,
   AlertDescription,
@@ -288,7 +289,19 @@ export function ServiceForm({
         </p>
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="service-target">Address</Label>
+        <span className="flex items-center gap-2">
+          <Label htmlFor="service-target">Address</Label>
+          <HelpTip title="Local or remote" help="getting-started#share">
+            <p>
+              An address on this computer or your network is reached through the local proxy, which
+              only listens on this computer.
+            </p>
+            <p>
+              A remote https site is read directly, so it must allow PeerShare (CORS); it sees an
+              anonymous ID for each guest.
+            </p>
+          </HelpTip>
+        </span>
         <Input
           id="service-target"
           value={draft.target}
@@ -382,7 +395,16 @@ export function ServicesHeader({ count, onAdd }: { count: number; onAdd?: () => 
   return (
     <div className="flex items-end justify-between gap-3">
       <div>
-        <h2 className="text-lg font-semibold">Services</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">Services</h2>
+          <HelpTip title="Where your pages go" help="how-it-works#one-request">
+            <p>
+              A guest's request reaches this tab over the encrypted connection. The tab fetches the
+              page from your service and sends it back the same way.
+            </p>
+            <p>The relay that helps browsers connect only forwards bytes it cannot read.</p>
+          </HelpTip>
+        </div>
         <p className="text-muted-foreground text-sm">
           {count === 1 ? "1 service" : `${count} services`} open to your guests.
         </p>

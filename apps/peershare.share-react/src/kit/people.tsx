@@ -22,6 +22,7 @@ import {
 import { Check, Clock, Copy, Link2, ShieldAlert, UserPlus, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Guest, Invite } from "../views/model.js";
+import { HelpTip } from "./help-tip.js";
 import { Alert, AlertDescription } from "./primitives.js";
 import { NameAvatar, PresenceDot } from "./status.js";
 
@@ -76,7 +77,17 @@ export function InviteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Invite a guest</DialogTitle>
+          {/* The tip sits beside the title, not in it: the dialog is named by the title alone. */}
+          <div className="flex items-center gap-2">
+            <DialogTitle>Invite a guest</DialogTitle>
+            <HelpTip title="Invites" help="security#invites">
+              <p>
+                This link lets one person join, once, within 24 hours. Its secret sits after the{" "}
+                <code>#</code>, which browsers don't send to any server.
+              </p>
+              <p>Send it only to the person you mean: whoever joins with it first gets in.</p>
+            </HelpTip>
+          </div>
           <DialogDescription>
             Send this link to one person. It lets them see the services you share.
           </DialogDescription>
@@ -143,7 +154,16 @@ export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCard
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b p-4">
         <div>
-          <h2 className="font-semibold">Guests</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-semibold">Guests</h2>
+            <HelpTip title="Who can see your services" help="security#membership">
+              <p>
+                Each guest has a key that never leaves their browser. Your tab checks it on every
+                connection and every request, so nobody can pose as a guest.
+              </p>
+              <p>Revoke ends a guest's access at once, including their live connections.</p>
+            </HelpTip>
+          </div>
           <p className="text-muted-foreground text-xs">
             {guests.length === 0
               ? "Nobody yet"
