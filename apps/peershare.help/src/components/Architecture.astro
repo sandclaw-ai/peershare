@@ -1,0 +1,92 @@
+---
+/** The pieces of a PeerShare session, and the path of one request. */
+---
+
+<figure>
+  <svg viewBox="0 0 780 380" role="img" aria-labelledby="arch-title arch-desc">
+    <title id="arch-title">PeerShare's architecture</title>
+    <desc id="arch-desc">
+      The Guest's browser holds the service page in an isolated origin and the PeerShare page.
+      Both browsers connect through the relay, encrypted end to end with Noise, or directly over
+      WebRTC, encrypted with DTLS whose keys were exchanged over the Noise channel. The Sharer's PeerShare tab is the hub; it reaches local services through the local
+      proxy and remote https services directly.
+    </desc>
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" fill="#1f6f5c"></path>
+      </marker>
+    </defs>
+    <style>
+      .box { fill: #fff; stroke: #d4d4cf; stroke-width: 1.2; }
+      .zone { fill: none; stroke: #b9b9b3; stroke-dasharray: 5 4; }
+      .t { font: 600 13px system-ui, sans-serif; fill: #18181b; }
+      .s { font: 12px system-ui, sans-serif; fill: #5f5f66; }
+      .m { font: 11px ui-monospace, Menlo, monospace; fill: #5f5f66; }
+      .z { font: 600 11px system-ui, sans-serif; fill: #8a8a85; letter-spacing: 0.06em; }
+      .flow { stroke: #1f6f5c; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .enc { stroke: #1f6f5c; stroke-width: 2.5; fill: none; stroke-dasharray: 7 5; }
+      .relay { stroke: #b9b9b3; stroke-width: 1.5; fill: none; }
+      .lock { fill: #e7f2ee; stroke: #1f6f5c; }
+    </style>
+
+    <!-- Guest's browser -->
+    <rect class="zone" x="12" y="28" width="236" height="300" rx="14"></rect>
+    <text class="z" x="26" y="50">GUEST'S BROWSER</text>
+    <rect class="box" x="30" y="66" width="200" height="86" rx="10"></rect>
+    <text class="t" x="44" y="90">The service, isolated</text>
+    <text class="m" x="44" y="110">x7…k2.s.httpeers.net</text>
+    <text class="s" x="44" y="130">own origin, storage and</text>
+    <text class="s" x="44" y="145">ServiceWorker</text>
+    <rect class="box" x="30" y="214" width="200" height="94" rx="10"></rect>
+    <text class="t" x="44" y="238">PeerShare page</text>
+    <text class="m" x="44" y="258">peershare.httpeers.net</text>
+    <text class="s" x="44" y="278">the Guest's key and</text>
+    <text class="s" x="44" y="293">membership token</text>
+    <path class="flow" d="M130 152 V212"></path>
+    <text class="s" x="138" y="186">MessagePort</text>
+
+    <!-- Relay -->
+    <rect class="box" x="300" y="40" width="180" height="70" rx="10"></rect>
+    <text class="t" x="314" y="64">Relay</text>
+    <text class="m" x="314" y="84">relay.httpeers.net</text>
+    <text class="s" x="314" y="100">forwards ciphertext only</text>
+    <path class="relay" d="M230 240 C 270 180, 300 140, 330 110"></path>
+    <path class="relay" d="M550 240 C 510 180, 480 140, 450 110"></path>
+
+    <!-- The encrypted channel -->
+    <path class="enc" d="M232 262 H548"></path>
+    <rect class="lock" x="304" y="244" width="172" height="36" rx="8"></rect>
+    <text class="t" x="318" y="262">Encrypted end to end</text>
+    <text class="s" x="318" y="276">Noise · DTLS if direct</text>
+
+    <!-- Sharer's browser -->
+    <rect class="zone" x="532" y="28" width="236" height="300" rx="14"></rect>
+    <text class="z" x="546" y="50">SHARER'S COMPUTER</text>
+    <rect class="box" x="550" y="214" width="200" height="94" rx="10"></rect>
+    <text class="t" x="564" y="238">PeerShare tab = hub</text>
+    <text class="s" x="564" y="258">Sharer's key, members,</text>
+    <text class="s" x="564" y="273">the services</text>
+    <text class="s" x="564" y="293">checks every request</text>
+    <rect class="box" x="550" y="66" width="96" height="86" rx="10"></rect>
+    <text class="t" x="560" y="90">Local proxy</text>
+    <text class="m" x="560" y="110">127.0.0.1</text>
+    <text class="s" x="560" y="130">→ localhost,</text>
+    <text class="s" x="560" y="145">LAN</text>
+    <rect class="box" x="654" y="66" width="96" height="86" rx="10"></rect>
+    <text class="t" x="664" y="90">Your app</text>
+    <text class="m" x="664" y="110">:5173</text>
+    <path class="flow" d="M598 212 V154"></path>
+    <path class="flow" d="M646 109 H652"></path>
+
+    <!-- Direct -->
+    <rect class="box" x="550" y="344" width="200" height="30" rx="8"></rect>
+    <text class="s" x="562" y="364">or a remote https site, read directly</text>
+    <path class="flow" d="M650 308 V342"></path>
+  </svg>
+  <figcaption>
+    One request: the service page in the Guest's isolated origin asks for <code>/app.js</code>;
+    its ServiceWorker hands it to the Guest's PeerShare page, which sends it over the encrypted
+    channel to the Sharer's tab; the tab checks the Guest, fetches the file through the local
+    proxy (or directly), and the answer travels back the same way.
+  </figcaption>
+</figure>

@@ -1,0 +1,15 @@
+{
+  "updated": "2026-11-08T09:00:00Z",
+  "services": [
+    { "name": "Web app", "state": "up", "note": "All regions answering under 200 ms." },
+    { "name": "Search", "state": "up", "note": "Index rebuilt overnight; queries normal." },
+    {
+      "name": "Image uploads",
+      "state": "degraded",
+      "note": "Large files retry once; fix in 2.4.1."
+    },
+    { "name": "Email digests", "state": "up", "note": "Sent at 07:00 to every team." },
+    { "name": "Billing exports", "state": "down", "note": "Paused for the quarter-end migration." },
+    { "name": "Public API", "state": "up", "note": "No errors in the last 24 hours." }
+  ]
+}

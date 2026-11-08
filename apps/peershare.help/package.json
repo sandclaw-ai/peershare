@@ -1,0 +1,28 @@
+{
+  "name": "@statewalker/peershare.help",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PeerShare's help site (Astro): how to use it, how it works, and why it is safe. Published at https://peershare.httpeers.net/help/.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "astro": "catalog:",
+    "vitest": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/statewalker/sandclaw.git",
+    "directory": "apps/peershare.help"
+  },
+  "bugs": {
+    "url": "https://github.com/statewalker/sandclaw/issues"
+  },
+  "homepage": "https://github.com/statewalker/sandclaw/tree/main/apps/peershare.help#readme"
+}

@@ -1,0 +1,86 @@
+---
+import Docs from "../layouts/Docs.astro";
+import { u } from "../lib/url.ts";
+---
+
+<Docs
+  title="Getting started"
+  description="Share a service, invite a guest, and what the guest sees."
+>
+  <h1>Getting started</h1>
+  <p class="lede">Three steps for you, one for your guest.</p>
+
+  <h2>1. Open PeerShare and say who you are</h2>
+  <p>
+    Open <a href="https://peershare.httpeers.net">peershare.httpeers.net</a> in Chrome, Edge or
+    Firefox, and type your name at the top. Guests see it on the invite and while they use your
+    services. Sharing starts as soon as the page is open, and stops when you close the tab.
+  </p>
+
+  <h2>2. Share a service</h2>
+  <p>
+    Give it a <strong>name</strong> (what your guests see) and its <strong>address</strong>. The
+    address decides how PeerShare reaches it:
+  </p>
+  <table>
+    <thead><tr><th>Address</th><th>Reached</th><th>Needs</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>http://localhost:5173</code>, <code>http://192.168.1.20:3000</code>, <code>http://nas.local</code></td>
+        <td>Through the <a href={u("/local-proxy")}>local proxy</a></td>
+        <td>The proxy running on your computer</td>
+      </tr>
+      <tr>
+        <td><code>https://docs.example.org</code></td>
+        <td>Directly, by the PeerShare page</td>
+        <td>
+          The site allows calls from <code>https://peershare.httpeers.net</code>, with the
+          <code>x-peershare-guest</code> header (CORS)
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    PeerShare tests the service at once, the same way guests will reach it, and shows
+    <strong>Working</strong>, <strong>Slow</strong> or <strong>Unreachable</strong>, with what to
+    do about a problem. The first service is the <strong>default</strong>: guests see it first.
+    You can pause a service with its switch; its menu has Edit, Test again, Make default and
+    Remove.
+  </p>
+  <div class="callout">
+    <p>
+      To try it with nothing installed, share the example site
+      <code>https://peershare-demo.httpeers.net</code>.
+    </p>
+  </div>
+
+  <h2>3. Invite a guest</h2>
+  <p>
+    <strong>Invite</strong> makes a link and a QR code for one person. Send it any way you like;
+    a chat message is fine. The link works <strong>once, for 24 hours</strong>. For the next
+    person, make a new link. Who joined appears under <strong>Guests</strong>, where
+    <strong>Revoke</strong> ends their access at once.
+  </p>
+
+  <h2>What your guest does</h2>
+  <p>
+    They open the link: it says who invited them, and they press <strong>Join</strong>. Their
+    browser connects to yours, and your services open, one tab per service. Each service runs in
+    its own isolated page, so it cannot see the guest's other tabs, or PeerShare itself.
+  </p>
+  <ul>
+    <li>Closing the tab keeps them in: reopening the link brings them back.</li>
+    <li>
+      <strong>Close session</strong> leaves for good: their browser forgets the invite, and
+      coming back needs a new one.
+    </li>
+    <li>If your tab is closed or sharing is off, they see that your computer isn't answering, and the page reconnects by itself when you are back.</li>
+  </ul>
+
+  <h2>Stopping</h2>
+  <p>
+    <strong>Stop sharing</strong> takes your services offline; your guests and their access are
+    kept, and they reconnect when you start again. Closing the tab does the same. To end a
+    guest's access for good, revoke them.
+  </p>
+</Docs>

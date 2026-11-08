@@ -1,7 +1,7 @@
 /** Small status pieces every PeerShare screen shares: health, kind, presence, the brand mark. */
 
 import { cn } from "@statewalker/ui.view.shadcn";
-import { CircleOff, Globe, Laptop, Loader2, Share2 } from "lucide-react";
+import { CircleHelp, CircleOff, Globe, Laptop, Loader2, Share2 } from "lucide-react";
 import type { Health, UpstreamKind } from "../views/model.js";
 import { Badge } from "./primitives.js";
 
@@ -105,5 +105,24 @@ export function BrandMark({ className }: { className?: string }) {
       </span>
       PeerShare
     </span>
+  );
+}
+
+/** PeerShare's help site: how to use it, how it works, why it is safe. */
+export const HELP_URL = "https://peershare.httpeers.net/help/";
+
+export function HelpLink({ className }: { className?: string }) {
+  return (
+    <a
+      href={HELP_URL}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        "text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm",
+        className,
+      )}
+    >
+      <CircleHelp className="size-4" /> Help
+    </a>
   );
 }

@@ -5,7 +5,8 @@ name: PeerShare site
 # name, and the sites host serves them at once. `build:site` writes the page, `peershare.json`
 # (the relay's addresses, read from its own document, and the session zone *.s.httpeers.net, whose shell is published by hand: see the app's README) and
 # `.site/config.json` (`spa: true`, so /peer-share/invite is the page too). The UI gallery
-# (apps/peershare.share-react/gallery: the usage scenarios, screen by screen) goes under /ui/.
+# (apps/peershare.share-react/gallery: the usage scenarios, screen by screen) goes under /ui/,
+# and the help site (apps/peershare.help, Astro: usage, architecture, why it is safe) under /help/.
 #
 # Needs the HTTPEERS_S3_ACCESS_KEY_ID and HTTPEERS_S3_SECRET_ACCESS_KEY repository secrets: a
 # RustFS user that may write only the peershare.httpeers.net and s.httpeers.net prefixes of the
@@ -21,6 +22,7 @@ on:
       - "apps/peershare.app/**"
       - "apps/peershare.share/**"
       - "apps/peershare.share-react/**"
+      - "apps/peershare.help/**"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/peershare-site.yml"
@@ -40,6 +42,9 @@ jobs:
         pnpm --filter "@statewalker/peershare.app^..." run --if-present build
         pnpm --filter @statewalker/peershare.app build:site
         pnpm --filter @statewalker/peershare.share-react build:gallery --outDir "$PWD/apps/peershare.app/site/peershare.httpeers.net/ui"
+        pnpm --filter @statewalker/peershare.help build
+        mkdir -p apps/peershare.app/site/peershare.httpeers.net/help
+        cp -R apps/peershare.help/dist/. apps/peershare.app/site/peershare.httpeers.net/help/
       path: apps/peershare.app/site/peershare.httpeers.net
     secrets:
       SITES_S3_ACCESS_KEY_ID: ${{ secrets.HTTPEERS_S3_ACCESS_KEY_ID }}

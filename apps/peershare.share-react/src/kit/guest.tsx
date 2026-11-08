@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Alert, AlertDescription } from "./primitives.js";
-import { BrandMark, NameAvatar, type Presence, PresenceDot } from "./status.js";
+import { BrandMark, HelpLink, NameAvatar, type Presence, PresenceDot } from "./status.js";
 
 // ——— Before joining (scenarios G1, G2) ———————————————————————————————————
 
@@ -53,8 +53,9 @@ export interface GuestLandingProps {
 function Centered({ children }: { children: ReactNode }) {
   return (
     <div className="bg-muted/30 flex min-h-full flex-col">
-      <header className="px-6 py-4">
+      <header className="flex items-center justify-between px-6 py-4">
         <BrandMark />
+        <HelpLink />
       </header>
       <main className="grid flex-1 place-items-center px-4 pb-16">{children}</main>
     </div>

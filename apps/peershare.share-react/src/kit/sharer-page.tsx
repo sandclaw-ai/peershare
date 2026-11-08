@@ -23,7 +23,7 @@ import {
   ServicesEmpty,
   ServicesHeader,
 } from "./services.js";
-import { BrandMark, PresenceDot } from "./status.js";
+import { BrandMark, HelpLink, PresenceDot } from "./status.js";
 
 /**
  * The Sharer's whole page (scenarios S1–S7), controlled: every change is a callback that the
@@ -91,6 +91,7 @@ export function SharerPage(props: SharerPageProps) {
             onChange={(e) => props.onNameChange?.(e.target.value)}
           />
           <span className="flex-1" />
+          <HelpLink />
           <span
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",

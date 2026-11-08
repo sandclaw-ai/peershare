@@ -1,0 +1,175 @@
+---
+import Docs from "../layouts/Docs.astro";
+import { u } from "../lib/url.ts";
+---
+
+<Docs
+  title="Why it is safe"
+  description="Peer-to-peer between browser tabs, encrypted with Noise, identities that are public keys, nothing kept on a server."
+>
+  <h1>Why it is safe</h1>
+  <p class="lede">
+    Your services travel between two browser tabs, encrypted end to end, to people whose
+    identity is a key only they hold. The relay in the middle can neither read nor change them,
+    and no server keeps them.
+  </p>
+
+  <h2>1. Sharing happens between browser tabs</h2>
+  <p>
+    The hub is <strong>your own browser tab</strong>. Guests connect to it, and every request a
+    guest makes is answered by your tab, from your computer. There is no PeerShare server that
+    receives your pages, stores your files, or holds a copy of your guest list:
+  </p>
+  <ul>
+    <li>your key, your services and your members live in your browser's storage;</li>
+    <li>each guest's key lives in their browser;</li>
+    <li>when your tab closes, nothing is shared anymore, by anyone.</li>
+  </ul>
+  <p>
+    The servers involved only carry or serve public things: the PeerShare page itself
+    (<code>peershare.httpeers.net</code>), the empty shell of the isolated origins
+    (<code>*.s.httpeers.net</code>), and the relay, which forwards encrypted bytes.
+  </p>
+
+  <h2>2. Connections are encrypted end to end (Noise)</h2>
+  <p>
+    Before any request is sent, the two browsers run a
+    <a href="https://noiseprotocol.org">Noise</a> handshake, the libp2p secure channel.
+    Each side proves it holds the private key behind its peer ID, and the two derive session keys
+    that only they know. Everything after that is encrypted and authenticated with those keys.
+  </p>
+  <ul>
+    <li>
+      <strong>Through the relay</strong>, the relay sees only ciphertext. It cannot read your
+      pages, cannot change them without the change being detected, and cannot pose as either
+      side.
+    </li>
+    <li>
+      <strong>Over a direct WebRTC connection</strong>, the data does not pass through the relay
+      at all. WebRTC encrypts it (DTLS), and the two sides exchanged their key fingerprints over
+      the Noise channel first, so the direct connection belongs to the same two peers.
+    </li>
+  </ul>
+  <p>
+    This holds on any network, public Wi-Fi included: someone on the same network sees encrypted
+    traffic to the relay or between two browsers, not your services.
+  </p>
+
+  <h2>3. A peer ID is a public key</h2>
+  <p>
+    Every browser on the mesh has an Ed25519 key pair. Its <strong>peer ID</strong> is not a
+    name someone assigns: it is derived from, and contains, the public key. Two consequences:
+  </p>
+  <ul>
+    <li>
+      <strong>Nobody can claim to be you.</strong> Connecting as your peer ID means completing
+      the Noise handshake with your private key, which never leaves your browser. A guest's
+      browser dials the peer ID written in the invite, so it knows it reached your tab, and not
+      someone who copied the link or controls the relay.
+    </li>
+    <li>
+      <strong>Your tab knows who is asking.</strong> The identity of every incoming request is
+      taken from what the encrypted connection proved, never from anything the caller says. A
+      header claiming to be another peer is removed and rewritten at your tab.
+    </li>
+  </ul>
+
+  <h2>4. Membership is a signed token, checked by your tab</h2>
+  <p>
+    When a guest joins, your hub gives them a <a href="https://www.biscuitsec.org">Biscuit</a>
+    token signed with your key. It names your mesh and is <strong>bound to the guest's peer
+    ID</strong>.
+  </p>
+  <ul>
+    <li>
+      Your tab verifies it on its own, with no server to ask: your peer ID is your public key,
+      which is the token's root key.
+    </li>
+    <li>
+      A copied token is useless to anyone else: it only works on a connection that proved the
+      guest's key.
+    </li>
+    <li>
+      <strong>Revoke</strong> takes effect at once: your tab refuses that guest's next request
+      and ends their open live connections, even if their tab is still open.
+    </li>
+  </ul>
+
+  <h2>5. Invites are single-use, short-lived, and kept out of server logs</h2>
+  <ul>
+    <li>An invite works <strong>once</strong>; the second person to join with it is refused.</li>
+    <li>It expires after <strong>24 hours</strong>.</li>
+    <li>
+      Everything in it sits in the link's fragment (after <code>#</code>), which browsers do not
+      send in requests. It does not show up in server logs or in the <code>Referer</code> header.
+    </li>
+  </ul>
+  <p>
+    If someone else opens a link before your guest does, your guest is told it was already used:
+    you notice, and revoke the stranger.
+  </p>
+
+  <h2>6. A shared service cannot reach the guest's PeerShare page</h2>
+  <p>
+    A service is a web app; its pages are code. A guest runs it in its <strong>own
+    origin</strong>, a random name under <code>s.httpeers.net</code>, never in the PeerShare
+    page. The browser's same-origin policy then keeps them apart:
+  </p>
+  <ul>
+    <li>the service cannot read the guest's PeerShare key, token or storage;</li>
+    <li>it cannot read the PeerShare page, or other services' pages;</li>
+    <li>
+      it never sees the guest's token: the PeerShare page adds it after the request leaves the
+      service's origin.
+    </li>
+  </ul>
+  <p>
+    httpeers measured this for its session origins in Chromium and Firefox: two sessions, and the
+    page that opened them, could not see each other's storage, cookies or IndexedDB, nor read the
+    parent page.
+  </p>
+
+  <h2>7. The local proxy only works for you, and only nearby</h2>
+  <p>The <a href={u("/local-proxy")}>local proxy</a> is the one piece on your computer:</p>
+  <ul>
+    <li>it listens on <code>127.0.0.1</code> only, never on your network;</li>
+    <li>
+      it answers only the PeerShare page and pages served from your own computer; any other
+      website gets <code>403</code>, and with <code>--key</code> a wrong key gets
+      <code>401</code>;
+    </li>
+    <li>
+      it reaches only this computer and your local network: <code>localhost</code>, private
+      addresses, Tailscale addresses (<code>100.x</code>), <code>.local</code> names;
+    </li>
+    <li>a public address is refused, so it is never a gateway to the internet for your guests;</li>
+    <li>your browser itself asks you before the page may reach it (local network access).</li>
+  </ul>
+
+  <h2>What PeerShare does not protect against</h2>
+  <div class="callout warn">
+    <p>
+      <strong>Your guests see what you share.</strong> Encryption protects the way there, not what
+      a guest does with a page once they have it. Share only what you would show them.
+    </p>
+    <p>
+      <strong>An invite in the wrong hands</strong> admits whoever opens it first. Send it to one
+      person, and revoke anyone you don't recognise.
+    </p>
+    <p>
+      <strong>The PeerShare page and the session shell are trusted code.</strong> They are served
+      from <code>peershare.httpeers.net</code> and <code>*.s.httpeers.net</code>; the page runs
+      with your key, and both handle your services unencrypted inside the browser. Use the
+      published addresses, or host them yourself.
+    </p>
+    <p>
+      <strong>A remote https service you share directly learns each guest's peer ID</strong>:
+      PeerShare tells it which guest is asking (that is how a service on your computer gets a
+      cookie jar per guest). It never sees their token.
+    </p>
+    <p>
+      <strong>The relay can see that two peer IDs talk</strong>, when and how much, though not
+      what. It can also refuse to carry traffic, which stops sharing but reveals nothing.
+    </p>
+  </div>
+</Docs>

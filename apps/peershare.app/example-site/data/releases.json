@@ -1,0 +1,20 @@
+{
+  "releases": [
+    {
+      "version": "2.4.0",
+      "date": "2026-11-03",
+      "summary": "Shared boards; faster search; dark mode for reports."
+    },
+    {
+      "version": "2.3.2",
+      "date": "2026-10-21",
+      "summary": "Fixes CSV exports with non-Latin column names."
+    },
+    {
+      "version": "2.3.0",
+      "date": "2026-10-07",
+      "summary": "Weekly email digests; image uploads up to 50 MB."
+    },
+    { "version": "2.2.1", "date": "2026-09-18", "summary": "Security update for session cookies." }
+  ]
+}

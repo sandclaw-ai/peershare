@@ -1,0 +1,245 @@
+:root {
+  --bg: #ffffff;
+  --soft: #f6f6f5;
+  --ink: #18181b;
+  --muted: #5f5f66;
+  --line: #e7e7e4;
+  --accent: #1f6f5c;
+  --accent-soft: #e7f2ee;
+  --warn-soft: #fbf3e2;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+a {
+  color: var(--accent);
+}
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 650;
+  color: var(--ink);
+  text-decoration: none;
+}
+.brand span {
+  color: var(--muted);
+  font-weight: 450;
+}
+.cta {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  text-decoration: none;
+}
+.shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 40px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+.side {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  display: grid;
+  gap: 2px;
+}
+.side a {
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 15px;
+}
+.side a:hover {
+  background: var(--soft);
+  color: var(--ink);
+}
+.side a[aria-current="page"] {
+  background: var(--soft);
+  color: var(--ink);
+  font-weight: 600;
+}
+main {
+  min-width: 0;
+  max-width: 760px;
+}
+.prose h1 {
+  font-size: 34px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+}
+.prose .lede {
+  font-size: 19px;
+  color: var(--muted);
+  margin: 0 0 28px;
+}
+.prose h2 {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 40px 0 8px;
+  padding-top: 8px;
+}
+.prose h3 {
+  font-size: 17px;
+  margin: 24px 0 6px;
+}
+.prose p,
+.prose li {
+  color: #2b2b30;
+}
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 4px;
+}
+.prose pre {
+  background: var(--ink);
+  color: #f4f4f5;
+  border-radius: 10px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 14px;
+}
+.prose pre code {
+  background: none;
+  border: 0;
+  color: inherit;
+  padding: 0;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  margin: 12px 0;
+}
+.prose th,
+.prose td {
+  text-align: left;
+  vertical-align: top;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.prose th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.callout {
+  border: 1px solid #cfe5dd;
+  background: var(--accent-soft);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 20px 0;
+}
+.callout.warn {
+  border-color: #f0dcb4;
+  background: var(--warn-soft);
+}
+.callout p {
+  margin: 0;
+}
+.callout p + p {
+  margin-top: 8px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.cards a,
+.cards div {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+}
+.cards a:hover {
+  border-color: #c9c9c4;
+  background: var(--soft);
+}
+.cards strong {
+  display: block;
+  margin-bottom: 2px;
+}
+.cards span {
+  color: var(--muted);
+  font-size: 14px;
+}
+figure {
+  margin: 20px 0;
+}
+figure svg {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+figcaption {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+}
+.pager a {
+  text-decoration: none;
+}
+@media (max-width: 760px) {
+  .shell {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-top: 16px;
+  }
+  .side {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .prose h1 {
+    font-size: 28px;
+  }
+}

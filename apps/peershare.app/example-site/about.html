@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About this site · Team status</title>
+    <link rel="icon" href="assets/logo.svg" />
+    <link rel="stylesheet" href="assets/site.css" />
+  </head>
+  <body>
+    <header>
+      <div class="bar">
+        <a class="brand" href="./"><img src="assets/logo.svg" alt="" /> Team status</a>
+        <nav>
+          <a href="./">Status</a>
+          <a href="releases">Releases</a>
+          <a href="about" aria-current="page">About this site</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <h1>About this site</h1>
+      <p class="lede">An example of a remote service shared with PeerShare.</p>
+      <div class="card">
+        <p>
+          This site lives at <code>https://peershare-demo.httpeers.net</code>: static pages,
+          a stylesheet, an image and two JSON files, read by a script. To share it, add it in
+          PeerShare as a service with that address. It is a remote <code>https://</code> site
+          with a domain name, so PeerShare reaches it <strong>directly</strong>, without the
+          local proxy.
+        </p>
+        <p class="note">
+          Directly means the PeerShare page itself reads this site, so the site has to allow
+          it. Its <code>.site/config.json</code> lists PeerShare's origin under
+          <code>cors</code>: every answer carries <code>Access-Control-Allow-Origin</code>,
+          and the browser's preflight (PeerShare sends its own header) is answered.
+        </p>
+        <p class="note">
+          A guest sees these pages in their own isolated origin. Every page, image and JSON
+          file they load travels over the mesh to the sharer's browser, which reads it here.
+          The links and the data paths are relative, so nothing points back at this address.
+        </p>
+      </div>
+    </main>
+    <footer>An example site for PeerShare: static files on httpeers' sites host.</footer>
+    <script type="module" src="assets/app.js"></script>
+  </body>
+</html>

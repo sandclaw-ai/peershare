@@ -1,0 +1,104 @@
+---
+import Architecture from "../components/Architecture.astro";
+import Docs from "../layouts/Docs.astro";
+import { u } from "../lib/url.ts";
+---
+
+<Docs
+  title="How it works"
+  description="Your browser tab is the hub of a small peer-to-peer mesh; guests are its members."
+>
+  <h1>How it works</h1>
+  <p class="lede">
+    Your browser tab is the hub of a small peer-to-peer mesh of its own. Each guest is a member
+    of it. There is no PeerShare server that sees your services or your guests' traffic.
+  </p>
+
+  <Architecture />
+
+  <h2>Your tab is the hub</h2>
+  <p>
+    When you open PeerShare, your browser creates (or reloads) a key pair and becomes the hub of
+    a mesh built with <a href="https://github.com/statewalker/httpeers">httpeers</a>, on
+    <a href="https://libp2p.io">libp2p</a>. The hub keeps, in your browser's storage:
+  </p>
+  <ul>
+    <li>your private key, whose public half is your <strong>peer ID</strong>;</li>
+    <li>the list of members: your guests' peer IDs;</li>
+    <li>which invites were already used;</li>
+    <li>your services: names, addresses, and whether they are on.</li>
+  </ul>
+  <p>
+    None of this is stored anywhere but your browser. Reloading the page brings the same mesh back, and guests
+    reconnect by themselves. Closing the tab stops it: sharing lives exactly as long as your tab.
+  </p>
+
+  <h2>How two browsers find each other</h2>
+  <p>
+    A browser cannot accept incoming connections, so both sides first connect to a
+    <strong>relay</strong> (<code>relay.httpeers.net</code>) over a secure WebSocket. Your tab
+    reserves a slot there; a guest's browser dials your peer ID through it (a libp2p
+    <em>circuit relay</em>). Over that circuit the two browsers exchange a WebRTC offer and,
+    where the networks allow, switch to a <strong>direct WebRTC connection</strong>; otherwise
+    they keep using the circuit.
+  </p>
+  <p>
+    The connection through the relay is secured by a <strong>Noise</strong> handshake between
+    the two browsers, so it is encrypted end to end and the relay forwards bytes it cannot read.
+    A direct WebRTC connection is encrypted by WebRTC itself (DTLS); its key fingerprints are
+    exchanged over that Noise-secured channel, so it is bound to the same two identities. See
+    <a href={u("/security")}>Why it is safe</a>.
+  </p>
+
+  <h2>Joining with an invite</h2>
+  <ol>
+    <li>
+      <strong>Invite</strong> asks your hub for a fresh invitation: a single-use secret that
+      expires in 24 hours. The link carries it, with your peer ID and the relay's address, in the
+      <em>fragment</em> (after <code>#</code>), which the browser does not send to PeerShare's
+      servers. Anyone who can read the message you send it in could use it first.
+    </li>
+    <li>
+      The guest's browser creates its own key pair, connects to your peer ID, and presents the
+      invitation. Your hub checks that it is unused and unexpired, marks it spent, and adds the
+      guest's peer ID as a member.
+    </li>
+    <li>
+      The hub gives the guest a <strong>membership token</strong>: a
+      <a href="https://www.biscuitsec.org">Biscuit</a> signed with your key and bound to the
+      guest's peer ID.
+    </li>
+  </ol>
+
+  <h2>One request, end to end</h2>
+  <p>
+    Each service opens for the guest in its own origin, a random name under
+    <code>s.httpeers.net</code>. That origin is empty: a ServiceWorker there answers every
+    request the service's pages make, including <code>index.html</code>, by handing it to the
+    guest's PeerShare page over a <code>MessagePort</code>. The PeerShare page sends it over the
+    mesh, with the guest's token, to your tab.
+  </p>
+  <p>
+    Your tab checks the request: the guest's peer ID as proven by the encrypted connection, the
+    token's signature and binding, and that the guest is not revoked. Then it fetches the file
+    from the service: through the local proxy for a service on your computer or network, or
+    directly for a remote https site. The response travels back the same way.
+  </p>
+  <p>
+    Live connections work too: a service's WebSocket (live reload, chat) is carried over the
+    mesh as one long request. A service that signs people in with cookies works through the
+    local proxy, which keeps each guest's cookies apart.
+  </p>
+
+  <h2>What runs where</h2>
+  <table>
+    <thead><tr><th>Piece</th><th>Where</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>PeerShare page</td><td>Your tab and each guest's tab</td><td>The hub (yours) or a member (theirs)</td></tr>
+      <tr><td>Relay</td><td><code>relay.httpeers.net</code></td><td>Lets browsers reach each other; forwards encrypted bytes</td></tr>
+      <tr><td>Session origins</td><td><code>*.s.httpeers.net</code></td><td>Static files; one isolated origin per service a guest opens</td></tr>
+      <tr><td>Local proxy</td><td>Your computer, <code>127.0.0.1</code></td><td>Reaches local services without CORS</td></tr>
+      <tr><td>Your services</td><td>Where they already run</td><td>Unchanged: nothing to install in them</td></tr>
+    </tbody>
+  </table>
+</Docs>

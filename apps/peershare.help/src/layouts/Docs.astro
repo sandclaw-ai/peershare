@@ -1,0 +1,68 @@
+---
+import "../styles/global.css";
+import { u } from "../lib/url.ts";
+import { pages } from "../pages/_nav.ts";
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+// The page's own path, without the base: "/help/security" → "/security", "/help/" → "/".
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const path =
+  Astro.url.pathname
+    .slice(base.length)
+    .replace(/\.html$/, "")
+    .replace(/\/index$/, "/") || "/";
+const index = pages.findIndex((p) => p.href === path);
+const prev = index > 0 ? pages[index - 1] : undefined;
+const next = index >= 0 && index < pages.length - 1 ? pages[index + 1] : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Same origin as the PeerShare page, where the Sharer's and Guests' keys live: no script
+         may ever run here, whatever a page contains. Styles may be inline (Astro inlines the CSS,
+         the diagram carries its own): without script they cannot reach anything. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>{title} · PeerShare help</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href={u("/favicon.svg")} />
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href={u("/")}>
+        <img src={u("/favicon.svg")} alt="" width="28" height="28" />
+        PeerShare <span>help</span>
+      </a>
+      <a class="cta" href="/">Open PeerShare →</a>
+    </header>
+    <div class="shell">
+      <nav class="side" aria-label="Help pages">
+        {
+          pages.map((p) => (
+            <a href={u(p.href)} aria-current={p.href === path ? "page" : undefined}>
+              {p.title}
+            </a>
+          ))
+        }
+      </nav>
+      <main>
+        <article class="prose">
+          <slot />
+        </article>
+        <footer class="pager">
+          {prev ? <a href={u(prev.href)}>← {prev.title}</a> : <span />}
+          {next ? <a href={u(next.href)}>{next.title} →</a> : <span />}
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

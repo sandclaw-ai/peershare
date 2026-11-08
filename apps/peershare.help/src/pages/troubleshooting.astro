@@ -1,0 +1,84 @@
+---
+import Docs from "../layouts/Docs.astro";
+import { u } from "../lib/url.ts";
+---
+
+<Docs title="Troubleshooting" description="What PeerShare's messages mean, and what to do.">
+  <h1>Troubleshooting</h1>
+  <p class="lede">What PeerShare's messages mean, and what to do about them.</p>
+
+  <h2>For the person sharing</h2>
+  <table>
+    <thead><tr><th>You see</th><th>It means</th><th>Do this</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>No proxy is running at that address</td>
+        <td>Nothing answers at the proxy's address</td>
+        <td>Start the proxy (<a href={u("/local-proxy")}>how</a>) and check again</td>
+      </tr>
+      <tr>
+        <td>The proxy refused the key</td>
+        <td>It was started with <code>--key</code>, and the page sent another</td>
+        <td>Enter that key in the Local proxy card, or open the link the proxy printed</td>
+      </tr>
+      <tr>
+        <td>Your browser blocked local network access</td>
+        <td>You (or a policy) said no to the browser's question</td>
+        <td>Allow "Local network access" in the site settings (left of the address bar)</td>
+      </tr>
+      <tr>
+        <td>Unreachable, on a local service</td>
+        <td>The proxy could not reach the service</td>
+        <td>Check that the service is running, and the address and port</td>
+      </tr>
+      <tr>
+        <td>It doesn't allow calls from PeerShare</td>
+        <td>A remote https site sent no CORS headers</td>
+        <td>
+          Allow <code>https://peershare.httpeers.net</code> in its CORS settings, including the
+          request header <code>x-peershare-guest</code>
+        </td>
+      </tr>
+      <tr>
+        <td>Slow</td>
+        <td>It answers, but slowly</td>
+        <td>Guests will wait too; nothing to fix in PeerShare</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>For a guest</h2>
+  <table>
+    <thead><tr><th>You see</th><th>It means</th><th>Do this</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>This invite was already used</td>
+        <td>Someone opened it first; each invite admits one person</td>
+        <td>Ask for a new link, and tell the sharer, who can revoke the other person</td>
+      </tr>
+      <tr><td>This invite has expired</td><td>It is more than 24 hours old</td><td>Ask for a new link</td></tr>
+      <tr>
+        <td>…'s computer isn't answering</td>
+        <td>Their PeerShare tab is closed, or sharing is off</td>
+        <td>Wait: the page reconnects by itself when they are back</td>
+      </tr>
+      <tr>
+        <td>… paused a service</td>
+        <td>The sharer turned that service off for now</td>
+        <td>It comes back by itself</td>
+      </tr>
+      <tr>
+        <td>… removed your access</td>
+        <td>The sharer revoked you</td>
+        <td>Ask them for a new invite if you need it</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Still stuck</h2>
+  <p>
+    PeerShare is open source:
+    <a href="https://github.com/statewalker/sandclaw/tree/main/apps/peershare.app">the page</a> and
+    <a href="https://github.com/statewalker/httpeers">the mesh</a>. Issues are welcome on GitHub.
+  </p>
+</Docs>

@@ -1,0 +1,74 @@
+---
+import Docs from "../layouts/Docs.astro";
+import { u } from "../lib/url.ts";
+---
+
+<Docs
+  title="What is PeerShare"
+  description="Share a web app on your computer with people you invite, straight from your browser tab."
+>
+  <h1>What is PeerShare</h1>
+  <p class="lede">
+    Show a web app that runs on your computer to people you invite, from your browser tab. No
+    deploy, no public URL, no account, nothing for them to install.
+  </p>
+
+  <p>
+    You have something with a web page: a dev server on <code>localhost:5173</code>, a dashboard
+    on your network, a notebook. You open <a href="https://peershare.httpeers.net">PeerShare</a>,
+    add it as a <strong>service</strong>, and send a guest an <strong>invite link</strong>. They
+    open the link, join, and use the service in their own browser. The pages travel between your
+    two browsers, end-to-end encrypted.
+  </p>
+
+  <div class="cards">
+    <a href={u("/getting-started")}>
+      <strong>Getting started</strong>
+      <span>Share a service, invite a guest, and what the guest sees.</span>
+    </a>
+    <a href={u("/how-it-works")}>
+      <strong>How it works</strong>
+      <span>Your tab is the hub; guests connect to it over a peer-to-peer mesh.</span>
+    </a>
+    <a href={u("/security")}>
+      <strong>Why it is safe</strong>
+      <span>Noise encryption, peer IDs that are public keys, nothing stored on a server.</span>
+    </a>
+    <a href={u("/local-proxy")}>
+      <strong>The local proxy</strong>
+      <span>For services on your computer that do not allow calls from PeerShare.</span>
+    </a>
+  </div>
+
+  <h2>Words used on these pages</h2>
+  <table>
+    <tbody>
+      <tr><th>Sharer</th><td>You: the person sharing. Your browser tab runs the sharing.</td></tr>
+      <tr><th>Guest</th><td>Someone who joined with an invite link you sent.</td></tr>
+      <tr>
+        <th>Service</th>
+        <td>Something you share: a name and an address, such as <code>http://localhost:5173</code>.</td>
+      </tr>
+      <tr><th>Invite</th><td>A link for one person. It works once, for 24 hours.</td></tr>
+      <tr>
+        <th>Local proxy</th>
+        <td>
+          A small program on your computer that reaches local services which do not allow calls
+          from PeerShare (no CORS).
+        </td>
+      </tr>
+      <tr>
+        <th>Peer ID</th>
+        <td>The identity of a browser on the mesh. It is derived from that browser's public key.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <p>
+      <strong>Try it with nothing installed:</strong> share the example site
+      <code>https://peershare-demo.httpeers.net</code>. It is a small static site set up so
+      PeerShare may read it, so it works without the local proxy.
+    </p>
+  </div>
+</Docs>

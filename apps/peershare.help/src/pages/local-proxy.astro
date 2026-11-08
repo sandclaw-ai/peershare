@@ -1,0 +1,81 @@
+---
+import Docs from "../layouts/Docs.astro";
+---
+
+<Docs
+  title="The local proxy"
+  description="For services on your computer or network that do not allow calls from PeerShare."
+>
+  <h1>The local proxy</h1>
+  <p class="lede">
+    A small program on your computer, for services that do not allow the PeerShare page to call
+    them. Remote https sites that allow PeerShare do not need it.
+  </p>
+
+  <h2>Why it is needed</h2>
+  <p>
+    Browsers let a page read another site only when that site allows it with CORS headers. A dev
+    server on <code>localhost:5173</code>, a router's admin page or a NAS usually doesn't. The
+    proxy runs next to them, on your computer, and fetches them for the PeerShare page.
+  </p>
+
+  <h2>Start it</h2>
+  <pre><code>curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh</code></pre>
+  <p>
+    The launcher downloads the proxy (one file) into <code>~/.cache/peershare/</code> and runs it
+    with Deno, Bun or Node, whichever it finds first. With none of them, it downloads Deno once
+    into the same folder. Nothing is installed system-wide. It runs on macOS and Linux.
+  </p>
+  <p>
+    The proxy prints a link. Open it and the PeerShare page is set up to use the proxy. You can
+    also type the address and key into the <strong>Local proxy</strong> card yourself.
+  </p>
+
+  <h2>Options</h2>
+  <pre><code>curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh -s -- --port 9091 --key s3cret</code></pre>
+  <table>
+    <thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>--port</code></td><td><code>9090</code></td><td>The port on <code>127.0.0.1</code></td></tr>
+      <tr><td><code>--key</code></td><td>none</td><td>When set, the page must send it</td></tr>
+      <tr>
+        <td><code>--origin</code></td>
+        <td>PeerShare, and pages on this computer</td>
+        <td>Which pages may use it; replaces the list</td>
+      </tr>
+      <tr>
+        <td><code>--no-cookie-jars</code></td>
+        <td>jars on</td>
+        <td>Turns off the separate cookie jar for each guest</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>What it will and won't do</h2>
+  <ul>
+    <li>
+      It listens on <code>127.0.0.1</code> only: nothing else on your network can talk to it.
+    </li>
+    <li>
+      It reaches <code>localhost</code>, private addresses (<code>192.168.…</code>,
+      <code>10.…</code>), Tailscale addresses (<code>100.x</code>), and <code>.local</code> names.
+      A public address is refused.
+    </li>
+    <li>
+      It answers the PeerShare page and pages served from your computer; other websites you visit
+      get <code>403</code>.
+    </li>
+    <li>
+      It keeps <strong>each guest's cookies apart</strong>, so a service that signs people in with
+      cookies works for every guest separately.
+    </li>
+  </ul>
+
+  <h2>Browsers</h2>
+  <p>
+    Chrome and Edge ask once whether the page may reach devices on your local network: choose
+    <strong>Allow</strong>. Firefox works too. Safari blocks a secure page's calls to
+    <code>127.0.0.1</code>, so the proxy cannot be used there. Remote https services that allow
+    PeerShare still work in Safari.
+  </p>
+</Docs>
