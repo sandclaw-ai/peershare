@@ -1,0 +1,9 @@
+@import "../src/index.css";
+@source "./**/*.tsx";
+@source "../src/**/*.tsx";
+
+html,
+body,
+#root {
+  height: 100%;
+}

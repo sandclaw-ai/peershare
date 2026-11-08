@@ -13,14 +13,17 @@
   "main": "src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./styles.css": "./src/index.css"
+    "./styles.css": "./src/index.css",
+    "./kit": "./src/kit/index.ts"
   },
   "files": [
     "src/**"
   ],
   "scripts": {
     "test": "vitest --run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gallery": "vite --config gallery/vite.config.ts",
+    "build:gallery": "vite build --config gallery/vite.config.ts"
   },
   "dependencies": {
     "@statewalker/httpeers-qr": "catalog:",
@@ -28,6 +31,7 @@
     "@statewalker/peershare.share": "workspace:^",
     "@statewalker/shared-commands": "catalog:",
     "@statewalker/ui.view.shadcn": "catalog:",
+    "class-variance-authority": "catalog:",
     "lucide-react": "catalog:",
     "radix-ui": "catalog:",
     "react": "catalog:",
