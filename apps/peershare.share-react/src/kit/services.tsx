@@ -245,21 +245,41 @@ export interface ServiceFormProps {
   /** The service being edited. */
   self?: Service;
   submitText?: string;
+  /** A service to try PeerShare with, offered as a link that fills the form in. */
+  example?: ServiceDraft;
   onSubmit: (draft: ServiceDraft, kind: UpstreamKind) => void;
   onCancel?: () => void;
 }
 
 const emptyDraft: ServiceDraft = { name: "", target: "", isDefault: false };
 
+/**
+ * PeerShare's example site: a small static site published for trying PeerShare out. It allows
+ * PeerShare's page (CORS), so it is shared directly, without the local proxy.
+ */
+export const EXAMPLE_SERVICE: ServiceDraft = {
+  name: "Example site",
+  target: "https://peershare-demo.httpeers.net/",
+  isDefault: true,
+};
+
 export function ServiceForm({
   initial = emptyDraft,
   services,
   self,
   submitText = "Share service",
+  example,
   onSubmit,
   onCancel,
 }: ServiceFormProps) {
   const [draft, setDraft] = useState(initial);
+  // Exactly one service is the Default: with no other service, this one has to be it.
+  const onlyOne = !services.some((s) => s.id !== self?.id);
+  // Turning the Default off hands it on: to the first other service, as the logic does.
+  const handedTo =
+    self?.isDefault === true && !draft.isDefault
+      ? services.find((s) => s.id !== self.id)?.name
+      : undefined;
   const [submitted, setSubmitted] = useState<DraftCheck>();
   // What the address alone says, while typing: the kind, or nothing yet.
   const live = draft.target.trim() === "" ? undefined : validateDraft({ ...draft, name: "x" }, []);
@@ -272,9 +292,30 @@ export function ServiceForm({
         e.preventDefault();
         const check = validateDraft(draft, services, self?.id);
         setSubmitted(check);
-        if (check.ok) onSubmit({ ...draft, name: draft.name.trim() }, check.kind);
+        if (check.ok)
+          onSubmit(
+            { ...draft, name: draft.name.trim(), isDefault: onlyOne || draft.isDefault },
+            check.kind,
+          );
       }}
     >
+      {example != null && (
+        <p className="bg-muted/50 text-muted-foreground flex flex-wrap items-center gap-x-1 rounded-md px-3 py-2 text-sm">
+          Just trying PeerShare?
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 py-0"
+            onClick={() => {
+              setSubmitted(undefined);
+              setDraft(example);
+            }}
+          >
+            Fill in the example site
+          </Button>
+        </p>
+      )}
       <div className="grid gap-1.5">
         <Label htmlFor="service-name">Name</Label>
         <Input
@@ -326,10 +367,17 @@ export function ServiceForm({
       <Label className="flex items-center justify-between gap-3 rounded-lg border p-3 font-normal">
         <span className="grid gap-0.5">
           <span className="text-sm font-medium">Default service</span>
-          <span className="text-muted-foreground text-xs">Guests see it first.</span>
+          <span className="text-muted-foreground text-xs">
+            {onlyOne
+              ? "Guests see it first. Your only service is always the default."
+              : handedTo != null
+                ? `Turned off, ${handedTo} becomes the default.`
+                : "Guests see it first. Only one service is the default."}
+          </span>
         </span>
         <Switch
-          checked={draft.isDefault}
+          checked={onlyOne || draft.isDefault}
+          disabled={onlyOne}
           onCheckedChange={(on) => setDraft({ ...draft, isDefault: on })}
         />
       </Label>

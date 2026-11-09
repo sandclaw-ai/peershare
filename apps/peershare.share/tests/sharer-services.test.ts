@@ -101,6 +101,41 @@ describe("M1 — Services", () => {
     expect(await defaults()).toEqual(["a"]);
   });
 
+  it("exactly one Default through the form too: add and edit with Default on take it from the others", async () => {
+    const { call } = withPeerShare();
+    const defaults = async () =>
+      (await call(GetSharer, undefined)).services.filter((s) => s.isDefault).map((s) => s.id);
+    const a = { name: "a", kind: "bridged", target: "http://localhost:1" };
+    const b = { name: "b", kind: "bridged", target: "http://localhost:2" };
+    const c = { name: "c", kind: "bridged", target: "http://localhost:3" };
+
+    // The first Service is the Default even when the form says otherwise.
+    await call(AddService, { ...a, isDefault: false });
+    expect(await defaults()).toEqual(["a"]);
+    await call(AddService, { ...b, isDefault: true });
+    expect(await defaults()).toEqual(["b"]);
+    await call(AddService, { ...c, isDefault: false });
+    expect(await defaults()).toEqual(["b"]);
+
+    // Edit with Default on: it becomes the only Default.
+    await call(EditService, { id: "c", draft: { ...c, isDefault: true } });
+    expect(await defaults()).toEqual(["c"]);
+    // Edit with Default off: the Default moves to the first other Service.
+    await call(EditService, { id: "c", draft: { ...c, isDefault: false } });
+    expect(await defaults()).toEqual(["a"]);
+    // A draft that does not mention Default leaves it as it was.
+    await call(EditService, { id: "a", draft: { ...a, name: "a2" } });
+    expect(await defaults()).toEqual(["a"]);
+  });
+
+  it("the only Service stays the Default, whatever its form says", async () => {
+    const { call } = withPeerShare();
+    const a = { name: "a", kind: "bridged", target: "http://localhost:1" };
+    await call(AddService, a);
+    await call(EditService, { id: "a", draft: { ...a, isDefault: false } });
+    expect((await call(GetSharer, undefined)).services[0]?.isDefault).toBe(true);
+  });
+
   it("toggle-service pauses: Guests get the paused page, naming the Sharer", async () => {
     const { rt, call } = withPeerShare();
     await call(SetName, { name: "Dirk" });

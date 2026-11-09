@@ -62,13 +62,27 @@ export const guests: Guest[] = [
     peerId: "12D3KooWClaudia3fa9c2",
     name: "Guest 3fa9c2",
     joinedAt: new Date("2026-11-07T09:12:00Z"),
-    online: true,
+    status: "online",
   },
   {
     peerId: "12D3KooWMarta81be07",
     name: "Guest 81be07",
     joinedAt: new Date("2026-11-06T16:40:00Z"),
-    online: false,
+    status: "away",
+  },
+  {
+    peerId: "12D3KooWJonas5d21aa",
+    name: "Guest 5d21aa",
+    joinedAt: new Date("2026-11-06T10:05:00Z"),
+    status: "left",
+    endedAt: new Date("2026-11-06T11:30:00Z"),
+  },
+  {
+    peerId: "12D3KooWEve77c0de",
+    name: "Guest 77c0de",
+    joinedAt: new Date("2026-11-05T08:00:00Z"),
+    status: "revoked",
+    endedAt: new Date("2026-11-05T09:15:00Z"),
   },
 ];
 
@@ -232,6 +246,7 @@ export function GuestDemo(props: GuestDemoProps) {
       <GuestLanding
         sharerName="Dirk"
         stage={stage}
+        connecting={stage === "joining" ? "direct" : undefined}
         onJoin={() => {
           setStage("joining");
           setTimeout(() => setStage(props.answer ?? "joined"), 1200);

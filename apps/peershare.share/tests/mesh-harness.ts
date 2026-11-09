@@ -26,6 +26,9 @@ export async function startRelay(): Promise<{ addr: string; stop(): Promise<void
       identify: identify(),
       relay: circuitRelayServer({
         reservations: {
+          // libp2p's default is 15. Every Sharer and Guest a test file starts holds one until it
+          // stops, and one file starts more than that: past 15, joins failed at random.
+          maxReservations: 1000,
           applyDefaultLimit: true,
           defaultDataLimit: 1n << 30n,
           defaultDurationLimit: 6 * 3600_000,

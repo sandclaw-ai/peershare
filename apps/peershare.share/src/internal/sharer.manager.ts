@@ -62,7 +62,8 @@ export class SharerManager {
     const refused = this.check(draft);
     if (refused != null) return refused;
     const id = uniqueId(draft.name, this.state.services);
-    const isDefault = draft.isDefault ?? this.state.services.length === 0;
+    // The first Service is the Default whatever the form says: there is always one.
+    const isDefault = draft.isDefault === true || this.state.services.length === 0;
     this.state.services = [
       ...this.state.services.map((s) => (isDefault ? { ...s, isDefault: false } : s)),
       { id, name: draft.name, kind: draft.kind, target: draft.target, enabled: true, isDefault },
@@ -91,9 +92,21 @@ export class SharerManager {
           }
         : s,
     );
+    // The form's Default switch: on takes it from every other Service, off hands it to the
+    // first other one. Exactly one Default while there is anything at all.
+    if (draft.isDefault === true) this.makeDefault(id);
+    else if (draft.isDefault === false) {
+      const next = this.state.services.find((s) => s.id !== id);
+      if (next != null && this.state.services.find((s) => s.id === id)?.isDefault === true)
+        this.makeDefault(next.id);
+    }
     await this.save();
     void this.probe(id);
     return { ok: true };
+  }
+
+  private makeDefault(id: string): void {
+    this.state.services = this.state.services.map((s) => ({ ...s, isDefault: s.id === id }));
   }
 
   async remove(id: string): Promise<void> {
@@ -107,7 +120,7 @@ export class SharerManager {
 
   async setDefault(id: string): Promise<void> {
     if (!this.state.services.some((s) => s.id === id)) return;
-    this.state.services = this.state.services.map((s) => ({ ...s, isDefault: s.id === id }));
+    this.makeDefault(id);
     await this.save();
   }
 

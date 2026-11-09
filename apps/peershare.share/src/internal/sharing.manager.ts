@@ -36,6 +36,10 @@ interface Running {
  * live, rarely enough to cost nothing.
  */
 const MEMBERS_WATCH_MS = 500;
+/** How often the hub expires presence: a Guest that stops beating shows as away within this plus its 15 s TTL. */
+const PRESENCE_SWEEP_MS = 5_000;
+/** Guests who left or were revoked, kept for the Sharer to see: the most recent ones. */
+const DEPARTED_KEPT = 20;
 
 export class SharingManager {
   private running: Running | undefined;
@@ -78,6 +82,8 @@ export class SharingManager {
       selfPeerId: peerId,
       policies: PEERSHARE_RULES,
       storage: hubStorage,
+      // Without a sweep, presence never expires and a Guest that left looks online for good.
+      sweepIntervalMs: PRESENCE_SWEEP_MS,
       mintToken: async (sub, roles) => mintToken({ signer, sub, roles, ttlMs: 10 * 60_000 }),
       extraMounts: {
         "/s": stampGuest(this.track(this.mount)),
@@ -88,7 +94,7 @@ export class SharingManager {
           if (request.method !== "POST" || guest == null || guest === ANONYMOUS) {
             return new Response(null, { status: 404 });
           }
-          this.revoke(guest);
+          this.end(guest, "left");
           return new Response(null, { status: 204 });
         },
       },
@@ -115,9 +121,10 @@ export class SharingManager {
 
     let seen = "";
     const watch = setInterval(() => {
-      const now = hub.members
-        .list()
-        .map((m) => m.peerId)
+      // Who is a member, and who of them is online: either changing redraws the Guests list.
+      const now = hub
+        .meshView()
+        .members.map((m) => `${m.peerId}:${m.online ? 1 : 0}`)
         .sort()
         .join(",");
       if (now !== seen) {
@@ -165,11 +172,50 @@ export class SharingManager {
     return this.lastInvite;
   }
 
+  /** The Guests who are members now, then those who left or were revoked, most recent first. */
   guests(): GuestRecord[] {
-    return (this.running?.hub.members.list() ?? []).map((m) => ({
-      peerId: m.peerId,
-      joinedAt: m.updatedAt,
-    }));
+    const hub = this.running?.hub;
+    const online = new Set(
+      (hub?.meshView().members ?? []).filter((m) => m.online).map((m) => m.peerId),
+    );
+    const members: GuestRecord[] = (hub?.members.list() ?? [])
+      .filter((m) => m.peerId !== this.peerId)
+      .map((m) => ({
+        peerId: m.peerId,
+        joinedAt: m.updatedAt,
+        status: online.has(m.peerId) ? "online" : "away",
+      }));
+    const current = new Set(members.map((m) => m.peerId));
+    const departed = [...this.departed.values()]
+      .filter((d) => !current.has(d.peerId))
+      .sort((a, b) => (b.endedAt ?? 0) - (a.endedAt ?? 0));
+    return [...members, ...departed];
+  }
+
+  /** Guests who left or were revoked while this tab is open: the Sharer still sees them. */
+  private readonly departed = new Map<string, GuestRecord>();
+
+  /** A Guest stops being a member: revoked by the Sharer, or left by its own Close session. */
+  private end(peerId: string, status: "left" | "revoked"): void {
+    const hub = this.required().hub;
+    const member = hub.members.list().find((m) => m.peerId === peerId);
+    revokeGuest(hub, peerId);
+    for (const end of this.open.get(peerId) ?? []) end();
+    if (member != null) {
+      this.departed.delete(peerId);
+      this.departed.set(peerId, {
+        peerId,
+        joinedAt: member.updatedAt,
+        status,
+        endedAt: Date.now(),
+      });
+      while (this.departed.size > DEPARTED_KEPT) {
+        const oldest = this.departed.keys().next().value;
+        if (oldest == null) break;
+        this.departed.delete(oldest);
+      }
+    }
+    this.notify();
   }
 
   /**
@@ -178,9 +224,7 @@ export class SharingManager {
    * so the Guest's open responses are ended too (see `track`).
    */
   revoke(peerId: string): void {
-    revokeGuest(this.required().hub, peerId);
-    for (const end of this.open.get(peerId) ?? []) end();
-    this.notify();
+    this.end(peerId, "revoked");
   }
 
   /** Each Guest's responses still streaming, by peer id: what `revoke` ends. */

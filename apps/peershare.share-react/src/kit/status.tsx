@@ -94,13 +94,14 @@ export function NameAvatar({ name, className }: { name: string; className?: stri
   );
 }
 
-export function BrandMark({ className }: { className?: string }) {
+export function BrandMark({ className, compact }: { className?: string; compact?: boolean }) {
   return (
     <span className={cn("inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
-      <span className="bg-primary text-primary-foreground inline-flex size-7 items-center justify-center rounded-lg">
+      <span className="bg-primary text-primary-foreground inline-flex size-7 shrink-0 items-center justify-center rounded-lg">
         <Share2 className="size-4" />
       </span>
-      PeerShare
+      {/* `compact`: the mark alone on a phone, where a bar needs the room. */}
+      <span className={cn(compact && "max-sm:sr-only")}>PeerShare</span>
     </span>
   );
 }
@@ -110,6 +111,31 @@ export function HelpLink({ className }: { className?: string }) {
     <Button asChild variant="ghost" size="sm" className={cn("text-muted-foreground", className)}>
       <a href={HELP_URL} target="_blank" rel="noreferrer">
         <CircleHelp /> Help
+      </a>
+    </Button>
+  );
+}
+
+/** Where PeerShare's own sharing page is: `/` on the page's origin. */
+export const SHARE_PAGE_HREF = "/";
+
+/**
+ * A Guest's way to PeerShare's sharing page, to share their own services. It opens in a new tab,
+ * so the session they are in stays open; that page keeps its own key, apart from the Guest's.
+ */
+export function ShareYourOwnLink({
+  href = SHARE_PAGE_HREF,
+  className,
+}: {
+  href?: string;
+  className?: string;
+}) {
+  return (
+    <Button asChild variant="ghost" size="sm" className={cn("text-muted-foreground", className)}>
+      <a href={href} target="_blank" rel="noopener" title="Share your own services">
+        <Share2 />
+        {/* Icon only on a phone, where the Viewer's bar has no room for words. */}
+        <span className="max-sm:sr-only">Share your own services</span>
       </a>
     </Button>
   );

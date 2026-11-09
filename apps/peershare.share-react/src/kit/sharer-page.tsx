@@ -12,11 +12,19 @@ import {
 } from "@statewalker/ui.view.shadcn";
 import { Power, UserPlus } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import type { Guest, Invite, Service, ServiceDraft, UpstreamKind } from "../views/model.js";
+import {
+  type Guest,
+  type Invite,
+  isMember,
+  type Service,
+  type ServiceDraft,
+  type UpstreamKind,
+} from "../views/model.js";
 import { HelpTip } from "./help-tip.js";
 import { GuestsCard, InviteDialog, KeepTabOpen } from "./people.js";
 import { Alert, AlertDescription, AlertTitle, Badge } from "./primitives.js";
 import {
+  EXAMPLE_SERVICE,
   ServiceCard,
   ServiceDialog,
   ServiceForm,
@@ -73,9 +81,10 @@ export function SharerPage(props: SharerPageProps) {
   const [confirmStop, setConfirmStop] = useState(false);
   const editing = dialog?.mode === "edit" ? services.find((s) => s.id === dialog.id) : undefined;
   const canInvite = sharing && services.some((s) => s.enabled);
-  const presence = guests.some((g) => g.online != null);
-  const online = guests.filter((g) => g.online === true).length;
-  const count = presence ? online : guests.length;
+  const members = guests.filter(isMember);
+  const presence = members.some((g) => g.status != null);
+  const online = members.filter((g) => g.status === "online").length;
+  const count = presence ? online : members.length;
 
   return (
     <div className="bg-muted/30 min-h-full">
@@ -142,6 +151,7 @@ export function SharerPage(props: SharerPageProps) {
               <ServiceForm
                 services={services}
                 initial={{ name: "", target: "", isDefault: true }}
+                example={EXAMPLE_SERVICE}
                 onSubmit={(draft, kind) => props.onAdd?.(draft, kind)}
               />
             </ServicesEmpty>

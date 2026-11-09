@@ -106,11 +106,13 @@ export function SharerScreen({ proxy }: SharerScreenProps = {}) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const services = snapshot.sharer.services;
 
-  // The mesh says who joined, not who is connected now: no presence is claimed.
+  // The hub's view of each Guest: online or away from its heartbeats, or left / revoked.
   const guests: Guest[] = snapshot.guests.map((g) => ({
     peerId: g.peerId,
     name: `Guest ${g.peerId.slice(-6)}`,
     joinedAt: new Date(g.joinedAt),
+    status: g.status,
+    ...(g.endedAt != null ? { endedAt: new Date(g.endedAt) } : {}),
   }));
 
   return (
@@ -171,23 +173,50 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const [selected, setSelected] = useState<string>();
 
-  const joined = guest.stage === "joined" || guest.stage === "machine-offline";
+  const revoked = guest.stage === "revoked";
+  // Revoked is shown in the Viewer, in place of the service: the Guest was in it.
+  const joined = guest.stage === "joined" || guest.stage === "machine-offline" || revoked;
+  // The Sharer's list changed (added, renamed, paused…): the Guest's watch moved the version.
+  const catalogVersion = guest.catalogVersion ?? 0;
+  const stageNow = guest.stage;
   useEffect(() => {
-    if (!joined) return;
+    void catalogVersion;
+    void stageNow;
+    if (!joined || revoked) return;
     void call(ListSharedServices, undefined).then((entries) => {
       setCatalog(entries);
       setSelected((current) => current ?? entries.find((e) => e.isDefault)?.id ?? entries[0]?.id);
     });
-  }, [joined, call]);
+    // The stage too: back from machine-offline, the list may have changed or been empty.
+  }, [joined, revoked, call, catalogVersion, stageNow]);
+
+  // A tab in the background shows it in its title too.
+  useEffect(() => {
+    if (!revoked) return;
+    const before = document.title;
+    document.title = `Access removed · ${before}`;
+    return () => {
+      document.title = before;
+    };
+  }, [revoked]);
 
   const name = guest.sharerName ?? sharerName;
+  // PeerShare's sharing page sits beside the invite page: `/invite` → `/`,
+  // `/peer-share/invite` → `/peer-share/`.
+  const shareHref = (() => {
+    try {
+      return new URL(link).pathname.replace(/invite\/?$/, "") || "/";
+    } catch {
+      return "/";
+    }
+  })();
 
   if (!joined) {
     const stage: GuestStage = closed
       ? "closed"
       : declined
         ? "declined"
-        : joining
+        : joining || guest.connecting != null
           ? "joining"
           : guest.stage !== "no-link"
             ? (guest.stage as GuestStage) // not joined here: see `joined` above
@@ -196,6 +225,8 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
       <GuestLanding
         sharerName={name}
         stage={stage}
+        connecting={guest.connecting}
+        shareHref={shareHref}
         onJoin={async () => {
           setJoining(true);
           const answer = await call(Join, { link });
@@ -214,6 +245,8 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
       services={services}
       selected={selected ?? services[0]?.id ?? ""}
       presence={guest.stage === "machine-offline" ? "offline" : "online"}
+      revoked={revoked}
+      shareHref={shareHref}
       onSelect={setSelected}
       onCloseSession={async () => {
         await call(CloseSession, undefined);

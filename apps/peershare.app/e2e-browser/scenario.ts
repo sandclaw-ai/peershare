@@ -82,6 +82,35 @@ export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> 
   await dirk.tab.keyboard.press("Escape");
   await dirk.tab.getByRole("dialog").waitFor({ state: "hidden", timeout: 5_000 });
   await dirk.tab.getByText(/Guest \S{6}/).waitFor({ timeout: 10_000 });
+  // Online, from her heartbeats.
+  await dirk.tab.getByText(/Online · joined/).waitFor({ timeout: 15_000 });
+
+  // Dirk stops sharing: her page says so by itself, without a click of hers.
+  await dirk.tab.getByRole("button", { name: "Stop sharing" }).click();
+  await dirk.tab.getByRole("alertdialog").getByRole("button", { name: "Stop sharing" }).click();
+  await claudia.tab.getByText("Dirk's computer isn't answering", { exact: false }).first().waitFor({
+    timeout: 30_000,
+  });
+
+  // Dirk shares again; Claudia reloads her invite link: her membership, not "already used".
+  await dirk.tab.getByRole("button", { name: "Start sharing" }).click();
+  await dirk.tab.getByRole("button", { name: "Stop sharing" }).waitFor({ timeout: 30_000 });
+  // The reload resumes by itself; Try again (a Join with the same link) is the other way back.
+  await claudia.tab.reload();
+  const back = claudia.tab.getByRole("button", { name: /Close session/ });
+  for (let i = 0; i < 3 && !(await back.isVisible().catch(() => false)); i++) {
+    const tryAgain = claudia.tab.getByRole("button", { name: "Try again" });
+    await back.or(tryAgain).first().waitFor({ timeout: 60_000 });
+    if (await tryAgain.isVisible().catch(() => false)) await tryAgain.click().catch(() => {});
+  }
+  await back.waitFor({ timeout: 60_000 });
+  expect(await claudia.tab.getByText("This invite was already used").count()).toBe(0);
+
+  // Dirk revokes her: her page tells her, and Dirk still sees her, as revoked.
+  await dirk.tab.getByRole("button", { name: "Revoke" }).first().click();
+  await dirk.tab.getByRole("alertdialog").getByRole("button", { name: "Revoke access" }).click();
+  await claudia.tab.getByText("Dirk removed your access").waitFor({ timeout: 30_000 });
+  await dirk.tab.getByText("Revoked by you").waitFor({ timeout: 10_000 });
   expect([...dirk.errors, ...claudia.errors]).toEqual([]);
 
   if (init.screenshots != null) {

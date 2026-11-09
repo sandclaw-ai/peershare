@@ -23,8 +23,21 @@ export interface Guest {
   peerId: string;
   name: string;
   joinedAt: Date;
-  /** Connected right now; absent where presence is not known. */
-  online?: boolean;
+  /**
+   * Where the Guest stands, as the hub sees it; absent where that is not known:
+   * `online` (heartbeats arrive), `away` (a member, but quiet: tab closed or offline),
+   * `left` (closed their session), `revoked` (you revoked them).
+   */
+  status?: GuestStatus;
+  /** When they left or were revoked. */
+  endedAt?: Date;
+}
+
+export type GuestStatus = "online" | "away" | "left" | "revoked";
+
+/** A Guest who is still a member: online or away. */
+export function isMember(guest: Guest): boolean {
+  return guest.status !== "left" && guest.status !== "revoked";
 }
 
 /** One link, for one Guest, once, within 24 hours. */

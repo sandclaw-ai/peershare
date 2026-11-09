@@ -21,9 +21,9 @@ import {
 } from "@statewalker/ui.view.shadcn";
 import { Check, Clock, Copy, Link2, ShieldAlert, UserPlus, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { Guest, Invite } from "../views/model.js";
+import { type Guest, type Invite, isMember } from "../views/model.js";
 import { HelpTip } from "./help-tip.js";
-import { Alert, AlertDescription } from "./primitives.js";
+import { Alert, AlertDescription, Badge } from "./primitives.js";
 import { NameAvatar, PresenceDot } from "./status.js";
 
 // ——— Invite (scenario S5) ———————————————————————————————————————————————
@@ -147,9 +147,11 @@ export interface GuestsCardProps {
 }
 
 export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCardProps) {
-  // Presence, where the caller knows it: who is connected right now.
-  const known = guests.some((g) => g.online != null);
-  const online = guests.filter((g) => g.online === true).length;
+  // Members first (online or away), then who left or was revoked, under "Earlier".
+  const members = guests.filter(isMember);
+  const earlier = guests.filter((g) => !isMember(g));
+  const known = members.some((g) => g.status != null);
+  const online = members.filter((g) => g.status === "online").length;
   return (
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b p-4">
@@ -165,18 +167,20 @@ export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCard
             </HelpTip>
           </div>
           <p className="text-muted-foreground text-xs">
-            {guests.length === 0
-              ? "Nobody yet"
+            {members.length === 0
+              ? earlier.length === 0
+                ? "Nobody yet"
+                : "Nobody now"
               : known
-                ? `${guests.length} joined · ${online} online now`
-                : `${guests.length} joined`}
+                ? `${members.length} joined · ${online} online now`
+                : `${members.length} joined`}
           </p>
         </div>
         <Button size="sm" onClick={onInvite} disabled={!canInvite}>
           <UserPlus /> Invite
         </Button>
       </div>
-      {guests.length === 0 ? (
+      {members.length === 0 ? (
         <div className="grid gap-2 p-6 text-center">
           <Users className="text-muted-foreground mx-auto size-6" />
           <p className="text-muted-foreground text-sm">
@@ -185,13 +189,13 @@ export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCard
         </div>
       ) : (
         <ul className="divide-y">
-          {guests.map((guest) => (
+          {members.map((guest) => (
             <li key={guest.peerId} className="flex items-center gap-3 px-4 py-3">
               <span className="relative">
                 <NameAvatar name={guest.name} />
-                {guest.online != null && (
+                {guest.status != null && (
                   <PresenceDot
-                    value={guest.online ? "online" : "offline"}
+                    value={guest.status === "online" ? "online" : "offline"}
                     className="ring-card absolute -right-0.5 -bottom-0.5 rounded-full ring-2"
                   />
                 )}
@@ -199,11 +203,11 @@ export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCard
               <span className="grid min-w-0 flex-1">
                 <span className="truncate text-sm font-medium">{guest.name}</span>
                 <span className="text-muted-foreground text-xs">
-                  {guest.online == null
-                    ? "Joined"
-                    : guest.online
-                      ? "Online · joined"
-                      : "Away · joined"}{" "}
+                  {guest.status === "online"
+                    ? "Online · joined"
+                    : guest.status === "away"
+                      ? "Away · joined"
+                      : "Joined"}{" "}
                   {clock(guest.joinedAt)}
                 </span>
               </span>
@@ -211,6 +215,33 @@ export function GuestsCard({ guests, canInvite, onInvite, onRevoke }: GuestsCard
             </li>
           ))}
         </ul>
+      )}
+      {earlier.length > 0 && (
+        <div className="bg-muted/30 border-t">
+          <p className="text-muted-foreground px-4 pt-3 text-xs font-medium">Earlier</p>
+          <ul>
+            {earlier.map((guest) => (
+              <li key={guest.peerId} className="flex items-center gap-3 px-4 py-2">
+                <NameAvatar name={guest.name} />
+                <span className="grid min-w-0 flex-1">
+                  <span className="text-muted-foreground truncate text-sm font-medium">
+                    {guest.name}
+                  </span>
+                  <span className="text-muted-foreground text-xs">
+                    {guest.status === "revoked" ? "Revoked by you" : "Left the session"}
+                    {guest.endedAt != null && ` · ${clock(guest.endedAt)}`}
+                  </span>
+                </span>
+                <Badge
+                  variant={guest.status === "revoked" ? "destructive" : "secondary"}
+                  className="shrink-0"
+                >
+                  {guest.status === "revoked" ? "Revoked" : "Left"}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </Card>
   );
@@ -228,8 +259,9 @@ function RevokeButton({ name, onConfirm }: { name: string; onConfirm: () => void
         <AlertDialogHeader>
           <AlertDialogTitle>Revoke {name}?</AlertDialogTitle>
           <AlertDialogDescription>
-            {name} loses access at once: open pages stop loading and live connections close. To let
-            them back in, send a new invite.
+            {name} loses access at once: open pages stop loading and live connections close. Their
+            page tells them their access was removed, at once if it is open, or when they come back.
+            To let them back in, send a new invite.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
