@@ -1,0 +1,39 @@
+{
+  "name": "@statewalker/peershare-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.16.1",
+  "description": "PeerShare: share local HTTP services with invited guests over an httpeers mesh.",
+  "bugs": {
+    "url": "https://github.com/sandclaw-ai/peershare/issues"
+  },
+  "homepage": "https://github.com/sandclaw-ai/peershare#readme",
+  "author": {
+    "name": "Mikhail Kotelnikov",
+    "email": "mikhail.kotelnikov@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandclaw-ai/peershare.git"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "biome check --write .",
+    "lint:check": "biome check .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "changeset": "changeset"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@changesets/cli": "catalog:",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
