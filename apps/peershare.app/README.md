@@ -114,8 +114,9 @@ real `sh`, with stub runtimes on `PATH`.
 ### An example site to share
 
 `example-site/` is a small static site to try PeerShare with: a status board, a releases table
-(both read from JSON by a script), an about page and a 404. It is published at
-https://peershare-demo.sandclaw.ai by `.github/workflows/peershare-demo-site.yml`.
+(both read from JSON by a script), an about page and a 404. It was published at
+`peershare-demo.httpeers.net`; since the move to sandclaw.ai it is not hosted anywhere, and
+the address below is where it will live once it is.
 
 Share it with **Address** `https://peershare-demo.sandclaw.ai`. It is a remote https site with
 a domain name, so it is shared directly, without the proxy. Directly means the PeerShare page
@@ -125,69 +126,21 @@ reads it with `fetch`, so the site has to allow that. Its `.site/config.json` li
 that PeerShare's own `x-peershare-guest` header causes. Its links and data paths are relative,
 so in a Guest's isolated origin every page, image and JSON file comes over the mesh.
 
-#### Publishing it on every merge
+#### Hosting it
 
-`.github/workflows/peershare-demo-site.yml` publishes `example-site/` as it is (no build step)
-whenever a push to `main` changes it, which includes merging a pull request. It can also be run by
-hand. It uses statewalker/.github's `publish-site.yml`, which copies the files to httpeers' `sites`
-bucket under the prefix `peershare-demo.sandclaw.ai`. The sites host serves them from there at
-once, and the wildcard DNS and certificate for `*.httpeers.net` cover the name, so there is no DNS
-or certificate step.
+Nothing hosts `example-site/` at the moment. Whatever serves it must answer CORS for the origins
+in its `.site/config.json`, as httpeers' sites host did: `Access-Control-Allow-Origin` for
+`https://peershare.sandclaw.ai`, `Vary: Origin`, and the preflight for `x-peershare-guest`.
 
-It uses the same two repository secrets as the PeerShare site, `HTTPEERS_S3_ACCESS_KEY_ID` and
-`HTTPEERS_S3_SECRET_ACCESS_KEY`. They hold a RustFS user, `peershare-site`, whose policy lets it
-write only the prefixes it is given. That user must be given the demo's prefix too; until then
-the publish fails with "is a file not a directory". This is a one-time step:
-
-1. On a computer with ssh access to the httpeers server, Docker, `openssl` and `gh` (logged in
-   with admin rights on statewalker/sandclaw), check out statewalker/cellb.dev and run:
-
-   ```sh
-   REPO=statewalker/sandclaw \
-   SITE_USER=peershare-site \
-   SITE_DOMAIN=peershare.sandclaw.ai \
-   SITE_DOMAINS="peershare.sandclaw.ai s.sandclaw.ai peershare-demo.sandclaw.ai" \
-     site/scripts/setup-publish-secrets.sh
-   ```
-
-   The script reads RustFS's root key over ssh and uses it only on the server. It then:
-   - rewrites the `peershare-site` policy for these three prefixes;
-   - gives the user a new secret key and checks it can write under
-     `peershare.sandclaw.ai/.site/`, a path that is never served;
-   - stores the new pair in both repository secrets.
-
-   The old key stops working at once, so the PeerShare site picks up the new one too.
-   Always pass all three domains: a domain left out of `SITE_DOMAINS` loses its write access.
-2. Publish without waiting for a change: run the **PeerShare example site** workflow from the
-   Actions tab, or run `gh workflow run peershare-demo-site.yml -R statewalker/sandclaw --ref main`.
-   Its last step fails unless `https://peershare-demo.sandclaw.ai/` answers.
-3. Check that the CORS headers come back for the PeerShare page and not for other origins:
-
-   ```sh
-   curl -sI -H 'Origin: https://peershare.sandclaw.ai' https://peershare-demo.sandclaw.ai/data/status.json
-   #   access-control-allow-origin: https://peershare.sandclaw.ai
-   #   vary: Origin
-   curl -sI -H 'Origin: https://example.org' https://peershare-demo.sandclaw.ai/data/status.json
-   #   (no access-control-allow-origin)
-   curl -si -X OPTIONS -H 'Origin: https://peershare.sandclaw.ai' \
-     -H 'Access-Control-Request-Method: GET' \
-     -H 'Access-Control-Request-Headers: x-peershare-guest' \
-     https://peershare-demo.sandclaw.ai/data/status.json
-   #   204, with access-control-allow-headers: x-peershare-guest
-   ```
-
-   The sites host answers `cors` since statewalker/httpeers#65. If no CORS header comes back, the
-   sites host running on the server predates that change and needs a redeploy.
-
-To allow another origin, add it to `cors` in `example-site/.site/config.json` and merge. The next
-publish applies it; there is nothing to change on the server. `test/example-site.test.ts` checks
+To allow another origin, add it to `cors` in `example-site/.site/config.json`.
+`test/example-site.test.ts` checks
 the config and that every link in the site is relative.
 
 ### The help site
 
 `apps/peershare.help` (Astro) is published under https://peershare.sandclaw.ai/help/: what
 PeerShare is, getting started, how it works, why it is safe, the local proxy, troubleshooting.
-The site workflow builds it and copies it into the site's `help/` folder.
+The Docker image builds it and serves it under `help/`.
 
 ### Develop
 
@@ -205,19 +158,29 @@ Serve `dist/` with every route falling back to `index.html`, and `/peershare.jso
 }
 ```
 
-## Publishing (decision 2.8)
+## Deploying
+
+The page and the session shell ship as one image, `ghcr.io/sandclaw-ai/peershare`, built from
+`docker/Dockerfile` at the repository root by `.github/workflows/docker.yml` on every push to
+`main` that passes CI. It runs on the ITMV VPS behind Traefik (`itmv-conf`,
+`services/peershare_sandclaw_ai`), which terminates TLS. nginx serves by host name:
+
+| Host | What |
+|---|---|
+| `peershare.sandclaw.ai` | the page (every route), `peershare.json`, `proxy/`, the UI gallery under `/ui/`, the help site under `/help/` |
+| `<name>.s.sandclaw.ai` | the session shell, with `frame-ancestors` limited to `sandclaw.ai` and one label under it |
 
 ```sh
-pnpm build:site            # site/peershare.sandclaw.ai/: the page, peershare.json, proxy/, .site/config.json
-rclone sync site/peershare.sandclaw.ai httpeers:sites/peershare.sandclaw.ai
+docker build -f docker/Dockerfile -t peershare .   # from the repository root
 ```
 
-`build:site` reads the relay's addresses from its own document
-(`https://relay.httpeers.net/.well-known/httpeers-relay.json`), points sessions at
-`*.s.sandclaw.ai`, sets `invitePage` to `https://peershare.sandclaw.ai/invite`, and sets
-`spa: true` so `/invite` is served too. `SITE`,
-`SESSION_ZONE` and `RELAY_DOCUMENT_URL` override the defaults. `test/site.test.ts` checks
-the folder.
+The build runs `scripts/build-site.mjs` (the page and `peershare.json`) and
+`scripts/build-shell.mjs` (the shell). `peershare.json` takes the relay's addresses from its
+own document (`https://relay.httpeers.net/.well-known/httpeers-relay.json`), points sessions at
+`*.s.sandclaw.ai` and sets `invitePage` to `https://peershare.sandclaw.ai/invite`. The build
+args `PAGE_HOST`, `SESSION_ZONE`, `PARENT_ZONE` and `RELAY_DOCUMENT_URL` override the defaults.
+The zones are compiled into the shell and the relay's addresses into `peershare.json`, so
+changing either means rebuilding the image. `test/site.test.ts` checks the page folder.
 
 ## Internals
 
@@ -238,21 +201,14 @@ chromium`), plus Docker for `deploy.test.ts`. Each run picks free ports
 
 Sessions live on `*.s.sandclaw.ai`, not on httpeers' shared `*.p.httpeers.net`. The Viewer
 injects `/_shell/ws-shim.js` into every page a Service returns, and only this app's shell
-(`src/vendor/session-shell`, built with the shim by `deploy/build.mjs`) has that file; the
-shared shell on `*.p` does not, and there every shared app's WebSocket fails while its page
-loads fine. Publish the shell to the `s.sandclaw.ai` prefix (relay.html last, as below):
+(`src/vendor/session-shell`, built with the shim by `scripts/build-shell.mjs`) has that file;
+the shared shell on `*.p` does not, and there every shared app's WebSocket fails while its page
+loads fine.
 
-```sh
-SESSION_ZONE=s.sandclaw.ai PARENT_ZONE=httpeers.net RELAY_ADDRS=<relay multiaddr> node deploy/build.mjs
-cd deploy/srv/shell && mkdir -p .site && echo '{ "notFound": "/index.html" }' > .site/config.json
-rclone copy _shell <remote>:sites/s.sandclaw.ai/_shell
-rclone copy . <remote>:sites/s.sandclaw.ai --exclude relay.html --exclude "_shell/**"
-rclone copy relay.html <remote>:sites/s.sandclaw.ai
-```
-
-Either shell accepts parent pages on `*.httpeers.net` only, which is why the page is
-published there (decision 2.8). `apps/peershare.app/deploy` runs it under a zone of one's
-own instead.
+The shell accepts parent pages on its parent zone and one label under it only. The image
+builds it with `PARENT_ZONE=sandclaw.ai`, so any `*.sandclaw.ai` page may frame a session; do
+not host third-party content on a direct subdomain of `sandclaw.ai`.
+`apps/peershare.app/deploy` runs the page and shell under another zone with Caddy instead.
 
 ## License
 

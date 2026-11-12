@@ -1,0 +1,60 @@
+name: Docker image
+
+# Builds the PeerShare image (docker/Dockerfile: the page on peershare.sandclaw.ai and the
+# session shell on *.s.sandclaw.ai, behind nginx), pushes it to ghcr.io/sandclaw-ai/peershare
+# and notifies the ITMV GitOps webhook, which runs `docker compose up` for
+# itmv-conf/services/peershare_sandclaw_ai. Only a commit that passes CI is built.
+#
+# Needs the repository secret DEPLOY_WEBHOOK_URL (the same webhook start.sandclaw.ai uses).
+# Pushing uses the workflow's own GITHUB_TOKEN.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/**"
+      - "docker/**"
+      - ".dockerignore"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/docker.yml"
+  workflow_dispatch:
+
+jobs:
+  ci:
+    uses: statewalker/.github/.github/workflows/ci.yml@main
+
+  image:
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/sandclaw-ai/peershare
+    steps:
+      - name: Check out
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4 (hash-pinned)
+
+      - name: Build
+        run: |
+          short=$(git rev-parse --short HEAD)
+          docker build -f docker/Dockerfile --build-arg BUILD_ID="$short" \
+            -t "$IMAGE:latest" -t "$IMAGE:$short" .
+
+      - name: Push
+        run: |
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push --all-tags "$IMAGE"
+
+      - name: Notify the GitOps webhook
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
+            echo "DEPLOY_WEBHOOK_URL is not set; image pushed, nothing deployed."
+            exit 0
+          fi
+          curl -fsS -X POST "$DEPLOY_WEBHOOK_URL?sender=peershare-sandclaw-ai"

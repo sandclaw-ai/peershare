@@ -1,10 +1,10 @@
 # Deploying PeerShare, self-hosted
 
-> **Decision 2.8: PeerShare is published under httpeers.net** (`peershare.sandclaw.ai`, a
-> site on httpeers' static host, with httpeers' session zone and relay):
-> `pnpm --filter @statewalker/peershare.app build:site`, then
-> `rclone sync site/peershare.sandclaw.ai httpeers:sites/peershare.sandclaw.ai`.
-> This stack is the alternative for running PeerShare under a zone of one's own.
+> **PeerShare is deployed as one Docker image** (`docker/Dockerfile` at the repository root,
+> nginx behind Traefik on the ITMV VPS): the page on `peershare.sandclaw.ai`, the session shell
+> on `*.s.sandclaw.ai`, httpeers' relay. See the app README's "Deploying" section.
+> This Caddy stack is the alternative for running PeerShare on a host of one's own, with Caddy
+> doing TLS; `e2e-browser/deploy.test.ts` runs the whole scenario through it.
 
 ## What it is
 
@@ -22,15 +22,9 @@ here instead, from httpeers' relay image.
 ## Choosing the zones
 
 The session shell admits only parent pages in `PARENT_ZONE`: the zone itself or one label
-under it. That leaves two options:
-
-1. **Page under `httpeers.net`** (e.g. `peershare.sandclaw.ai`): publish `srv/page` as a
-   site on httpeers' existing static host, and use the deployed `*.p.httpeers.net` zone. No
-   new infrastructure.
-2. **Page on `tools.sandclaw.ai`** with its own zone `*.p.sandclaw.ai`: this stack, with
-   `PARENT_ZONE=sandclaw.ai`, `SESSION_ZONE=p.sandclaw.ai`. It needs DNS records for
-   `tools` and `*.p`, and a wildcard certificate (DNS-01, so an ingress image with your
-   DNS provider's module; httpeers' `deploy/ingress` is the Gandi one).
+under it. Put the page there, and give the session zone its own DNS record (`A *.p` or
+similar) and a wildcard certificate (DNS-01, so an ingress image with your DNS provider's
+module; httpeers' `deploy/ingress` is the Gandi one).
 
 ## How to run it
 

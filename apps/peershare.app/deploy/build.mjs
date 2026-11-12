@@ -8,9 +8,10 @@
  *
  * Settings come from the environment (see .env.example).
  */
-import { cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
+import { buildShell } from "../scripts/build-shell.mjs";
 
 const here = import.meta.dirname;
 const page = resolve(here, "..");
@@ -39,40 +40,7 @@ await build({
 });
 
 // The shell, for this deployment's zones.
-const vendor = join(page, "src/vendor/session-shell");
-const define = {
-  __PEERSHARE_SESSION_ZONE__: JSON.stringify(SESSION_ZONE),
-  __PEERSHARE_PARENT_ZONE__: JSON.stringify(PARENT_ZONE),
-};
-for (const [entry, out] of [
-  ["sw.ts", "relay-sw.js"],
-  ["relay.ts", "_shell/relay.js"],
-  // The WebSocket shim (M9): served beside the relay, outside the worker's reach.
-  ["../../ws-shim.ts", "_shell/ws-shim.js"],
-]) {
-  await build({
-    root: vendor,
-    logLevel: "warn",
-    configFile: false,
-    define,
-    build: {
-      outDir: join(srv, "shell", out.includes("/") ? out.split("/")[0] : ""),
-      emptyOutDir: false,
-      minify: true,
-      lib: {
-        entry: join(vendor, entry),
-        formats: ["iife"],
-        name: "Shell",
-        fileName: () => out.split("/").pop(),
-      },
-    },
-  });
-}
-writeFileSync(
-  join(srv, "shell/relay.html"),
-  '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><title>session relay</title><script src="/_shell/relay.js"></script>\n',
-);
-cpSync(join(vendor, "index.html"), join(srv, "shell/index.html"));
+await buildShell(join(srv, "shell"), { sessionZone: SESSION_ZONE, parentZone: PARENT_ZONE });
 
 // The deployment's facts, for the page.
 mkdirSync(join(srv, "config"), { recursive: true });

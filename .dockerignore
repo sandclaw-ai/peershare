@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+**/.turbo
+.git
+apps/peershare.app/site
+apps/peershare.app/deploy/srv
+README-setup.adoc

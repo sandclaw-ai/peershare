@@ -1,0 +1,70 @@
+# Rendered by the nginx image at start (envsubst): PAGE_HOST, SESSION_ZONE, PARENT_ZONE.
+# Behind Traefik, which terminates TLS; redirects stay relative so they keep https.
+
+absolute_redirect off;
+server_tokens off;
+
+# The page: /, /invite (and /peer-share, /peer-share/invite) are all the one page.
+server {
+    listen 80 default_server;
+    server_name ${PAGE_HOST};
+    root /usr/share/nginx/page;
+
+    location = /peershare.json {
+        add_header Cache-Control "no-store";
+    }
+    # Content-hashed by vite.
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+    location = /ui { return 301 /ui/; }
+    location /ui/ {
+        try_files $uri $uri/ =404;
+    }
+    # Astro writes help/security.html for /help/security (build.format "file").
+    location = /help { try_files /help/index.html =404; }
+    location /help/ {
+        try_files $uri $uri.html $uri/ =404;
+    }
+    location /proxy/ {
+        add_header Cache-Control "no-cache";
+        try_files $uri =404;
+    }
+    location / {
+        add_header Cache-Control "no-cache";
+        try_files $uri /index.html;
+    }
+}
+
+# The session zone: every <name>.SESSION_ZONE serves the same shell; the name only makes an
+# origin. Only pages on PARENT_ZONE or one label under it may frame a session (the worker
+# stamps the same list on the responses it makes itself: session-shell/policy.ts).
+server {
+    listen 80;
+    server_name *.${SESSION_ZONE};
+    root /usr/share/nginx/shell;
+
+    # add_header in a location replaces the server's, so each location repeats the CSP.
+    set $frame_ancestors "frame-ancestors 'self' https://${PARENT_ZONE} https://*.${PARENT_ZONE}";
+
+    location = /relay-sw.js {
+        add_header Content-Security-Policy $frame_ancestors always;
+        add_header Cache-Control "no-store" always;
+    }
+    location = /relay.html {
+        add_header Content-Security-Policy $frame_ancestors always;
+        add_header Cache-Control "no-cache" always;
+    }
+    location ^~ /_shell/ {
+        add_header Content-Security-Policy $frame_ancestors always;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+    # With a session connected, the worker answers everything else; without one, the network
+    # shows the empty-session page.
+    location / {
+        add_header Content-Security-Policy $frame_ancestors always;
+        add_header Cache-Control "no-cache" always;
+        try_files /index.html =404;
+    }
+}
