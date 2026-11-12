@@ -57,4 +57,4 @@ jobs:
             echo "DEPLOY_WEBHOOK_URL is not set; image pushed, nothing deployed."
             exit 0
           fi
-          curl -fsS -X POST "$DEPLOY_WEBHOOK_URL?source=peershare-sandclaw-ai"
+          curl -fsS -X POST "$DEPLOY_WEBHOOK_URL?sender=peershare-sandclaw-ai"
