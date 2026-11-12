@@ -4,7 +4,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Badge, Popover, PopoverContent, PopoverTrigger } from "./primitives.js";
 
 /** PeerShare's help site: how to use it, how it works, why it is safe. */
-export const HELP_URL = "https://peershare.httpeers.net/help/";
+export const HELP_URL = "https://peershare.sandclaw.ai/help/";
 
 export interface HelpTipProps {
   /** What the tip is about, for its button's label and its heading: "Invites". */

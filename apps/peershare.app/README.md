@@ -9,7 +9,7 @@ The standalone PeerShare page, with two routes:
   installed; the others go through the local proxy (below).
 - `/invite#join=…&from=Dirk` is a Guest (`/peer-share/invite` is also served). Join, then
   the Viewer: each Service in its own isolated session origin, answered over the mesh. Every invite link opens `invitePage` from `peershare.json`
-  (`https://peershare.httpeers.net/invite` when published), or `/invite` on the page's own
+  (`https://peershare.sandclaw.ai/invite` when published), or `/invite` on the page's own
   origin when it is not set. So a Sharer on any copy of the page, a local one included, hands
   out links that work for Guests anywhere.
 
@@ -45,7 +45,7 @@ machine. Options: `--port` (page; sessions and relay take the next two), `--brid
 
 `--public` is for real Guests on other machines. No local relay starts. The page uses httpeers'
 relay (read from `https://relay.httpeers.net/.well-known/httpeers-relay.json`, so it needs the
-network), and invites open `https://peershare.httpeers.net/invite`. Guests then join through
+network), and invites open `https://peershare.sandclaw.ai/invite`. Guests then join through
 the published page and its session zone, while the Sharer's page, proxy and services stay on
 this machine.
 
@@ -66,8 +66,8 @@ A page can fetch a local service only if the service allows it with CORS. For th
 Sharer runs the proxy, which is the Bridge as a command:
 
 ```sh
-curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh
-curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh -s -- --port 9091 --key s3cret
+curl -fsSL https://peershare.sandclaw.ai/proxy/peershare-proxy.sh | sh
+curl -fsSL https://peershare.sandclaw.ai/proxy/peershare-proxy.sh | sh -s -- --port 9091 --key s3cret
 ```
 
 The launcher fetches the proxy (`/proxy/peershare-proxy.mjs`, one file) into
@@ -79,7 +79,7 @@ never installs anything system-wide. It runs on macOS and Linux.
 |---|---|---|
 | `--port` | `9090` | listens on `127.0.0.1` only |
 | `--key` | none | when set, pages must send it; a wrong one is refused with 401 |
-| `--origin` | `https://peershare.httpeers.net`, `http://localhost:*`, `http://127.0.0.1:*` | the pages allowed to use it; repeat it or use commas; it replaces the list |
+| `--origin` | `https://peershare.sandclaw.ai`, `http://localhost:*`, `http://127.0.0.1:*` | the pages allowed to use it; repeat it or use commas; it replaces the list |
 | `--no-cookie-jars` | jars on | one cookie jar per Guest |
 
 **Why the origin list, and why the key is optional.** A loopback port that answers
@@ -115,12 +115,12 @@ real `sh`, with stub runtimes on `PATH`.
 
 `example-site/` is a small static site to try PeerShare with: a status board, a releases table
 (both read from JSON by a script), an about page and a 404. It is published at
-https://peershare-demo.httpeers.net by `.github/workflows/peershare-demo-site.yml`.
+https://peershare-demo.sandclaw.ai by `.github/workflows/peershare-demo-site.yml`.
 
-Share it with **Address** `https://peershare-demo.httpeers.net`. It is a remote https site with
+Share it with **Address** `https://peershare-demo.sandclaw.ai`. It is a remote https site with
 a domain name, so it is shared directly, without the proxy. Directly means the PeerShare page
 reads it with `fetch`, so the site has to allow that. Its `.site/config.json` lists
-`https://peershare.httpeers.net` (and `http://localhost:8080` for `local/serve.mjs`) under
+`https://peershare.sandclaw.ai` (and `http://localhost:8080` for `local/serve.mjs`) under
 `cors`. httpeers' sites host then sends `Access-Control-Allow-Origin` and answers the preflight
 that PeerShare's own `x-peershare-guest` header causes. Its links and data paths are relative,
 so in a Guest's isolated origin every page, image and JSON file comes over the mesh.
@@ -130,7 +130,7 @@ so in a Guest's isolated origin every page, image and JSON file comes over the m
 `.github/workflows/peershare-demo-site.yml` publishes `example-site/` as it is (no build step)
 whenever a push to `main` changes it, which includes merging a pull request. It can also be run by
 hand. It uses statewalker/.github's `publish-site.yml`, which copies the files to httpeers' `sites`
-bucket under the prefix `peershare-demo.httpeers.net`. The sites host serves them from there at
+bucket under the prefix `peershare-demo.sandclaw.ai`. The sites host serves them from there at
 once, and the wildcard DNS and certificate for `*.httpeers.net` cover the name, so there is no DNS
 or certificate step.
 
@@ -145,34 +145,34 @@ the publish fails with "is a file not a directory". This is a one-time step:
    ```sh
    REPO=statewalker/sandclaw \
    SITE_USER=peershare-site \
-   SITE_DOMAIN=peershare.httpeers.net \
-   SITE_DOMAINS="peershare.httpeers.net s.httpeers.net peershare-demo.httpeers.net" \
+   SITE_DOMAIN=peershare.sandclaw.ai \
+   SITE_DOMAINS="peershare.sandclaw.ai s.sandclaw.ai peershare-demo.sandclaw.ai" \
      site/scripts/setup-publish-secrets.sh
    ```
 
    The script reads RustFS's root key over ssh and uses it only on the server. It then:
    - rewrites the `peershare-site` policy for these three prefixes;
    - gives the user a new secret key and checks it can write under
-     `peershare.httpeers.net/.site/`, a path that is never served;
+     `peershare.sandclaw.ai/.site/`, a path that is never served;
    - stores the new pair in both repository secrets.
 
    The old key stops working at once, so the PeerShare site picks up the new one too.
    Always pass all three domains: a domain left out of `SITE_DOMAINS` loses its write access.
 2. Publish without waiting for a change: run the **PeerShare example site** workflow from the
    Actions tab, or run `gh workflow run peershare-demo-site.yml -R statewalker/sandclaw --ref main`.
-   Its last step fails unless `https://peershare-demo.httpeers.net/` answers.
+   Its last step fails unless `https://peershare-demo.sandclaw.ai/` answers.
 3. Check that the CORS headers come back for the PeerShare page and not for other origins:
 
    ```sh
-   curl -sI -H 'Origin: https://peershare.httpeers.net' https://peershare-demo.httpeers.net/data/status.json
-   #   access-control-allow-origin: https://peershare.httpeers.net
+   curl -sI -H 'Origin: https://peershare.sandclaw.ai' https://peershare-demo.sandclaw.ai/data/status.json
+   #   access-control-allow-origin: https://peershare.sandclaw.ai
    #   vary: Origin
-   curl -sI -H 'Origin: https://example.org' https://peershare-demo.httpeers.net/data/status.json
+   curl -sI -H 'Origin: https://example.org' https://peershare-demo.sandclaw.ai/data/status.json
    #   (no access-control-allow-origin)
-   curl -si -X OPTIONS -H 'Origin: https://peershare.httpeers.net' \
+   curl -si -X OPTIONS -H 'Origin: https://peershare.sandclaw.ai' \
      -H 'Access-Control-Request-Method: GET' \
      -H 'Access-Control-Request-Headers: x-peershare-guest' \
-     https://peershare-demo.httpeers.net/data/status.json
+     https://peershare-demo.sandclaw.ai/data/status.json
    #   204, with access-control-allow-headers: x-peershare-guest
    ```
 
@@ -185,7 +185,7 @@ the config and that every link in the site is relative.
 
 ### The help site
 
-`apps/peershare.help` (Astro) is published under https://peershare.httpeers.net/help/: what
+`apps/peershare.help` (Astro) is published under https://peershare.sandclaw.ai/help/: what
 PeerShare is, getting started, how it works, why it is safe, the local proxy, troubleshooting.
 The site workflow builds it and copies it into the site's `help/` folder.
 
@@ -208,13 +208,13 @@ Serve `dist/` with every route falling back to `index.html`, and `/peershare.jso
 ## Publishing (decision 2.8)
 
 ```sh
-pnpm build:site            # site/peershare.httpeers.net/: the page, peershare.json, proxy/, .site/config.json
-rclone sync site/peershare.httpeers.net httpeers:sites/peershare.httpeers.net
+pnpm build:site            # site/peershare.sandclaw.ai/: the page, peershare.json, proxy/, .site/config.json
+rclone sync site/peershare.sandclaw.ai httpeers:sites/peershare.sandclaw.ai
 ```
 
 `build:site` reads the relay's addresses from its own document
 (`https://relay.httpeers.net/.well-known/httpeers-relay.json`), points sessions at
-`*.s.httpeers.net`, sets `invitePage` to `https://peershare.httpeers.net/invite`, and sets
+`*.s.sandclaw.ai`, sets `invitePage` to `https://peershare.sandclaw.ai/invite`, and sets
 `spa: true` so `/invite` is served too. `SITE`,
 `SESSION_ZONE` and `RELAY_DOCUMENT_URL` override the defaults. `test/site.test.ts` checks
 the folder.
@@ -236,18 +236,18 @@ chromium`), plus Docker for `deploy.test.ts`. Each run picks free ports
   which carries it over the mesh);
 - Dirk sees her in his Guests list.
 
-Sessions live on `*.s.httpeers.net`, not on httpeers' shared `*.p.httpeers.net`. The Viewer
+Sessions live on `*.s.sandclaw.ai`, not on httpeers' shared `*.p.httpeers.net`. The Viewer
 injects `/_shell/ws-shim.js` into every page a Service returns, and only this app's shell
 (`src/vendor/session-shell`, built with the shim by `deploy/build.mjs`) has that file; the
 shared shell on `*.p` does not, and there every shared app's WebSocket fails while its page
-loads fine. Publish the shell to the `s.httpeers.net` prefix (relay.html last, as below):
+loads fine. Publish the shell to the `s.sandclaw.ai` prefix (relay.html last, as below):
 
 ```sh
-SESSION_ZONE=s.httpeers.net PARENT_ZONE=httpeers.net RELAY_ADDRS=<relay multiaddr> node deploy/build.mjs
+SESSION_ZONE=s.sandclaw.ai PARENT_ZONE=httpeers.net RELAY_ADDRS=<relay multiaddr> node deploy/build.mjs
 cd deploy/srv/shell && mkdir -p .site && echo '{ "notFound": "/index.html" }' > .site/config.json
-rclone copy _shell <remote>:sites/s.httpeers.net/_shell
-rclone copy . <remote>:sites/s.httpeers.net --exclude relay.html --exclude "_shell/**"
-rclone copy relay.html <remote>:sites/s.httpeers.net
+rclone copy _shell <remote>:sites/s.sandclaw.ai/_shell
+rclone copy . <remote>:sites/s.sandclaw.ai --exclude relay.html --exclude "_shell/**"
+rclone copy relay.html <remote>:sites/s.sandclaw.ai
 ```
 
 Either shell accepts parent pages on `*.httpeers.net` only, which is why the page is

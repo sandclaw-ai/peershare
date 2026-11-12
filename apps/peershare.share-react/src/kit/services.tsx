@@ -56,7 +56,7 @@ import {
 import { HealthBadge, KindBadge } from "./status.js";
 
 /** The page's own origin: what a Direct service must allow (CORS). */
-const PAGE_ORIGIN = "https://peershare.httpeers.net";
+const PAGE_ORIGIN = "https://peershare.sandclaw.ai";
 
 // ——— Advice (scenario S3) ———————————————————————————————————————————
 
@@ -259,7 +259,7 @@ const emptyDraft: ServiceDraft = { name: "", target: "", isDefault: false };
  */
 export const EXAMPLE_SERVICE: ServiceDraft = {
   name: "Example site",
-  target: "https://peershare-demo.httpeers.net/",
+  target: "https://peershare-demo.sandclaw.ai/",
   isDefault: true,
 };
 

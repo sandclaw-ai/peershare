@@ -3,7 +3,7 @@
 ## What it is
 
 PeerShare's help site, built with [Astro](https://astro.build) and published at
-https://peershare.httpeers.net/help/, next to the page it explains. It covers what PeerShare is,
+https://peershare.sandclaw.ai/help/, next to the page it explains. It covers what PeerShare is,
 how to use it, how it works, why it is safe, the local proxy, and troubleshooting. The security
 page explains:
 - sharing happens between browser tabs, and no server stores anything;
@@ -44,7 +44,7 @@ Astro 7.4 needs Node 22.23.4 or later (CI runs Node 24). The PeerShare site work
   keeps it out of the routes). The architecture diagram is inline SVG
   (`src/components/Architecture.astro`).
 - To try PeerShare with nothing installed, share the separate example site
-  (`apps/peershare.app/example-site`, at https://peershare-demo.httpeers.net).
+  (`apps/peershare.app/example-site`, at https://peershare-demo.sandclaw.ai).
 
 ## License
 

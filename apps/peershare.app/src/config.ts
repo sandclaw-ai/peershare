@@ -8,7 +8,7 @@ export interface PeerShareConfig {
    */
   sessionOrigin: string;
   /**
-   * The page every invite link opens, `https://peershare.httpeers.net/invite`
+   * The page every invite link opens, `https://peershare.sandclaw.ai/invite`
    * when published. Absent: `/invite` on this page's own origin.
    */
   invitePage?: string;

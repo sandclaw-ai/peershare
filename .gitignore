@@ -7,3 +7,6 @@ dist/
 .DS_Store
 .turbo/
 tmp/
+
+# Local working notes
+README-setup.adoc

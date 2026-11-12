@@ -20,7 +20,7 @@ import { describe, expect, it } from "vitest";
 const SCRIPT = readFileSync(
   resolve(import.meta.dirname, "../proxy/peershare-proxy.sh"),
   "utf8",
-).replaceAll("@SITE@", "peershare.httpeers.net");
+).replaceAll("@SITE@", "peershare.sandclaw.ai");
 const UTILS = ["sh", "mkdir", "uname", "chmod", "rm", "cat", "mv"];
 const which = (name: string) =>
   execFileSync("sh", ["-c", `command -v ${name}`])
@@ -54,7 +54,7 @@ function machine(runtimes: string[], { curlFails = false } = {}) {
   return { run, home, cache: join(home, ".cache/peershare") };
 }
 
-const BUNDLE_URL = "https://peershare.httpeers.net/proxy/peershare-proxy.mjs";
+const BUNDLE_URL = "https://peershare.sandclaw.ai/proxy/peershare-proxy.mjs";
 
 describe("peershare-proxy.sh", () => {
   it("fetches the proxy into ~/.cache/peershare and prefers Deno, then Bun, then Node", () => {

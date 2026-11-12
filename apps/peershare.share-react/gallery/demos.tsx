@@ -18,7 +18,7 @@ import {
 import type { Guest, Invite, Service } from "../src/views/model.js";
 
 export const PROXY_COMMAND =
-  "curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh";
+  "curl -fsSL https://peershare.sandclaw.ai/proxy/peershare-proxy.sh | sh";
 export const PROXY: ProxySettingsValue = { url: "http://127.0.0.1:9090", key: "" };
 
 /** "Now" in every frame, so screenshots do not change from one run to the next. */
@@ -87,7 +87,7 @@ export const guests: Guest[] = [
 ];
 
 const inviteFor = (n: number): Invite => ({
-  url: `https://peershare.httpeers.net/peer-share/invite#join=eyJodWIiOiIxMkQzS29vV0RpcmsiLCJ0IjoiYjY0In0${n}&from=Dirk`,
+  url: `https://peershare.sandclaw.ai/peer-share/invite#join=eyJodWIiOiIxMkQzS29vV0RpcmsiLCJ0IjoiYjY0In0${n}&from=Dirk`,
   expiresAt: new Date(NOW.getTime() + 24 * 3600_000),
   used: false,
 });

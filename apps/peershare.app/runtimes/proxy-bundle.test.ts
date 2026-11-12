@@ -15,7 +15,7 @@ import { buildProxy } from "../scripts/build-proxy.mjs";
 
 const out = mkdtempSync(join(tmpdir(), "peershare-proxy-"));
 const bundle = join(out, "peershare-proxy.mjs");
-const HUB = "https://peershare.httpeers.net";
+const HUB = "https://peershare.sandclaw.ai";
 const RUNTIMES: Record<string, string[]> = {
   node: ["node", bundle],
   bun: ["bun", bundle],
@@ -24,7 +24,7 @@ const RUNTIMES: Record<string, string[]> = {
 let app: { origin: string; close(): Promise<void> };
 
 beforeAll(async () => {
-  await buildProxy(out, "peershare.httpeers.net");
+  await buildProxy(out, "peershare.sandclaw.ai");
   const server = createServer((req, res) => res.end(`echo ${req.url}`));
   const wss = new WebSocketServer({ server });
   wss.on("connection", (s) => s.on("message", (d) => s.send(`echo ${d}`)));

@@ -17,7 +17,7 @@
  * in Chromium and Firefox, so ServiceWorkers run there over plain http.
  *
  * `--public`: real Guests, anywhere. No local relay: the page uses httpeers'
- * relay, and invite links open https://peershare.httpeers.net/invite, so
+ * relay, and invite links open https://peershare.sandclaw.ai/invite, so
  * Guests join through the published page and its session zone.
  */
 
@@ -163,8 +163,8 @@ const config = JSON.stringify(
   values.public
     ? {
         relayAddrs,
-        sessionOrigin: "https://{name}.s.httpeers.net",
-        invitePage: "https://peershare.httpeers.net/invite",
+        sessionOrigin: "https://{name}.s.sandclaw.ai",
+        invitePage: "https://peershare.sandclaw.ai/invite",
       }
     : {
         relayAddrs,
@@ -219,7 +219,7 @@ const sharerUrl = `${pageOrigin}/#${new URLSearchParams({ localUrl: bridge.origi
 console.log(`
 PeerShare, running locally
   page      ${pageOrigin}
-  sessions  ${values.public ? "https://<name>.s.httpeers.net" : `http://<name>.localhost:${SESSION_PORT}`}
+  sessions  ${values.public ? "https://<name>.s.sandclaw.ai" : `http://<name>.localhost:${SESSION_PORT}`}
   relay     ${relayAddrs.join(", ")}
   Bridge    ${bridge.origin}${demo ? `\n  demo app  ${demo.origin}  (add it as a Service)` : ""}
 
@@ -228,7 +228,7 @@ Open this to share (the link pairs the page with this Bridge; it changes on ever
 
 ${
   values.public
-    ? "Invites open https://peershare.httpeers.net/invite: send them to anyone."
+    ? "Invites open https://peershare.sandclaw.ai/invite: send them to anyone."
     : "Open Invites in another browser profile, or another browser, on this machine."
 }
 Ctrl+C stops everything.

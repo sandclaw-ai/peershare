@@ -1,5 +1,5 @@
 /**
- * The example site (example-site/, published at peershare-demo.httpeers.net): what makes it
+ * The example site (example-site/, published at peershare-demo.sandclaw.ai): what makes it
  * shareable directly, checked on the files themselves.
  */
 
@@ -13,12 +13,12 @@ const read = (path: string) => readFileSync(join(site, path), "utf8");
 
 describe("the example site", () => {
   it("is shared directly: a remote https address with a domain name", () => {
-    expect(checkServiceTarget("direct", "https://peershare-demo.httpeers.net").ok).toBe(true);
+    expect(checkServiceTarget("direct", "https://peershare-demo.sandclaw.ai").ok).toBe(true);
   });
 
   it("lets the published PeerShare page read it (cors)", () => {
     const config = JSON.parse(read(".site/config.json"));
-    expect(config.cors).toContain("https://peershare.httpeers.net");
+    expect(config.cors).toContain("https://peershare.sandclaw.ai");
     expect(config.notFound).toBe("/404.html");
   });
 

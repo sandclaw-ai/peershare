@@ -27,7 +27,7 @@ describe("the example site", () => {
     );
     expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("Example site");
     expect((screen.getByLabelText("Address") as HTMLInputElement).value).toBe(
-      "https://peershare-demo.httpeers.net/",
+      "https://peershare-demo.sandclaw.ai/",
     );
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Share service" })));
     expect(onAdd).toHaveBeenCalledWith(EXAMPLE_SERVICE, "direct");

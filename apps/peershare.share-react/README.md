@@ -32,7 +32,7 @@ copies in `src/kit/primitives.tsx`.
 ### The gallery
 
 `gallery/` shows every scenario step by step, as live frames, with the commands each step
-calls. It is published at https://peershare.httpeers.net/ui/.
+calls. It is published at https://peershare.sandclaw.ai/ui/.
 
 ```sh
 pnpm --filter @statewalker/peershare.share-react gallery          # dev server

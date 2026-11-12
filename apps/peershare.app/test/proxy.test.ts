@@ -32,7 +32,7 @@ describe("parseProxyArgs", () => {
       cookieJars: true,
     });
     expect(DEFAULT_ORIGINS).toEqual([
-      "https://peershare.httpeers.net",
+      "https://peershare.sandclaw.ai",
       "http://localhost:*",
       "http://127.0.0.1:*",
     ]);
@@ -83,7 +83,7 @@ describe("startProxy", () => {
       });
       expect(keyed.status).toBe(200);
       expect(proxy.hubLink).toBe(
-        `https://peershare.httpeers.net/#${new URLSearchParams({ localUrl: proxy.origin, t: "k" })}`,
+        `https://peershare.sandclaw.ai/#${new URLSearchParams({ localUrl: proxy.origin, t: "k" })}`,
       );
     } finally {
       await proxy.close();

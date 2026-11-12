@@ -73,7 +73,7 @@ import { u } from "../lib/url.ts";
   <h2 id="one-request">One request, end to end</h2>
   <p>
     Each service opens for the guest in its own origin, a random name under
-    <code>s.httpeers.net</code>. That origin is empty: a ServiceWorker there answers every
+    <code>s.sandclaw.ai</code>. That origin is empty: a ServiceWorker there answers every
     request the service's pages make, including <code>index.html</code>, by handing it to the
     guest's PeerShare page over a <code>MessagePort</code>. The PeerShare page sends it over the
     mesh, with the guest's token, to your tab.
@@ -96,7 +96,7 @@ import { u } from "../lib/url.ts";
     <tbody>
       <tr><td>PeerShare page</td><td>Your tab and each guest's tab</td><td>The hub (yours) or a member (theirs)</td></tr>
       <tr><td>Relay</td><td><code>relay.httpeers.net</code></td><td>Lets browsers reach each other; forwards encrypted bytes</td></tr>
-      <tr><td>Session origins</td><td><code>*.s.httpeers.net</code></td><td>Static files; one isolated origin per service a guest opens</td></tr>
+      <tr><td>Session origins</td><td><code>*.s.sandclaw.ai</code></td><td>Static files; one isolated origin per service a guest opens</td></tr>
       <tr><td>Local proxy</td><td>Your computer, <code>127.0.0.1</code></td><td>Reaches local services without CORS</td></tr>
       <tr><td>Your services</td><td>Where they already run</td><td>Unchanged: nothing to install in them</td></tr>
     </tbody>

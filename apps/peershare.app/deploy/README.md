@@ -1,9 +1,9 @@
 # Deploying PeerShare, self-hosted
 
-> **Decision 2.8: PeerShare is published under httpeers.net** (`peershare.httpeers.net`, a
+> **Decision 2.8: PeerShare is published under httpeers.net** (`peershare.sandclaw.ai`, a
 > site on httpeers' static host, with httpeers' session zone and relay):
 > `pnpm --filter @statewalker/peershare.app build:site`, then
-> `rclone sync site/peershare.httpeers.net httpeers:sites/peershare.httpeers.net`.
+> `rclone sync site/peershare.sandclaw.ai httpeers:sites/peershare.sandclaw.ai`.
 > This stack is the alternative for running PeerShare under a zone of one's own.
 
 ## What it is
@@ -24,7 +24,7 @@ here instead, from httpeers' relay image.
 The session shell admits only parent pages in `PARENT_ZONE`: the zone itself or one label
 under it. That leaves two options:
 
-1. **Page under `httpeers.net`** (e.g. `peershare.httpeers.net`): publish `srv/page` as a
+1. **Page under `httpeers.net`** (e.g. `peershare.sandclaw.ai`): publish `srv/page` as a
    site on httpeers' existing static host, and use the deployed `*.p.httpeers.net` zone. No
    new infrastructure.
 2. **Page on `tools.sandclaw.ai`** with its own zone `*.p.sandclaw.ai`: this stack, with

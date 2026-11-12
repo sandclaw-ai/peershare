@@ -19,7 +19,7 @@ import {
 } from "./proxy-settings.js";
 
 /** The published launcher: copies of the page elsewhere (`local/serve.mjs`) do not serve `/proxy/`. */
-const PROXY_COMMAND = "curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh";
+const PROXY_COMMAND = "curl -fsSL https://peershare.sandclaw.ai/proxy/peershare-proxy.sh | sh";
 
 export function SharerApp({ config }: { config: PeerShareConfig }) {
   const fromLink = location.hash.includes("localUrl=");

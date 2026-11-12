@@ -7,7 +7,7 @@ import { defineConfig } from "astro/config";
  * `u()` (src/lib/url.ts).
  */
 export default defineConfig({
-  site: "https://peershare.httpeers.net",
+  site: "https://peershare.sandclaw.ai",
   base: "/help",
   build: { format: "file" },
   trailingSlash: "never",

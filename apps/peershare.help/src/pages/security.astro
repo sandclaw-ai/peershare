@@ -27,8 +27,8 @@ import { u } from "../lib/url.ts";
   </ul>
   <p>
     The servers involved only carry or serve public things: the PeerShare page itself
-    (<code>peershare.httpeers.net</code>), the empty shell of the isolated origins
-    (<code>*.s.httpeers.net</code>), and the relay, which forwards encrypted bytes.
+    (<code>peershare.sandclaw.ai</code>), the empty shell of the isolated origins
+    (<code>*.s.sandclaw.ai</code>), and the relay, which forwards encrypted bytes.
   </p>
 
   <h2 id="encryption">2. Connections are encrypted end to end (Noise)</h2>
@@ -112,7 +112,7 @@ import { u } from "../lib/url.ts";
   <h2 id="isolation">6. A shared service cannot reach the guest's PeerShare page</h2>
   <p>
     A service is a web app; its pages are code. A guest runs it in its <strong>own
-    origin</strong>, a random name under <code>s.httpeers.net</code>, never in the PeerShare
+    origin</strong>, a random name under <code>s.sandclaw.ai</code>, never in the PeerShare
     page. The browser's same-origin policy then keeps them apart:
   </p>
   <ul>
@@ -158,7 +158,7 @@ import { u } from "../lib/url.ts";
     </p>
     <p>
       <strong>The PeerShare page and the session shell are trusted code.</strong> They are served
-      from <code>peershare.httpeers.net</code> and <code>*.s.httpeers.net</code>; the page runs
+      from <code>peershare.sandclaw.ai</code> and <code>*.s.sandclaw.ai</code>; the page runs
       with your key, and both handle your services unencrypted inside the browser. Use the
       published addresses, or host them yourself.
     </p>

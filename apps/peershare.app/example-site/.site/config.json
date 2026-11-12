@@ -1,5 +1,5 @@
 {
-  "cors": ["https://peershare.httpeers.net", "http://localhost:8080"],
+  "cors": ["https://peershare.sandclaw.ai", "http://localhost:8080"],
   "notFound": "/404.html",
   "cacheControl": "public, no-cache"
 }

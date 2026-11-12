@@ -44,7 +44,7 @@ bootShell({
   logic: [
     peershareFragment({
       store: idbSharerStore(),
-      mesh: browserMesh({ relayAddrs, invitePage: "https://peershare.httpeers.net/peer-share/invite" }),
+      mesh: browserMesh({ relayAddrs, invitePage: "https://peershare.sandclaw.ai/peer-share/invite" }),
     }),
   ],
 });

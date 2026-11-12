@@ -6,7 +6,7 @@
 import { parseArgs } from "node:util";
 import { createBridge, type Listening, listenLoopback } from "@statewalker/httpeers-share/bridge";
 
-export const HUB = "https://peershare.httpeers.net";
+export const HUB = "https://peershare.sandclaw.ai";
 
 /** The hub and pages served from this machine; `--origin` replaces the list. */
 export const DEFAULT_ORIGINS = [HUB, "http://localhost:*", "http://127.0.0.1:*"];

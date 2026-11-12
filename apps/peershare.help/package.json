@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "PeerShare's help site (Astro): how to use it, how it works, and why it is safe. Published at https://peershare.httpeers.net/help/.",
+  "description": "PeerShare's help site (Astro): how to use it, how it works, and why it is safe. Published at https://peershare.sandclaw.ai/help/.",
   "license": "MIT",
   "scripts": {
     "dev": "astro dev",

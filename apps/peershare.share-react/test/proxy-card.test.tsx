@@ -4,7 +4,7 @@ import { ProxyCard } from "../src/kit/proxy.js";
 
 afterEach(cleanup);
 
-const COMMAND = "curl -fsSL https://peershare.httpeers.net/proxy/peershare-proxy.sh | sh";
+const COMMAND = "curl -fsSL https://peershare.sandclaw.ai/proxy/peershare-proxy.sh | sh";
 const SETTINGS = { url: "http://127.0.0.1:9090", key: "" };
 
 describe("ProxyCard — the local proxy: status and settings", () => {

@@ -1,6 +1,6 @@
 /**
  * Decision 2.8: the page is a site on httpeers' static host
- * (`peershare.httpeers.net`), with httpeers' session zone and relay.
+ * (`peershare.sandclaw.ai`), with httpeers' session zone and relay.
  * `scripts/build-site.mjs` makes the folder `rclone sync` / `httpeers-publish` writes.
  */
 
@@ -45,7 +45,7 @@ afterAll(async () => {
 });
 
 describe("2.8 — the site for httpeers' static host", () => {
-  const site = () => join(out, "peershare.httpeers.net");
+  const site = () => join(out, "peershare.sandclaw.ai");
 
   it("is one prefix named after the domain, with the page in it", () => {
     expect(existsSync(join(site(), "index.html"))).toBe(true);
@@ -60,15 +60,15 @@ describe("2.8 — the site for httpeers' static host", () => {
   it("names httpeers' relay (from its own document), httpeers' session zone and the invite page", () => {
     expect(JSON.parse(readFileSync(join(site(), "peershare.json"), "utf8"))).toEqual({
       relayAddrs: [RELAY],
-      sessionOrigin: "https://{name}.s.httpeers.net",
-      invitePage: "https://peershare.httpeers.net/invite",
+      sessionOrigin: "https://{name}.s.sandclaw.ai",
+      invitePage: "https://peershare.sandclaw.ai/invite",
     });
   });
 
   it("serves the proxy launcher and the proxy as static files under /proxy/", () => {
     const launcher = readFileSync(join(site(), "proxy/peershare-proxy.sh"), "utf8");
     expect(launcher.split("\n")[0]).toBe("#!/bin/sh");
-    expect(launcher).toContain('SITE="https://peershare.httpeers.net"');
+    expect(launcher).toContain('SITE="https://peershare.sandclaw.ai"');
     expect(launcher).not.toContain("@SITE@");
     expect(readFileSync(join(site(), "proxy/peershare-proxy.mjs"), "utf8")).toContain(
       "createBridge",
