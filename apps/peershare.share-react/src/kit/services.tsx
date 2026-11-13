@@ -479,12 +479,25 @@ export function ServiceForm({
           draft.allowFraming === true && "border-warning/50 bg-warning/5",
         )}
       >
-        <span className="grid gap-0.5">
+        <span className="grid gap-1.5">
+          <Badge className="bg-destructive w-fit text-white">RISKY</Badge>
           <span className="text-sm font-medium">Show it even if it forbids embedding</span>
           <span className="text-muted-foreground text-xs">
-            Some apps refuse to be shown inside another page, and guests then see an error. On,
-            PeerShare removes that rule from what your guests get (not from the app itself). Only
-            for apps you trust guests to use this way.{" "}
+            Some apps don't allow other websites to show them inside their own page. The rule
+            protects the app's users from a trick: a hostile site hides the app under fake buttons,
+            so a click meant for the fake button really lands on something like "Delete" or
+            "Approve". Your guests see every app through the PeerShare page, so an app with this
+            rule shows them only an error. On, PeerShare lifts the rule for your guests, so they can
+            see and use the app. You use the app as before. Turn it on only for apps where an
+            unintended click by a guest can't do real harm, or for guests you trust.
+          </span>
+          <span className="text-muted-foreground text-xs">
+            <span className="text-foreground font-medium">Technical:</span> removes the{" "}
+            <code>X-Frame-Options</code> header and the CSP <code>frame-ancestors</code> directive
+            from the responses guests get (the rest of the CSP stays). The guest's copy then runs
+            framable only by pages on sandclaw.ai, the session shell's own frame-ancestors. What
+            remains: a compromised sandclaw.ai page could clickjack a guest, acting with that
+            guest's own session; your cookies are never involved.{" "}
             <a
               className="underline"
               href={`${HELP_URL}security#framing`}
