@@ -19,6 +19,7 @@
     ".": "./src/public/index.ts",
     "./node": "./src/node/index.ts",
     "./browser": "./src/browser/index.ts",
+    "./extension": "./src/public/extension.ts",
     "./fragment": "./src/fragment.ts"
   },
   "files": [

@@ -5,8 +5,9 @@
  * after its settings are saved or come from a link, or on its first request.
  */
 
+import type { ExtensionRelay } from "@statewalker/peershare.share";
 import { createRuntime, peershare, StartSharing } from "@statewalker/peershare.share";
-import { browserMesh, idbSharerStore } from "@statewalker/peershare.share/browser";
+import { browserMesh, findExtension, idbSharerStore } from "@statewalker/peershare.share/browser";
 import { PeerShareProvider, ProxyCard, SharerScreen } from "@statewalker/peershare.share-react";
 import { useEffect, useRef, useState } from "react";
 import { type BridgeDiagnosis, diagnoseBridge } from "./bridge-diagnosis.js";
@@ -28,6 +29,9 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
   current.current = settings;
   const [diagnosis, setDiagnosis] = useState<BridgeDiagnosis | "checking">();
   const checked = useRef(false);
+  // The browser extension, once found: it stands in for the local proxy.
+  const extension = useRef<ExtensionRelay | undefined>(undefined);
+  const [extensionVersion, setExtensionVersion] = useState<string>();
   const latest = useRef(0);
 
   const check = async () => {
@@ -44,6 +48,7 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
     const runtime = createRuntime();
     peershare({
       store: idbSharerStore(),
+      extension: () => extension.current,
       // Read per request; the first request through the proxy checks it.
       bridge: () => {
         if (!checked.current) void check();
@@ -60,6 +65,10 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
   useEffect(() => {
     void rt.commands.call(StartSharing, undefined).promise;
     if (fromLink) void check();
+    void findExtension().then((found) => {
+      extension.current = found;
+      setExtensionVersion(found?.version);
+    });
   }, []);
 
   const save = (next: Settings) => {
@@ -74,7 +83,8 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
       <SharerScreen
         proxy={
           <ProxyCard
-            status={diagnosis ?? "unchecked"}
+            status={extensionVersion != null ? "extension" : (diagnosis ?? "unchecked")}
+            extensionVersion={extensionVersion}
             settings={settings}
             command={PROXY_COMMAND}
             supported={proxySupported(navigator.userAgent)}

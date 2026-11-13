@@ -71,6 +71,47 @@ import Docs from "../layouts/Docs.astro";
     </li>
   </ul>
 
+  <h2 id="extension">Or: the browser extension</h2>
+  <p>
+    In Chrome (and Edge, Brave and other Chromium browsers) the
+    <strong>SandClaw.ai PeerShare Proxy</strong> extension does the proxy's job, with nothing to
+    start: install it, open PeerShare, and the <strong>Local proxy</strong> card says
+    <em>Browser extension connected</em>. It follows the proxy's rules: it answers only the
+    PeerShare page and pages on your computer, and reaches only <code>localhost</code> and private
+    or Tailscale addresses.
+  </p>
+  <p>Until it is in the Chrome Web Store, install it from a copy of the PeerShare repository:</p>
+  <ol>
+    <li>
+      Build it: <code>pnpm install</code>, then <code>pnpm --filter
+      @statewalker/peershare.chrome-extension build</code>.
+    </li>
+    <li>Open <code>chrome://extensions</code> and switch on <strong>Developer mode</strong>.</li>
+    <li>
+      Click <strong>Load unpacked</strong> and choose the <code>chrome-extension/dist</code>
+      folder.
+    </li>
+  </ol>
+  <p>What the extension does differently from the proxy:</p>
+  <ul>
+    <li>
+      <strong>No cookie jars.</strong> An extension cannot see the cookies a service sets, so
+      services that sign people in with cookies do not keep guests signed in.
+    </li>
+    <li>
+      <strong>Redirects are followed</strong> for the guest, so the address a guest sees may not
+      change when the service redirects.
+    </li>
+    <li>
+      <strong>No live connections</strong> (WebSockets): live parts of a page stay still unless
+      the proxy runs too.
+    </li>
+    <li>
+      <strong><code>.local</code> names are refused</strong>: the extension cannot look up where
+      they point. Use the device's address, or the proxy.
+    </li>
+  </ul>
+
   <h2>Browsers</h2>
   <p>
     Chrome and Edge ask once whether the page may reach devices on your local network: choose

@@ -36,6 +36,7 @@ const proxyStates: { status: ProxyStatus; label: string; supported?: boolean }[]
   { status: "unchecked", label: "Not used yet" },
   { status: "checking", label: "Calling the proxy" },
   { status: "ok", label: "Connected" },
+  { status: "extension", label: "Browser extension instead of the script" },
   { status: "permission-needed", label: "Local network access blocked" },
   { status: "bridge-not-running", label: "No proxy at that address (settings open)" },
   { status: "token-rejected", label: "Wrong key (settings open)" },
@@ -53,6 +54,7 @@ function ProxySheet() {
             settings={PROXY}
             command={PROXY_COMMAND}
             supported={supported}
+            extensionVersion={status === "extension" ? "0.1.0" : undefined}
           />
         </div>
       ))}
@@ -117,9 +119,9 @@ export const scenarios: Scenario[] = [
         id: "s1-states",
         title: "Every proxy state",
         caption:
-          "Not used yet, checking, connected, blocked by the browser, nothing at that address, wrong key, and Safari (which cannot reach it).",
+          "Not used yet, checking, connected, the browser extension instead, blocked by the browser, nothing at that address, wrong key, and Safari (which cannot reach it).",
         device: "desktop",
-        height: 1250,
+        height: 1400,
         render: () => <ProxySheet />,
       },
     ],

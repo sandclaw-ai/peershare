@@ -27,6 +27,7 @@ import {
   StopSharing,
   ToggleService,
 } from "./commands.js";
+import { type ExtensionRelay, viaExtension } from "./extension.js";
 import {
   guestFetchSlot,
   guestSocketSlot,
@@ -44,6 +45,11 @@ export interface PeerShareInit {
   store: SharerStore;
   /** The Bridge, once paired from the Bridge's printed link. */
   bridge?: () => { base: string; token: string } | undefined;
+  /**
+   * The PeerShare browser extension, once found (`findExtension`). While it is
+   * there, Bridged Services go through it instead of the local proxy.
+   */
+  extension?: () => ExtensionRelay | undefined;
   /** How to reach a mesh; without it PeerShare edits Services but cannot share them. */
   mesh?: MeshInit;
   /** Reads the browser's Local Network Access permission for a space; the default asks `navigator.permissions`. */
@@ -69,6 +75,8 @@ export function peershare(init: PeerShareInit): Feature {
         () => kinds,
         notify,
         async (service) => {
+          // The extension's own requests are not the page's: no permission applies.
+          if (service.kind !== "direct" && init.extension?.() != null) return "unsupported";
           // What the Probe reached: the Bridge for a Bridged Service (nothing, unpaired), else the Service.
           const reached =
             service.kind === "direct" ? service.target : (init.bridge?.()?.base ?? undefined);
@@ -200,7 +208,13 @@ function builtInKinds(init: PeerShareInit): UpstreamKind[] {
       check: (target) => checkServiceTarget("bridged", target),
       socket: (target, path, protocols) => {
         const bridge = init.bridge?.();
-        if (bridge == null) throw new Error("The Bridge is not paired.");
+        if (bridge == null) {
+          throw new Error(
+            init.extension?.() != null
+              ? "Live connections need the local proxy: the browser extension relays HTTP only."
+              : "The Bridge is not paired.",
+          );
+        }
         // The token travels as a subprotocol: a browser cannot set headers on a WebSocket.
         const q = new URLSearchParams({
           target: `${target.replace(/\/$/, "")}${path}`,
@@ -214,6 +228,8 @@ function builtInKinds(init: PeerShareInit): UpstreamKind[] {
       },
       create: (target) => async (request) => {
         // Read per request: the Bridge may be paired, or re-paired, later.
+        const extension = init.extension?.();
+        if (extension != null) return viaExtension(extension, target)(request);
         const bridge = init.bridge?.();
         if (bridge == null) {
           // The contract's own marker, so the Probe says "bridge-down", not "service-down".

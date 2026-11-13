@@ -6,6 +6,7 @@ import {
   KeyRound,
   Loader2,
   PlugZap,
+  Puzzle,
   RefreshCw,
   Settings2,
   ShieldAlert,
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import type { BridgeDiagnosis } from "../views/model.js";
-import { HelpTip } from "./help-tip.js";
+import { HELP_URL, HelpTip } from "./help-tip.js";
 
 /**
  * Where the page stands with the local proxy (scenario S1), the small program that reaches
@@ -21,9 +22,13 @@ import { HelpTip } from "./help-tip.js";
  * - `unchecked`: not called yet; it is checked when its settings are saved or come from a
  *   link, or on the first request through it;
  * - `checking`: the call is out (and may wait on the browser's local-network question);
- * - a diagnosis: `ok`, `permission-needed`, `bridge-not-running`, `token-rejected`.
+ * - a diagnosis: `ok`, `permission-needed`, `bridge-not-running`, `token-rejected`;
+ * - `extension`: the PeerShare browser extension is installed and relays instead.
  */
-export type ProxyStatus = "unchecked" | "checking" | BridgeDiagnosis;
+export type ProxyStatus = "unchecked" | "checking" | BridgeDiagnosis | "extension";
+
+/** How to install the browser extension, the proxy script's alternative. */
+export const EXTENSION_HELP = `${HELP_URL}local-proxy#extension`;
 
 export interface ProxySettingsValue {
   url: string;
@@ -42,6 +47,8 @@ export interface ProxyCardProps {
   onCheck?: () => void;
   /** Show the settings open (story states); a problem the settings fix opens them anyway. */
   open?: boolean;
+  /** The browser extension's version, when status is `extension`. */
+  extensionVersion?: string;
 }
 
 function CommandLine({ command }: { command: string }) {
@@ -84,6 +91,13 @@ function SettingsForm({
       <div className="grid gap-1.5">
         <p className="text-muted-foreground text-xs">Start it on this computer:</p>
         <CommandLine command={command} />
+        <p className="text-muted-foreground text-xs">
+          Or, in Chrome, use the{" "}
+          <a className="underline" href={EXTENSION_HELP} target="_blank" rel="noreferrer">
+            PeerShare browser extension
+          </a>{" "}
+          instead: nothing to start.
+        </p>
       </div>
       <form
         className="grid gap-2 sm:grid-cols-[1fr_11rem_auto] sm:items-end"
@@ -128,6 +142,12 @@ const said: Record<
     title: "Reaching the proxy…",
     text: "If the browser asks about devices on your local network, choose “Allow”.",
   },
+  extension: {
+    icon: <Puzzle />,
+    tone: "ok",
+    title: "Browser extension connected",
+    text: "Services on this computer and its network can be shared, through the PeerShare extension.",
+  },
   ok: {
     icon: <CheckCircle2 />,
     tone: "ok",
@@ -163,6 +183,7 @@ export function ProxyCard({
   onSave,
   onCheck,
   open,
+  extensionVersion,
 }: ProxyCardProps) {
   // Problems the settings fix open them; the Sharer can open them any time.
   const needsSettings = status === "bridge-not-running" || status === "token-rejected";
@@ -180,7 +201,8 @@ export function ProxyCard({
           text: "For services on this computer or its network that don't allow calls from PeerShare (no CORS).",
         }
       : said[status];
-  const canRetry = status !== "unchecked" && status !== "checking" && status !== "ok";
+  const canRetry =
+    status !== "unchecked" && status !== "checking" && status !== "ok" && status !== "extension";
 
   if (!supported) {
     return (
@@ -226,6 +248,12 @@ export function ProxyCard({
               <>
                 {" "}
                 <span className="font-mono text-xs">{settings.url}</span>
+              </>
+            )}
+            {status === "extension" && extensionVersion != null && (
+              <>
+                {" "}
+                <span className="font-mono text-xs">v{extensionVersion}</span>
               </>
             )}
           </p>

@@ -5,6 +5,8 @@
  * JavaScript `fetch` (rung 08). State lives in IndexedDB.
  */
 
+export { findExtension } from "./extension.js";
+
 import { privateKeyFromProtobuf, privateKeyToProtobuf } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
 import { idbStorage } from "@statewalker/httpeers-hub/browser";
