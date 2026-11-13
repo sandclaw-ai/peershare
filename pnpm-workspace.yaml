@@ -18,7 +18,7 @@ catalog:
   astro: ~7.4.5
   class-variance-authority: ^0.7.1
   idb-keyval: ^6.3.0
-  jsdom: ^30.1.1
+  jsdom: ^31.0.0
   lucide-react: ^1.51.0
   radix-ui: ^1.6.7
   react-dom: ^19.3.0
@@ -50,5 +50,5 @@ catalog:
   "@statewalker/webrun-http-proxy": "^0.2.3"
   "@types/ws": "^8.18.2"
   "libp2p": "^3.5.1"
-  "playwright": "~1.63.0"
+  "playwright": "~1.65.0"
   "ws": "^8.22.0"
