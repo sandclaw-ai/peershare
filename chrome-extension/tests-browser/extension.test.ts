@@ -3,7 +3,7 @@
  * it, and reaches a local Service through it. Run `pnpm build` first.
  */
 
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer, type Server } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -96,8 +96,14 @@ async function askThroughExtension(path: string, target: string | null) {
 describe("the extension in Chromium", () => {
   it("is found by a local page, and says which version runs", async () => {
     const answer = await askThroughExtension("/", null);
-    expect(answer.version).toBe("0.1.0");
-    expect(JSON.parse(answer.text ?? "")).toMatchObject({ bridge: "peershare", via: "extension" });
+    const { version } = JSON.parse(
+      readFileSync(join(import.meta.dirname, "../package.json"), "utf8"),
+    );
+    expect(answer.version).toBe(version);
+    const body = JSON.parse(answer.text ?? "");
+    expect(body).toMatchObject({ bridge: "peershare", via: "extension", version });
+    // Stamped in by the build: a git commit, not "dev".
+    expect(body.commit).toMatch(/^[0-9a-f]{7,}/);
   });
 
   it("relays to a local Service across origins, decoded", async () => {

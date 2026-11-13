@@ -9,7 +9,7 @@
  * The page and the extension's content script meet on `window.postMessage`:
  *
  *   page    → { channel, type: "connect", id }
- *   content → { channel, type: "connected", id, version, protocol }  + a MessagePort
+ *   content → { channel, type: "connected", id, version, commit, protocol }  + a MessagePort
  *   content → { channel, type: "ready", version, protocol }          (when it loads late)
  *
  * On the port, one message per request and one per answer, matched by `id`:
@@ -49,6 +49,8 @@ export interface WireResponse {
 /** A found extension: its version, and the Bridge it stands in for. */
 export interface ExtensionRelay {
   version: string;
+  /** The git commit it was built from (0.1.1 and later). */
+  commit?: string;
   /** A Bridge request (`x-peershare-target` set) in, the Bridge's answer out. */
   fetch(request: Request): Promise<Response>;
 }

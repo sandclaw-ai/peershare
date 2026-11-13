@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ProxyCard } from "../src/kit/proxy.js";
+import { olderVersion, ProxyCard } from "../src/kit/proxy.js";
 
 afterEach(cleanup);
 
@@ -62,5 +62,55 @@ describe("ProxyCard — the local proxy: status and settings", () => {
     );
     expect(screen.getByText(/needs Chrome or Firefox/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Set up/ })).toBeNull();
+  });
+
+  it("names the version the download gives, so people know when to update", () => {
+    render(
+      <ProxyCard
+        status="unchecked"
+        settings={SETTINGS}
+        command={COMMAND}
+        supported
+        open
+        extensionLatest="0.1.1"
+      />,
+    );
+    const link = screen.getByRole("link", { name: "Download the extension 0.1.1" });
+    expect(link.getAttribute("href")).toMatch(/peershare-proxy-extension\.zip$/);
+    expect(screen.getAllByRole("link", { name: "what's new" })[0]?.getAttribute("href")).toMatch(
+      /extension\/CHANGELOG\.txt$/,
+    );
+  });
+
+  it("an installed extension older than the download says a newer one is available", () => {
+    const { rerender } = render(
+      <ProxyCard
+        status="extension"
+        settings={SETTINGS}
+        command={COMMAND}
+        supported
+        extensionVersion="0.1.0"
+        extensionLatest="0.1.1"
+      />,
+    );
+    expect(screen.getByRole("link", { name: "0.1.1 is available" })).toBeTruthy();
+    rerender(
+      <ProxyCard
+        status="extension"
+        settings={SETTINGS}
+        command={COMMAND}
+        supported
+        extensionVersion="0.1.1"
+        extensionLatest="0.1.1"
+      />,
+    );
+    expect(screen.queryByText(/is available/)).toBeNull();
+  });
+
+  it("compares versions by number", () => {
+    expect(olderVersion("0.1.9", "0.1.10")).toBe(true);
+    expect(olderVersion("0.2.0", "0.1.10")).toBe(false);
+    expect(olderVersion("0.1.1", "0.1.1")).toBe(false);
+    expect(olderVersion("dev", "0.1.1")).toBe(false);
   });
 });

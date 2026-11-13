@@ -3,6 +3,7 @@
  * (forwarded by the content script) to local Services.
  */
 
+import { COMMIT } from "./build.js";
 import { pageAllowed, relay } from "./relay.js";
 import { type JsonRequest, requestFromJson, responseToJson } from "./wire.js";
 
@@ -15,7 +16,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ error: "This page may not use the PeerShare extension." });
     return false;
   }
-  relay(requestFromJson(message.request as JsonRequest), { version })
+  relay(requestFromJson(message.request as JsonRequest), { version, commit: COMMIT })
     .then(responseToJson)
     .then(sendResponse, (error: unknown) => sendResponse({ error: String(error) }));
   // The answer comes later: keep the channel open.

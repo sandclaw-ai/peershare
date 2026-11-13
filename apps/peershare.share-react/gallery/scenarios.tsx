@@ -32,11 +32,17 @@ export interface Scenario {
   frames: Frame[];
 }
 
-const proxyStates: { status: ProxyStatus; label: string; supported?: boolean }[] = [
+const proxyStates: {
+  status: ProxyStatus;
+  label: string;
+  supported?: boolean;
+  installed?: string;
+}[] = [
   { status: "unchecked", label: "Not used yet" },
   { status: "checking", label: "Calling the proxy" },
   { status: "ok", label: "Connected" },
   { status: "extension", label: "Browser extension instead of the script" },
+  { status: "extension", label: "Browser extension, a newer one available", installed: "0.1.0" },
   { status: "permission-needed", label: "Local network access blocked" },
   { status: "bridge-not-running", label: "No proxy at that address (settings open)" },
   { status: "token-rejected", label: "Wrong key (settings open)" },
@@ -46,7 +52,7 @@ const proxyStates: { status: ProxyStatus; label: string; supported?: boolean }[]
 function ProxySheet() {
   return (
     <div className="bg-muted/30 grid min-h-full content-start gap-3 p-6">
-      {proxyStates.map(({ status, label, supported = true }) => (
+      {proxyStates.map(({ status, label, supported = true, installed = "0.1.1" }) => (
         <div key={label} className="grid gap-1.5">
           <p className="text-muted-foreground font-mono text-xs">{label}</p>
           <ProxyCard
@@ -54,7 +60,8 @@ function ProxySheet() {
             settings={PROXY}
             command={PROXY_COMMAND}
             supported={supported}
-            extensionVersion={status === "extension" ? "0.1.0" : undefined}
+            extensionVersion={status === "extension" ? installed : undefined}
+            extensionLatest="0.1.1"
           />
         </div>
       ))}
@@ -211,6 +218,19 @@ export const scenarios: Scenario[] = [
               health: "down",
               warnings: [i === 0 ? "permission-needed" : "permission-unanswered"],
             }))}
+          />
+        ),
+      },
+      {
+        id: "s3-framing",
+        title: "It refuses to be shown inside another page",
+        caption:
+          "The app forbids embedding (X-Frame-Options or frame-ancestors), so guests' browsers would refuse it: the card says so, and where to allow it.",
+        device: "desktop",
+        height: 980,
+        render: () => (
+          <SharerDemo
+            services={services.slice(0, 1).map((s) => ({ ...s, warnings: ["framing-refused"] }))}
           />
         ),
       },

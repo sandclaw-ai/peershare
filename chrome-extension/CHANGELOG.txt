@@ -1,6 +1,12 @@
 SandClaw.ai PeerShare Proxy (Chrome extension) — changes
 =========================================================
 
+0.1.1 — 2026-11-13
+
+  Added
+  - Says which build it is: its git commit next to its version, in the
+    popup and to the PeerShare page, whose diagnostics name it.
+
 0.1.0 — 2026-11-13
 
   First release: the PeerShare proxy's job, done by a browser extension

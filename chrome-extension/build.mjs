@@ -16,6 +16,7 @@ import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync }
 import { dirname, join, relative } from "node:path";
 import { crc32, deflateRawSync } from "node:zlib";
 import { build } from "vite";
+import { buildInfo } from "../build-info.mjs";
 
 const root = import.meta.dirname;
 
@@ -27,6 +28,7 @@ export const changelog = join(root, "CHANGELOG.txt");
 
 export async function buildExtension(out = join(root, "dist")) {
   rmSync(out, { recursive: true, force: true });
+  const { commit } = buildInfo();
   const entries = [
     ["src/background.ts", "background.js", "es"],
     ["src/content.ts", "content.js", "iife"],
@@ -40,6 +42,7 @@ export async function buildExtension(out = join(root, "dist")) {
       // public/ (popup page, icons) once.
       publicDir: i === 0 ? join(root, "public") : false,
       resolve: { conditions: ["source", "browser", "import", "module", "default"] },
+      define: { __PEERSHARE_EXTENSION_COMMIT__: JSON.stringify(commit) },
       build: {
         outDir: out,
         emptyOutDir: false,

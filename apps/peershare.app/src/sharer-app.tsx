@@ -11,6 +11,7 @@ import { browserMesh, findExtension, idbSharerStore } from "@statewalker/peersha
 import { PeerShareProvider, ProxyCard, SharerScreen } from "@statewalker/peershare.share-react";
 import { useEffect, useRef, useState } from "react";
 import { type BridgeDiagnosis, diagnoseBridge } from "./bridge-diagnosis.js";
+import { BUILD } from "./build.js";
 import type { PeerShareConfig } from "./config.js";
 import { pageLog } from "./diagnostics.js";
 import {
@@ -36,22 +37,33 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
   const [extensionVersion, setExtensionVersion] = useState<string>();
   const latest = useRef(0);
 
+  const [log] = useState(() =>
+    pageLog("hub", () => ({
+      proxy: current.current.url,
+      extension:
+        extension.current != null
+          ? `${extension.current.version} (${extension.current.commit ?? "unknown"})`
+          : "none",
+    })),
+  );
+
   const check = async () => {
     checked.current = true;
     // Only the latest check may report: an older one (a filtered port hangs) must not overwrite it.
     const run = ++latest.current;
     setDiagnosis("checking");
     const { url, key } = current.current;
-    const result = await diagnoseBridge({ localUrl: url, token: key });
+    const result = await diagnoseBridge({
+      localUrl: url,
+      token: key,
+      onProxy: (which) => log.info("proxy: answered", `${url}: PeerShare Proxy ${which}`),
+    });
+    log[result === "ok" ? "info" : "warn"]("proxy: checked", `${url} → ${result}`);
     if (run === latest.current) setDiagnosis(result);
   };
 
   const [rt] = useState(() => {
     const runtime = createRuntime();
-    const log = pageLog("hub", () => ({
-      proxy: current.current.url,
-      extension: extension.current?.version ?? "none",
-    }));
     // One hub for all of this browser's PeerShare tabs: the others show it and act on it.
     sharedAcrossTabs({
       log,
@@ -74,6 +86,10 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
     void rt.commands.call(StartSharing, undefined).promise;
     if (fromLink) void check();
     void findExtension().then((found) => {
+      log.info(
+        "extension:",
+        found != null ? `found, ${found.version} (${found.commit ?? "unknown"})` : "not installed",
+      );
       extension.current = found;
       setExtensionVersion(found?.version);
     });
@@ -102,6 +118,7 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
           <ProxyCard
             status={extensionVersion != null ? "extension" : (diagnosis ?? "unchecked")}
             extensionVersion={extensionVersion}
+            extensionLatest={BUILD.extension}
             settings={settings}
             command={PROXY_COMMAND}
             supported={proxySupported(navigator.userAgent)}

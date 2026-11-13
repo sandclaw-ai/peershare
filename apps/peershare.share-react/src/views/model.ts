@@ -11,7 +11,8 @@ export type Warning =
   | "cookies-set"
   | "cors-missing"
   | "permission-needed"
-  | "permission-unanswered";
+  | "permission-unanswered"
+  | "framing-refused";
 
 export interface Service {
   id: string;
@@ -22,6 +23,8 @@ export interface Service {
   isDefault: boolean;
   health: Health;
   warnings: Warning[];
+  /** Shown to guests although it forbids being framed (`ServiceDraft.allowFraming`). */
+  allowFraming?: boolean;
 }
 
 export interface Guest {
@@ -69,6 +72,8 @@ export interface ServiceDraft {
   name: string;
   target: string;
   isDefault: boolean;
+  /** Show it to guests although it forbids being framed (off by default: see the help's security#framing). */
+  allowFraming?: boolean;
 }
 
 export type DraftCheck =

@@ -7,7 +7,13 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { gzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DEFAULT_ORIGINS, PROXY_VERSION, parseProxyArgs, startProxy } from "../proxy/proxy.ts";
+import {
+  DEFAULT_ORIGINS,
+  PROXY_COMMIT,
+  PROXY_VERSION,
+  parseProxyArgs,
+  startProxy,
+} from "../proxy/proxy.ts";
 
 const TARGET = "x-peershare-target";
 const TOKEN = "x-peershare-bridge-token";
@@ -62,6 +68,17 @@ describe("parseProxyArgs", () => {
 });
 
 describe("startProxy", () => {
+  it("says which proxy it is on every answer, readable by the page", async () => {
+    const proxy = await startProxy({ ...parseProxyArgs([]), port: 0 });
+    try {
+      const res = await fetch(`${proxy.origin}/`, { headers: { origin: "http://localhost:8080" } });
+      expect(res.headers.get("x-peershare-proxy")).toBe(`${PROXY_VERSION} (${PROXY_COMMIT})`);
+      expect(res.headers.get("access-control-expose-headers")).toContain("x-peershare-proxy");
+    } finally {
+      await proxy.close();
+    }
+  });
+
   it("relays a gzip-compressing Service with a body the browser can read", async () => {
     const page = "<!doctype html><p>compressed</p>";
     const gz = createServer((_req, res) => {

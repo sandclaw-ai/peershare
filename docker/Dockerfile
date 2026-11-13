@@ -16,8 +16,11 @@ ARG PAGE_HOST=peershare.sandclaw.ai
 ARG SESSION_ZONE=s.sandclaw.ai
 ARG PARENT_ZONE=sandclaw.ai
 ARG RELAY_DOCUMENT_URL=https://relay.httpeers.net/.well-known/httpeers-relay.json
+# The commit (the workflow's short sha): .git is not in the build context, so the page, the
+# proxy and the extension get it from here to name their build (build-info.mjs).
+ARG BUILD_ID=""
 ENV SITE=${PAGE_HOST} SESSION_ZONE=${SESSION_ZONE} PARENT_ZONE=${PARENT_ZONE} \
-    RELAY_DOCUMENT_URL=${RELAY_DOCUMENT_URL}
+    RELAY_DOCUMENT_URL=${RELAY_DOCUMENT_URL} PEERSHARE_COMMIT=${BUILD_ID}
 
 # The page with peershare.json and proxy/, then the UI gallery under /ui and the help site
 # under /help (what the former peershare-site workflow published), then the shell.

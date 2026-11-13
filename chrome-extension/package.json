@@ -1,6 +1,6 @@
 {
   "name": "@statewalker/peershare.chrome-extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "SandClaw.ai PeerShare Proxy: a Chrome extension that lets the PeerShare page reach local services, instead of the proxy script.",

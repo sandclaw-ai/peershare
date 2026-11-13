@@ -10,6 +10,7 @@ import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { build } from "vite";
+import { buildInfo } from "../../../build-info.mjs";
 
 const app = resolve(import.meta.dirname, "..");
 const require = createRequire(join(app, "package.json"));
@@ -20,6 +21,7 @@ export async function buildProxy(outDir, site) {
     configFile: false,
     logLevel: "warn",
     ssr: { noExternal: true, target: "node" },
+    define: { __PEERSHARE_PROXY_COMMIT__: JSON.stringify(buildInfo().commit) },
     // `ws` is chosen at run time (proxy/ws-for-runtime.ts); `ws-inlined` is the package itself.
     resolve: {
       alias: [

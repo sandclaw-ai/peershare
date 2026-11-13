@@ -51,7 +51,7 @@ describe("exactly one default service", () => {
   it("the only service is the default: its switch is on and locked", () => {
     const only = service("a", true);
     render(<ServiceForm services={[only]} self={only} initial={{ ...only }} onSubmit={() => {}} />);
-    const sw = screen.getByRole("switch");
+    const sw = screen.getByRole("switch", { name: /Default service/ });
     expect(sw.getAttribute("aria-checked")).toBe("true");
     expect(sw.hasAttribute("disabled")).toBe(true);
   });
@@ -61,7 +61,7 @@ describe("exactly one default service", () => {
     const b = service("b", false);
     const onSubmit = vi.fn();
     render(<ServiceForm services={[a, b]} self={b} initial={{ ...b }} onSubmit={onSubmit} />);
-    const sw = screen.getByRole("switch");
+    const sw = screen.getByRole("switch", { name: /Default service/ });
     expect(sw.hasAttribute("disabled")).toBe(false);
     expect(screen.getByText(/Only one service is the default/)).toBeTruthy();
     fireEvent.click(sw);
@@ -107,7 +107,26 @@ describe("turning the Default off says where it goes", () => {
     const a = service("a", true);
     const b = service("b", false);
     render(<ServiceForm services={[a, b]} self={a} initial={{ ...a }} onSubmit={() => {}} />);
-    fireEvent.click(screen.getByRole("switch"));
+    fireEvent.click(screen.getByRole("switch", { name: /Default service/ }));
     expect(screen.getByText("Turned off, b becomes the default.")).toBeTruthy();
+  });
+});
+
+describe("showing a service that forbids embedding", () => {
+  it("is off by default, and the form sends it only when switched on", () => {
+    const a = service("a", true);
+    const onSubmit = vi.fn();
+    render(<ServiceForm services={[a]} self={a} initial={{ ...a }} onSubmit={onSubmit} />);
+    const sw = screen.getByRole("switch", { name: /forbids embedding/ });
+    expect(sw.getAttribute("aria-checked")).toBe("false");
+    expect(screen.getByRole("link", { name: "What this risks" }).getAttribute("href")).toContain(
+      "security#framing",
+    );
+    fireEvent.click(sw);
+    fireEvent.submit(sw.closest("form") as HTMLFormElement);
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ allowFraming: true }),
+      "direct",
+    );
   });
 });

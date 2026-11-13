@@ -23,6 +23,8 @@ import { MARKER, urlUpstream } from "@statewalker/webrun-http-proxy";
 export interface RelayInit {
   /** The extension's version, told to a page that asks. */
   version: string;
+  /** The git commit it was built from, told likewise. */
+  commit?: string;
   /** Injected by tests; the extension's own `fetch` otherwise. */
   fetchImpl?: typeof fetch;
 }
@@ -31,7 +33,12 @@ export async function relay(request: Request, init: RelayInit): Promise<Response
   const target = request.headers.get(BRIDGE_TARGET_HEADER) || null;
   // No target: the page asks whether its Bridge is there (as of the local proxy).
   if (target == null) {
-    return Response.json({ bridge: "peershare", via: "extension", version: init.version });
+    return Response.json({
+      bridge: "peershare",
+      via: "extension",
+      version: init.version,
+      ...(init.commit != null ? { commit: init.commit } : {}),
+    });
   }
   if (checkTarget(target) !== "allowed") return refuse(403, "target-forbidden");
 

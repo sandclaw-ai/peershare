@@ -4,7 +4,7 @@
  * Runs under Node, Bun or Deno; `peershare-proxy.sh` picks one.
  */
 
-import { PROXY_VERSION, parseProxyArgs, startProxy } from "./proxy.ts";
+import { PROXY_COMMIT, PROXY_VERSION, parseProxyArgs, startProxy } from "./proxy.ts";
 
 const options = parseProxyArgs(process.argv.slice(2));
 if (options.origins.includes("*")) {
@@ -33,7 +33,7 @@ function banner(origin: string, key: string, origins: string[], hubLink: string)
   );
   return [
     "",
-    `🦀 SandClaw.ai PeerShare Proxy ${PROXY_VERSION}`,
+    `🦀 SandClaw.ai PeerShare Proxy ${PROXY_VERSION} (${PROXY_COMMIT})`,
     "",
     ...lines,
     "",

@@ -3,6 +3,9 @@
 
 absolute_redirect off;
 server_tokens off;
+# Text files (CHANGELOG.txt, the help, the page) are UTF-8: without it browsers guess Latin-1
+# and show "—" as "â€”".
+charset utf-8;
 
 # The page: /, /invite (and /peer-share, /peer-share/invite) are all the one page.
 server {

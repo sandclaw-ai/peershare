@@ -42,7 +42,7 @@ import {
   validateDraft,
   type Warning,
 } from "../views/model.js";
-import { HelpTip } from "./help-tip.js";
+import { HELP_URL, HelpTip } from "./help-tip.js";
 import {
   Alert,
   AlertDescription,
@@ -140,6 +140,28 @@ function WarningNote({ warning, kind }: { warning: Warning; kind: Service["kind"
             </li>
           </ol>
           <PermissionSteps kind={kind} />
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  if (warning === "framing-refused") {
+    return (
+      <Alert variant="warning">
+        <AlertTriangle />
+        <AlertTitle>It refuses to be shown inside another page</AlertTitle>
+        <AlertDescription>
+          <p>
+            It forbids embedding (X-Frame-Options or frame-ancestors), so your guests' browsers show
+            an error instead of it. Allow it in this service's settings (Edit), or change the app.{" "}
+            <a
+              className="underline"
+              href={`${HELP_URL}security#framing`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              What allowing it risks
+            </a>
+          </p>
         </AlertDescription>
       </Alert>
     );
@@ -449,6 +471,33 @@ export function ServiceForm({
           checked={onlyOne || draft.isDefault}
           disabled={onlyOne}
           onCheckedChange={(on) => setDraft({ ...draft, isDefault: on })}
+        />
+      </Label>
+      <Label
+        className={cn(
+          "flex items-center justify-between gap-3 rounded-lg border p-3 font-normal",
+          draft.allowFraming === true && "border-warning/50 bg-warning/5",
+        )}
+      >
+        <span className="grid gap-0.5">
+          <span className="text-sm font-medium">Show it even if it forbids embedding</span>
+          <span className="text-muted-foreground text-xs">
+            Some apps refuse to be shown inside another page, and guests then see an error. On,
+            PeerShare removes that rule from what your guests get (not from the app itself). Only
+            for apps you trust guests to use this way.{" "}
+            <a
+              className="underline"
+              href={`${HELP_URL}security#framing`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              What this risks
+            </a>
+          </span>
+        </span>
+        <Switch
+          checked={draft.allowFraming === true}
+          onCheckedChange={(on) => setDraft({ ...draft, allowFraming: on })}
         />
       </Label>
       <div className="flex flex-wrap justify-end gap-2">

@@ -48,6 +48,18 @@ import { u } from "../lib/url.ts";
         <td>Check that the service is running, and the address and port</td>
       </tr>
       <tr>
+        <td>
+          It refuses to be shown inside another page (guests: "will not allow … if another site
+          has embedded it")
+        </td>
+        <td>The app forbids embedding: <code>X-Frame-Options</code> or <code>frame-ancestors</code></td>
+        <td>
+          Turn on "Show it even if it forbids embedding" in the service's settings, after reading
+          <a href={u("/security#framing")}>what it risks</a>, or allow
+          <code>https://*.s.sandclaw.ai</code> in the app's <code>frame-ancestors</code>
+        </td>
+      </tr>
+      <tr>
         <td>It doesn't allow calls from PeerShare</td>
         <td>A remote https site sent no CORS headers</td>
         <td>

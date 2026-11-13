@@ -41,7 +41,13 @@ export function findExtension(
       if (data.type === "ready") return connect();
       const port = event.ports[0];
       if (data.type === "connected" && data.id === id && port != null) {
-        done(relayOver(port, String(data.version)));
+        done(
+          relayOver(
+            port,
+            String(data.version),
+            data.commit != null ? String(data.commit) : undefined,
+          ),
+        );
       }
     };
     const timer = setTimeout(() => done(undefined), init.timeoutMs ?? 500);
@@ -50,7 +56,7 @@ export function findExtension(
   });
 }
 
-function relayOver(port: MessagePort, version: string): ExtensionRelay {
+function relayOver(port: MessagePort, version: string, commit?: string): ExtensionRelay {
   let next = 0;
   const pending = new Map<
     number,
@@ -65,6 +71,7 @@ function relayOver(port: MessagePort, version: string): ExtensionRelay {
   };
   return {
     version,
+    ...(commit != null ? { commit } : {}),
     async fetch(request) {
       const id = next++;
       const wire = await toWireRequest(request);

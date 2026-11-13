@@ -11,10 +11,11 @@ import {
   EXTENSION_PROTOCOL,
   type WireRequest,
 } from "@statewalker/peershare.share/extension";
+import { COMMIT } from "./build.js";
 import { type JsonResponse, requestToJson, responseFromJson } from "./wire.js";
 
 const version = chrome.runtime.getManifest().version;
-const hello = { channel: EXTENSION_CHANNEL, version, protocol: EXTENSION_PROTOCOL };
+const hello = { channel: EXTENSION_CHANNEL, version, commit: COMMIT, protocol: EXTENSION_PROTOCOL };
 
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;

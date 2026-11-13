@@ -97,6 +97,7 @@ function toView(s: PeerShareSnapshot["sharer"]["services"][number]): Service {
     isDefault: s.isDefault,
     health: s.enabled ? (s.health ?? "checking") : "disabled",
     warnings,
+    ...(s.allowFraming === true ? { allowFraming: true } : {}),
   };
 }
 

@@ -14,6 +14,8 @@ export type BridgeDiagnosis = "ok" | "permission-needed" | "bridge-not-running" 
 export async function diagnoseBridge(init: {
   localUrl: string;
   token: string;
+  /** Told which proxy answered (`x-peershare-proxy`), for the diagnostics. */
+  onProxy?: (which: string) => void;
 }): Promise<BridgeDiagnosis> {
   let response: Response;
   try {
@@ -29,6 +31,7 @@ export async function diagnoseBridge(init: {
       ? "permission-needed"
       : "bridge-not-running";
   }
+  init.onProxy?.(response.headers.get("x-peershare-proxy") ?? "a proxy older than 0.1.2");
   if (response.status === 401) return "token-rejected";
   // Something else may answer on that port; to the Sharer it is the same:
   // the Bridge is not there.

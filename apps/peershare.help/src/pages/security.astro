@@ -146,6 +146,86 @@ import { u } from "../lib/url.ts";
     <li>your browser itself asks you before the page may reach it (local network access).</li>
   </ul>
 
+  <h2 id="framing">8. Services that forbid embedding stay that way, unless you allow it</h2>
+  <p>
+    Many web apps tell browsers never to show them inside another page, with an
+    <code>X-Frame-Options</code> header or a <code>frame-ancestors</code> rule in their
+    Content-Security-Policy. It protects against <strong>clickjacking</strong>: a hostile site
+    loads the app invisibly in a frame, lines it up under its own buttons, and tricks someone who
+    is signed in to the app into clicking <em>Delete</em>, <em>Approve</em> or <em>Transfer</em>
+    in it without knowing.
+  </p>
+  <p>
+    A guest always sees your service inside a frame of the PeerShare page, so such a service
+    shows the guest an error instead ("will not allow Firefox to display the page if another site
+    has embedded it"). PeerShare respects that by default: the service card warns you that the
+    service refuses to be embedded, and nothing else changes.
+  </p>
+
+  <h3>What "Show it even if it forbids embedding" does</h3>
+  <p>The switch is in each service's settings, off until you turn it on. When it is on:</p>
+  <ul>
+    <li>
+      your tab removes <code>X-Frame-Options</code> and the <code>frame-ancestors</code> rule
+      from that service's answers <strong>on their way to your guests</strong>, and nothing
+      else: every other rule of the app's Content-Security-Policy (where scripts may come from,
+      where the page may connect) stays in force;
+    </li>
+    <li>
+      the app itself is unchanged: at its own address (<code>http://localhost:…</code>), for you
+      and for anyone who reaches it directly, it keeps its protection;
+    </li>
+    <li>
+      in place of the app's rule, the guest's copy gets PeerShare's own: it runs at a random
+      origin under <code>s.sandclaw.ai</code> that only pages on <code>sandclaw.ai</code> may
+      frame (<code>frame-ancestors 'self' https://sandclaw.ai https://*.sandclaw.ai</code>), and
+      that origin's service worker refuses page loads that come from anywhere else.
+    </li>
+  </ul>
+
+  <h3>What it gives up</h3>
+  <ul>
+    <li>
+      <strong>Who could clickjack a guest.</strong> With the app's rule, nobody can frame it.
+      Without it, pages on <code>sandclaw.ai</code> can: the PeerShare page, and any other site
+      under that domain. A website anywhere else still cannot, and cannot even learn the random
+      origin a guest's copy runs at. So the risk is a page on <code>sandclaw.ai</code> that is
+      compromised or turns hostile: it could frame a guest's copy of your service and trick
+      <em>that guest</em> into clicking in it.
+    </li>
+    <li>
+      <strong>Whose powers are at stake.</strong> A clickjacked click acts as the guest, with
+      what the guest can do in your app: their own sign-in (the local proxy keeps each guest's
+      cookies apart), not yours. A service that guests use without signing in, or as a
+      read-only user, has little to lose; one where guests act with real privileges has more.
+    </li>
+    <li>
+      <strong>Not a new view into your app.</strong> The PeerShare page already carries every
+      request and answer between the guest and your service; framing gives it, or anyone, no
+      way to read the app's pages, which stay in their own origin (see
+      <a href="#isolation">6</a>).
+    </li>
+  </ul>
+  <p>
+    Some apps also check by script that they are the top page, and may still refuse or behave
+    oddly inside the frame. That is no risk, but the switch cannot fix it.
+  </p>
+
+  <h3>When to turn it on</h3>
+  <ul>
+    <li>
+      <strong>Fine:</strong> things you share to be looked at or worked on together, such as a dev
+      server, a dashboard, documentation, a notebook, where a guest's tricked click could do
+      little harm.
+    </li>
+    <li>
+      <strong>Think twice:</strong> admin panels, anything with one-click destructive or
+      money-moving actions, and apps where your guests are signed in with real privileges. Give
+      guests a restricted account there, or change the app to allow
+      <code>frame-ancestors https://*.s.sandclaw.ai</code> itself, which keeps everyone else out.
+    </li>
+  </ul>
+
   <h2 id="limits">What PeerShare does not protect against</h2>
   <div class="callout warn">
     <p>

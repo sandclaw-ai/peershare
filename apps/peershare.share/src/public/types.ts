@@ -8,6 +8,12 @@ export interface ServiceDraft {
   kind: string;
   target: string;
   isDefault?: boolean;
+  /**
+   * Show it to Guests although it forbids being framed: the hub removes its
+   * `X-Frame-Options` and CSP `frame-ancestors` from what Guests get. Off by
+   * default; see `framing.ts` and the help's "security#framing".
+   */
+  allowFraming?: boolean;
 }
 
 export interface SharedService {
@@ -17,6 +23,8 @@ export interface SharedService {
   target: string;
   enabled: boolean;
   isDefault: boolean;
+  /** See `ServiceDraft.allowFraming`. */
+  allowFraming?: boolean;
   /** The last Probe, or `checking` while one runs. */
   health?: Health | "checking" | "disabled";
   /**
@@ -25,7 +33,8 @@ export interface SharedService {
    * question is still open (dismissed, or never asked because nothing answered).
    */
   cause?: ProbeCause | "permission-needed" | "permission-unanswered";
-  warnings?: ProbeWarning[];
+  /** `framing-refused`: it forbids being framed, so Guests' browsers will not show it (see `allowFraming`). */
+  warnings?: (ProbeWarning | "framing-refused")[];
 }
 
 /** The browser's Local Network Access permission; `unsupported` where there is no such check. */

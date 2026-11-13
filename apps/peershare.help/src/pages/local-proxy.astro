@@ -1,4 +1,5 @@
 ---
+import extension from "../../../../chrome-extension/package.json";
 import Docs from "../layouts/Docs.astro";
 ---
 
@@ -84,7 +85,7 @@ import Docs from "../layouts/Docs.astro";
   <ol>
     <li>
       <a href="https://peershare.sandclaw.ai/extension/peershare-proxy-extension.zip" download
-        >Download the extension</a
+        >Download the extension {extension.version}</a
       >
       (<a href="https://peershare.sandclaw.ai/extension/CHANGELOG.txt">what's new</a>) and unzip
       it.
@@ -94,7 +95,9 @@ import Docs from "../layouts/Docs.astro";
     <li>Reload PeerShare: the Local proxy card says <em>Browser extension connected</em>.</li>
   </ol>
   <p>
-    Keep the unzipped folder: Chrome runs the extension from it. To update, download the new zip,
+    Keep the unzipped folder: Chrome runs the extension from it. The version you have is on the
+    Local proxy card (and on the extension's card in <code>chrome://extensions</code>); when the
+    card says a newer one is available, or the link above names a newer one, download the new zip,
     unzip it over the old folder, and click the reload icon on the extension's card in
     <code>chrome://extensions</code>.
   </p>

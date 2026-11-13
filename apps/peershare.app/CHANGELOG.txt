@@ -3,9 +3,32 @@ PeerShare (peershare.sandclaw.ai) — changes
 
 The site: the Sharer's page (the hub), the Guest's invite page, and the help.
 The proxy script and the browser extension have their own changelogs:
-proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt.
+proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt. The version is
+package.json's; the page's diagnostics name it, with the git commit.
 
-2026-11-13 — One hub across tabs; diagnostics
+0.4.0 — 2026-11-13 — Versions in the diagnostics; apps that forbid embedding
+
+  Added
+  - Apps that forbid being shown inside another page (X-Frame-Options, CSP
+    frame-ancestors) are flagged on their service card: guests' browsers
+    refuse them. A per-service switch, off by default, "Show it even if it
+    forbids embedding", removes just those two rules from what guests get;
+    the app itself keeps them. The help's security page (#framing) explains
+    what that trades away.
+  - Every diagnostics log names the build it comes from: the site's
+    version, git commit and build time, in its header and each time a page
+    opens (the log outlives reloads, so older lines may be another build's).
+  - The hub's log names the proxy's and the browser extension's version
+    and commit when it reaches them.
+  - "Download the extension 0.1.1" names the version the zip holds, with
+    "what's new" next to it; when the installed extension is older, the
+    proxy card says a newer one is available.
+
+  Fixed
+  - Text files (the changelogs under /proxy/ and /extension/) are served as
+    UTF-8: browsers showed "—" and "→" as garbage.
+
+0.3.0 — 2026-11-13 — One hub across tabs; diagnostics
 
   Fixed
   - PeerShare open in several tabs ran one hub per tab, all with the same
@@ -27,7 +50,7 @@ proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt.
     "Copy diagnostics" on the hub page and on a Guest's failed join;
     peershareDiagnostics() in the browser console.
 
-2026-11-13 — Browser extension; local network advice
+0.2.0 — 2026-11-13 — Browser extension; local network advice
 
   Added
   - The PeerShare browser extension as an alternative to the proxy script:
@@ -40,4 +63,4 @@ proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt.
   Changed
   - Safety tips use an "i" pill instead of "?".
 
-2026-11-12 — First release on peershare.sandclaw.ai
+0.1.0 — 2026-11-12 — First release on peershare.sandclaw.ai

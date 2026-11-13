@@ -12,6 +12,7 @@ import {
 import type { Upstream } from "@statewalker/webrun-http-proxy";
 import { type DiagnosticsLog, noLog } from "../public/diagnostics.js";
 import type { UpstreamKind } from "../public/extension-points.js";
+import { refusesFraming, withoutFramingRules } from "../public/framing.js";
 import type {
   LocalNetworkPermission,
   Result,
@@ -51,7 +52,15 @@ export class SharerManager {
       return this.update(id, { health: "disabled", cause: undefined, warnings: [] });
     await this.update(id, { health: "checking" });
     const direct = service.kind === "direct" ? { direct: service.target } : {};
-    const report = await probe(this.upstreamOf(service), direct).catch(
+    // The Service's own answer, as it comes: does it forbid being framed?
+    let framingRefused = false;
+    const upstream = this.upstreamOf(service);
+    const tapped: Upstream = async (request) => {
+      const response = await upstream(request);
+      framingRefused = refusesFraming(response.headers);
+      return response;
+    };
+    const report = await probe(tapped, direct).catch(
       // An Upstream that throws instead of answering: never left "checking".
       (error): ProbeReport => {
         this.log.error("probe: threw", error, service.id);
@@ -70,12 +79,20 @@ export class SharerManager {
       "probe",
       `${service.id} (${service.kind} ${service.target}) → ${report.health}${
         cause != null ? `, ${cause}` : ""
-      } in ${report.ms} ms`,
+      } in ${report.ms} ms${
+        framingRefused
+          ? `; forbids framing (${service.allowFraming === true ? "allowed for Guests" : "Guests' browsers will refuse it"})`
+          : ""
+      }`,
     );
     await this.update(id, {
       health: report.health,
       cause,
-      warnings: live ? report.warnings.filter((w) => w !== "ws-needed") : report.warnings,
+      warnings: [
+        ...(live ? report.warnings.filter((w) => w !== "ws-needed") : report.warnings),
+        // Allowed by the Sharer, it is shown anyway: nothing to warn about.
+        ...(framingRefused && service.allowFraming !== true ? ["framing-refused" as const] : []),
+      ],
     });
   }
 
@@ -118,7 +135,15 @@ export class SharerManager {
     const isDefault = draft.isDefault === true || this.state.services.length === 0;
     this.state.services = [
       ...this.state.services.map((s) => (isDefault ? { ...s, isDefault: false } : s)),
-      { id, name: draft.name, kind: draft.kind, target: draft.target, enabled: true, isDefault },
+      {
+        id,
+        name: draft.name,
+        kind: draft.kind,
+        target: draft.target,
+        enabled: true,
+        isDefault,
+        ...(draft.allowFraming === true ? { allowFraming: true } : {}),
+      },
     ];
     await this.save();
     // Tested at once, in the background: the Sharer sees Health without asking.
@@ -141,6 +166,8 @@ export class SharerManager {
             target: draft.target,
             enabled: s.enabled,
             isDefault: s.isDefault,
+            // The form says; a caller that does not know the field keeps what was set.
+            ...((draft.allowFraming ?? s.allowFraming) === true ? { allowFraming: true } : {}),
           }
         : s,
     );
@@ -197,13 +224,24 @@ export class SharerManager {
       name: s.name,
       enabled: s.enabled,
       isDefault: s.isDefault,
-      upstream: this.upstreamOf(s),
+      upstream: s.allowFraming === true ? this.framable(s) : this.upstreamOf(s),
       socket: (path: string, protocols: string[]) => {
         const kind = this.kinds().get(s.kind);
         if (kind?.socket == null) throw new Error(`${s.kind} cannot carry live connections`);
         return kind.socket(s.target, path, protocols);
       },
     }));
+  }
+
+  /**
+   * What Guests get of a Service the Sharer allowed to be framed: its answers
+   * without `X-Frame-Options` and CSP `frame-ancestors`, everything else as is.
+   * Only here, on the way to Guests: the Probe and the Service's own origin
+   * see its real headers.
+   */
+  private framable(service: SharedService): Upstream {
+    const upstream = this.upstreamOf(service);
+    return async (request) => withoutFramingRules(await upstream(request));
   }
 
   private upstreamOf(service: SharedService): Upstream {

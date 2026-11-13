@@ -32,6 +32,21 @@ export const EXTENSION_HELP = `${HELP_URL}local-proxy#extension`;
 /** The browser extension, as the PeerShare site publishes it. */
 export const EXTENSION_DOWNLOAD =
   "https://peershare.sandclaw.ai/extension/peershare-proxy-extension.zip";
+/** What changed in each version of the extension. */
+export const EXTENSION_CHANGELOG = "https://peershare.sandclaw.ai/extension/CHANGELOG.txt";
+
+/** Whether dotted version `a` is older than `b` ("0.1.9" < "0.1.10"). */
+export function olderVersion(a: string, b: string): boolean {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] ?? 0;
+    const y = pb[i] ?? 0;
+    if (Number.isNaN(x) || Number.isNaN(y)) return false;
+    if (x !== y) return x < y;
+  }
+  return false;
+}
 
 export interface ProxySettingsValue {
   url: string;
@@ -52,6 +67,8 @@ export interface ProxyCardProps {
   open?: boolean;
   /** The browser extension's version, when status is `extension`. */
   extensionVersion?: string;
+  /** The version of the extension the download link gives (the site's build). */
+  extensionLatest?: string;
 }
 
 function CommandLine({ command }: { command: string }) {
@@ -82,10 +99,12 @@ function SettingsForm({
   settings,
   command,
   onSave,
+  extensionLatest,
 }: {
   settings: ProxySettingsValue;
   command: string;
   onSave?: (s: ProxySettingsValue) => void;
+  extensionLatest?: string;
 }) {
   const [draft, setDraft] = useState(settings);
   useEffect(() => setDraft(settings), [settings]);
@@ -100,8 +119,13 @@ function SettingsForm({
             <li>
               <a className="text-foreground underline" href={EXTENSION_DOWNLOAD} download>
                 Download the extension
+                {extensionLatest != null && ` ${extensionLatest}`}
               </a>{" "}
-              and unzip it.
+              (
+              <a className="underline" href={EXTENSION_CHANGELOG} target="_blank" rel="noreferrer">
+                what's new
+              </a>
+              ) and unzip it.
             </li>
             <li>
               Open <span className="font-mono">chrome://extensions</span> and switch on “Developer
@@ -201,6 +225,7 @@ export function ProxyCard({
   onCheck,
   open,
   extensionVersion,
+  extensionLatest,
 }: ProxyCardProps) {
   // Problems the settings fix open them; the Sharer can open them any time.
   const needsSettings = status === "bridge-not-running" || status === "token-rejected";
@@ -273,6 +298,27 @@ export function ProxyCard({
                 <span className="font-mono text-xs">v{extensionVersion}</span>
               </>
             )}
+            {status === "extension" &&
+              extensionVersion != null &&
+              extensionLatest != null &&
+              olderVersion(extensionVersion, extensionLatest) && (
+                <>
+                  {" · "}
+                  <a className="text-foreground underline" href={EXTENSION_DOWNLOAD} download>
+                    {extensionLatest} is available
+                  </a>{" "}
+                  (
+                  <a
+                    className="underline"
+                    href={EXTENSION_CHANGELOG}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    what's new
+                  </a>
+                  ): unzip it over the old folder and reload the extension.
+                </>
+              )}
           </p>
         </div>
         <div className="flex shrink-0 gap-1">
@@ -291,7 +337,14 @@ export function ProxyCard({
           </Button>
         </div>
       </div>
-      {expanded && <SettingsForm settings={settings} command={command} onSave={onSave} />}
+      {expanded && (
+        <SettingsForm
+          settings={settings}
+          command={command}
+          onSave={onSave}
+          extensionLatest={extensionLatest}
+        />
+      )}
     </Card>
   );
 }

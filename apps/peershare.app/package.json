@@ -1,6 +1,6 @@
 {
   "name": "@statewalker/peershare.app",
-  "version": "0.0.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "description": "The standalone PeerShare page: /peer-share for the Sharer, /peer-share/invite for Guests.",

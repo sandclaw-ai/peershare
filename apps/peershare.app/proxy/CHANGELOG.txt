@@ -1,6 +1,13 @@
 PeerShare Proxy — changes
 =========================
 
+0.1.2 — 2026-11-13
+
+  Added
+  - Every answer says which proxy it is (x-peershare-proxy: version and git
+    commit), so the PeerShare page's diagnostics name the proxy it reached.
+    The start-up banner shows the commit too.
+
 0.1.1 — 2026-11-13
 
   Fixed

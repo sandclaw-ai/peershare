@@ -203,7 +203,12 @@ export function SharerPage(props: SharerPageProps) {
         self={editing}
         initial={
           editing != null
-            ? { name: editing.name, target: editing.target, isDefault: editing.isDefault }
+            ? {
+                name: editing.name,
+                target: editing.target,
+                isDefault: editing.isDefault,
+                allowFraming: editing.allowFraming === true,
+              }
             : undefined
         }
         submitText={editing != null ? "Save" : "Share service"}
