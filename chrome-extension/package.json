@@ -18,7 +18,7 @@
     "@statewalker/webrun-http-proxy": "catalog:"
   },
   "devDependencies": {
-    "@types/chrome": "^0.3.7",
+    "@types/chrome": "catalog:",
     "@types/node": "catalog:",
     "playwright": "catalog:",
     "typescript": "catalog:",
