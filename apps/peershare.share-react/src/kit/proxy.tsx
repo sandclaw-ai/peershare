@@ -29,6 +29,9 @@ export type ProxyStatus = "unchecked" | "checking" | BridgeDiagnosis | "extensio
 
 /** How to install the browser extension, the proxy script's alternative. */
 export const EXTENSION_HELP = `${HELP_URL}local-proxy#extension`;
+/** The browser extension, as the PeerShare site publishes it. */
+export const EXTENSION_DOWNLOAD =
+  "https://peershare.sandclaw.ai/extension/peershare-proxy-extension.zip";
 
 export interface ProxySettingsValue {
   url: string;
@@ -91,13 +94,27 @@ function SettingsForm({
       <div className="grid gap-1.5">
         <p className="text-muted-foreground text-xs">Start it on this computer:</p>
         <CommandLine command={command} />
-        <p className="text-muted-foreground text-xs">
-          Or, in Chrome, use the{" "}
-          <a className="underline" href={EXTENSION_HELP} target="_blank" rel="noreferrer">
-            PeerShare browser extension
-          </a>{" "}
-          instead: nothing to start.
-        </p>
+        <div className="text-muted-foreground grid gap-1 text-xs">
+          <p>Or, in Chrome, use the PeerShare browser extension instead: nothing to start.</p>
+          <ol className="list-decimal space-y-0.5 pl-4">
+            <li>
+              <a className="text-foreground underline" href={EXTENSION_DOWNLOAD} download>
+                Download the extension
+              </a>{" "}
+              and unzip it.
+            </li>
+            <li>
+              Open <span className="font-mono">chrome://extensions</span> and switch on “Developer
+              mode”.
+            </li>
+            <li>
+              Click “Load unpacked”, choose the unzipped folder, then reload this page.{" "}
+              <a className="underline" href={EXTENSION_HELP} target="_blank" rel="noreferrer">
+                More about the extension
+              </a>
+            </li>
+          </ol>
+        </div>
       </div>
       <form
         className="grid gap-2 sm:grid-cols-[1fr_11rem_auto] sm:items-end"

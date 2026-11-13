@@ -8,14 +8,17 @@
  *   <outDir>/<SITE>/peershare.json         httpeers' relay and session zone, the invite page
  *   <outDir>/<SITE>/proxy/peershare-proxy.sh   the proxy's launcher (`curl … | sh`)
  *   <outDir>/<SITE>/proxy/peershare-proxy.mjs  the proxy: one file, for Node, Bun and Deno
+ *   <outDir>/<SITE>/extension/peershare-proxy-extension.zip   the proxy as a Chrome extension
+ *   <outDir>/<SITE>/extension/CHANGELOG.txt                   what changed in each version
  *   <outDir>/<SITE>/.site/config.json      { "spa": true }: every route is the page
  *
  * SITE (default peershare.sandclaw.ai), SESSION_ZONE (default s.sandclaw.ai),
  * RELAY_DOCUMENT_URL (default the relay's own published document).
  */
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { build } from "vite";
+import { buildExtension, changelog, zipFolder } from "../../../chrome-extension/build.mjs";
 import { buildProxy } from "./build-proxy.mjs";
 
 const SITE = process.env.SITE ?? "peershare.sandclaw.ai";
@@ -34,6 +37,12 @@ await build({
 });
 
 await buildProxy(join(site, "proxy"), SITE);
+
+// The extension: one stable download name, so the page can link to it.
+const unpacked = await buildExtension(join(out, ".extension"));
+zipFolder(unpacked, join(site, "extension/peershare-proxy-extension.zip"));
+copyFileSync(changelog, join(site, "extension/CHANGELOG.txt"));
+rmSync(unpacked, { recursive: true, force: true });
 
 // The relay states its own addresses (httpeers apps/relay, bootstrap document).
 const res = await fetch(RELAY_DOCUMENT_URL);

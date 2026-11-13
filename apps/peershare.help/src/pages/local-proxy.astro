@@ -80,18 +80,24 @@ import Docs from "../layouts/Docs.astro";
     PeerShare page and pages on your computer, and reaches only <code>localhost</code> and private
     or Tailscale addresses.
   </p>
-  <p>Until it is in the Chrome Web Store, install it from a copy of the PeerShare repository:</p>
+  <p>Until it is in the Chrome Web Store, install it by hand:</p>
   <ol>
     <li>
-      Build it: <code>pnpm install</code>, then <code>pnpm --filter
-      @statewalker/peershare.chrome-extension build</code>.
+      <a href="https://peershare.sandclaw.ai/extension/peershare-proxy-extension.zip" download
+        >Download the extension</a
+      >
+      (<a href="https://peershare.sandclaw.ai/extension/CHANGELOG.txt">what's new</a>) and unzip
+      it.
     </li>
     <li>Open <code>chrome://extensions</code> and switch on <strong>Developer mode</strong>.</li>
-    <li>
-      Click <strong>Load unpacked</strong> and choose the <code>chrome-extension/dist</code>
-      folder.
-    </li>
+    <li>Click <strong>Load unpacked</strong> and choose the unzipped folder.</li>
+    <li>Reload PeerShare: the Local proxy card says <em>Browser extension connected</em>.</li>
   </ol>
+  <p>
+    Keep the unzipped folder: Chrome runs the extension from it. To update, download the new zip,
+    unzip it over the old folder, and click the reload icon on the extension's card in
+    <code>chrome://extensions</code>.
+  </p>
   <p>What the extension does differently from the proxy:</p>
   <ul>
     <li>

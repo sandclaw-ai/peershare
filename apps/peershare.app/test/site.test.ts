@@ -47,6 +47,13 @@ afterAll(async () => {
 describe("2.8 — the site for httpeers' static host", () => {
   const site = () => join(out, "peershare.sandclaw.ai");
 
+  it("offers the browser extension as a zip, with its changelog", () => {
+    const zip = readFileSync(join(site(), "extension/peershare-proxy-extension.zip"));
+    expect(zip.subarray(0, 4).toString("hex")).toBe("504b0304");
+    expect(zip.includes("manifest.json")).toBe(true);
+    expect(existsSync(join(site(), "extension/CHANGELOG.txt"))).toBe(true);
+  });
+
   it("is one prefix named after the domain, with the page in it", () => {
     expect(existsSync(join(site(), "index.html"))).toBe(true);
   });
