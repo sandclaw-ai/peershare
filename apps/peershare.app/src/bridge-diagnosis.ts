@@ -7,6 +7,7 @@
  */
 
 import { BRIDGE_TOKEN_HEADER } from "@statewalker/httpeers-share";
+import { addressSpaceOf, localNetworkPermission } from "@statewalker/peershare.share";
 
 export type BridgeDiagnosis = "ok" | "permission-needed" | "bridge-not-running" | "token-rejected";
 
@@ -21,7 +22,8 @@ export async function diagnoseBridge(init: {
     });
   } catch {
     // Read AFTER the attempt: the attempt is what asks the Sharer.
-    const permission = await localNetworkPermission();
+    // Every name this browser has for the proxy's space (loopback, as a rule).
+    const permission = await localNetworkPermission(addressSpaceOf(init.localUrl));
     // "unsupported": a browser without the check — the failure is the Bridge's.
     return permission === "prompt" || permission === "denied"
       ? "permission-needed"
@@ -32,18 +34,4 @@ export async function diagnoseBridge(init: {
   // the Bridge is not there.
   const body = await response.json().catch(() => undefined);
   return body?.bridge === "peershare" ? "ok" : "bridge-not-running";
-}
-
-/**
- * Chromium 153 knows three names and grants them together; older builds know
- * only `local-network-access`. A browser without the check has no such
- * permission at all, and nothing to ask for.
- */
-async function localNetworkPermission(): Promise<PermissionState | "unsupported"> {
-  try {
-    return (await navigator.permissions.query({ name: "local-network-access" as PermissionName }))
-      .state;
-  } catch {
-    return "unsupported";
-  }
 }

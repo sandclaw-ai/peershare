@@ -83,12 +83,18 @@ describe("M1 — Test again", () => {
   });
 });
 
-describe("M1 — Test again, with local network access refused", () => {
-  it("bridge-down reads as permission-needed when the browser denied the local network", async () => {
-    // The Bridge runs, but the browser keeps the page from it: Chromium fails that like a dead port.
+describe("M1 — Test again, with local network access refused or unanswered", () => {
+  // The Bridge runs, but the browser keeps the page from it: Chromium fails that like a dead port.
+  const closedBridge = () => ({ base: "http://127.0.0.1:1", token: TOKEN });
+
+  it("bridge-down reads as permission-needed when the browser denied the Bridge's space", async () => {
+    const asked: string[] = [];
     const { call } = withPeerShare({
-      bridge: () => ({ base: "http://127.0.0.1:1", token: TOKEN }),
-      localNetworkPermission: async () => "denied",
+      bridge: closedBridge,
+      localNetworkPermission: async (space) => {
+        asked.push(space);
+        return "denied";
+      },
     });
     await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
 
@@ -97,14 +103,60 @@ describe("M1 — Test again, with local network access refused", () => {
       health: "down",
       cause: "permission-needed",
     });
+    // The Bridge is on loopback: that is the permission asked about, whatever the Service's address.
+    expect(asked.at(-1)).toBe("loopback");
   });
 
-  it("stays bridge-down while the permission is only unasked: the Bridge is the problem then", async () => {
-    const { call } = withPeerShare({ localNetworkPermission: async () => "prompt" });
+  it("bridge-down reads as permission-unanswered while the browser's question is open", async () => {
+    const { call } = withPeerShare({
+      bridge: closedBridge,
+      localNetworkPermission: async () => "prompt",
+    });
+    await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
+
+    await call(ProbeService, { id: "dev" });
+    expect((await call(GetSharer, undefined)).services[0]).toMatchObject({
+      cause: "permission-unanswered",
+    });
+  });
+
+  it("stays bridge-down with no Bridge paired: nothing was asked, the Bridge is the problem", async () => {
+    const { call } = withPeerShare({ localNetworkPermission: async () => "denied" });
     await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
 
     await call(ProbeService, { id: "dev" });
     expect((await call(GetSharer, undefined)).services[0]).toMatchObject({ cause: "bridge-down" });
+  });
+
+  it("stays bridge-down when the permission is granted, or the browser has no such check", async () => {
+    for (const state of ["granted", "unsupported"] as const) {
+      const { call } = withPeerShare({
+        bridge: closedBridge,
+        localNetworkPermission: async () => state,
+      });
+      await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
+      await call(ProbeService, { id: "dev" });
+      expect((await call(GetSharer, undefined)).services[0]).toMatchObject({
+        cause: "bridge-down",
+      });
+    }
+  });
+
+  it("a Direct Service with an internal name asks about the local space", async () => {
+    const asked: string[] = [];
+    const { call } = withPeerShare({
+      localNetworkPermission: async (space) => {
+        asked.push(space);
+        return "denied";
+      },
+    });
+    await call(AddService, { name: "nas", kind: "direct", target: "https://nas.internal:1" });
+
+    await call(ProbeService, { id: "nas" });
+    expect((await call(GetSharer, undefined)).services[0]).toMatchObject({
+      cause: "permission-needed",
+    });
+    expect(asked.at(-1)).toBe("local");
   });
 
   it("a Service that answers is ok whatever the permission says", async () => {

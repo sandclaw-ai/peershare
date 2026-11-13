@@ -194,6 +194,25 @@ export const scenarios: Scenario[] = [
         render: () => <SharerDemo />,
       },
       {
+        id: "s3-local-network",
+        title: "The browser keeps PeerShare from the proxy",
+        caption:
+          "Chrome's local network access: refused (step by step to allow it), or not answered yet (start the proxy, then allow when asked).",
+        commands: ["ProbeService"],
+        device: "desktop",
+        height: 1180,
+        render: () => (
+          <SharerDemo
+            proxy="permission-needed"
+            services={services.slice(0, 2).map((s, i) => ({
+              ...s,
+              health: "down",
+              warnings: [i === 0 ? "permission-needed" : "permission-unanswered"],
+            }))}
+          />
+        ),
+      },
+      {
         id: "s3-status",
         title: "Status vocabulary",
         caption: "The badges every screen uses.",

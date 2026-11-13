@@ -6,7 +6,12 @@ import { checkServiceTarget, type TargetRefusal } from "@statewalker/httpeers-sh
 
 export type UpstreamKind = "bridged" | "direct";
 export type Health = "ok" | "slow" | "down" | "disabled" | "checking";
-export type Warning = "ws-needed" | "cookies-set" | "cors-missing" | "permission-needed";
+export type Warning =
+  | "ws-needed"
+  | "cookies-set"
+  | "cors-missing"
+  | "permission-needed"
+  | "permission-unanswered";
 
 export interface Service {
   id: string;
@@ -113,3 +118,11 @@ const TARGET_REFUSALS: Partial<Record<TargetRefusal, string>> = {
   "not-http": "Start the address with http:// or https://.",
   "not-a-url": "Start the address with http:// or https://.",
 };
+
+/**
+ * Where a Chromium user changes this site's permissions (Local Network Access
+ * among them). Pasted into the address bar: pages cannot link to `chrome://`.
+ */
+export function siteSettingsUrl(origin: string): string {
+  return `chrome://settings/content/siteDetails?site=${encodeURIComponent(origin)}`;
+}

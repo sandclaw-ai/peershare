@@ -37,6 +37,7 @@ import {
   type DraftCheck,
   type Service,
   type ServiceDraft,
+  siteSettingsUrl,
   type UpstreamKind,
   validateDraft,
   type Warning,
@@ -64,7 +65,9 @@ const PAGE_ORIGIN = "https://peershare.sandclaw.ai";
 function Advice({ service }: { service: Service }) {
   const notes: ReactNode[] = [];
   // A missing CORS header or a refused local network also reads as "down": its own advice is the useful one.
-  const explained = service.warnings.some((w) => w === "cors-missing" || w === "permission-needed");
+  const explained = service.warnings.some(
+    (w) => w === "cors-missing" || w === "permission-needed" || w === "permission-unanswered",
+  );
   if (service.health === "down" && !explained) {
     notes.push(
       <Alert key="down" variant="destructive">
@@ -87,12 +90,13 @@ function Advice({ service }: { service: Service }) {
       </Alert>,
     );
   }
-  for (const w of service.warnings) notes.push(<WarningNote key={w} warning={w} />);
+  for (const w of service.warnings)
+    notes.push(<WarningNote key={w} warning={w} kind={service.kind} />);
   if (notes.length === 0) return null;
   return <div className="grid gap-2">{notes}</div>;
 }
 
-function WarningNote({ warning }: { warning: Warning }) {
+function WarningNote({ warning, kind }: { warning: Warning; kind: Service["kind"] }) {
   if (warning === "cors-missing") {
     return (
       <Alert variant="warning">
@@ -113,8 +117,29 @@ function WarningNote({ warning }: { warning: Warning }) {
         <ShieldAlert />
         <AlertTitle>Your browser blocked local network access</AlertTitle>
         <AlertDescription>
-          The local proxy is reachable only once this site may use the local network. Allow “Local
-          network access” for this site (the icon left of the address bar), then test again.
+          <PermissionSteps kind={kind} />
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  if (warning === "permission-unanswered") {
+    return (
+      <Alert variant="warning">
+        <ShieldAlert />
+        <AlertTitle>Your browser hasn't allowed local network access yet</AlertTitle>
+        <AlertDescription>
+          <ol className="list-decimal space-y-1 pl-4">
+            <li>
+              {kind === "bridged"
+                ? "Check that the local proxy is running (it prints “PeerShare Proxy” and its address)."
+                : "Check that the service is running and its address is right."}
+            </li>
+            <li>Test again. If your browser asks about the local network, choose “Allow”.</li>
+            <li>
+              No question? It may have been dismissed: allow it in the site settings, as below.
+            </li>
+          </ol>
+          <PermissionSteps kind={kind} />
         </AlertDescription>
       </Alert>
     );
@@ -136,6 +161,37 @@ function WarningNote({ warning }: { warning: Warning }) {
       <AlertTitle>It uses live connections</AlertTitle>
       <AlertDescription>Pages load for guests, but live parts may stay still.</AlertDescription>
     </Alert>
+  );
+}
+
+/**
+ * How to allow Local Network Access in Chromium. The setting's name differs
+ * between versions, and newer ones have two: this computer, and the network.
+ */
+function PermissionSteps({ kind }: { kind: Service["kind"] }) {
+  const origin = typeof location === "undefined" ? PAGE_ORIGIN : location.origin;
+  const reached =
+    kind === "bridged"
+      ? "this computer (the local proxy runs here)"
+      : "devices on your local network";
+  return (
+    <div className="grid gap-1.5">
+      <p>PeerShare needs your browser's permission to reach {reached}.</p>
+      <ol className="list-decimal space-y-1 pl-4">
+        <li>
+          Click the icon left of the address bar, then “Site settings”. Or paste into the address
+          bar:{" "}
+          <span className="text-foreground font-mono break-all select-all">
+            {siteSettingsUrl(origin)}
+          </span>
+        </li>
+        <li>
+          Set every local network setting to “Allow”: “Local network access”, or in newer Chrome
+          both the one for this device and the one for the local network.
+        </li>
+        <li>Reload this page, then test again.</li>
+      </ol>
+    </div>
   );
 }
 

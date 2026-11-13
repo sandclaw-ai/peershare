@@ -138,7 +138,7 @@ const said: Record<
     icon: <ShieldAlert />,
     tone: "warn",
     title: "Your browser blocked local network access",
-    text: "Allow “Local network access” for this site (the icon left of the address bar), then check again.",
+    text: "Click the icon left of the address bar → “Site settings”, set every local network setting to “Allow” (newer Chrome has one for this device and one for the local network), reload this page, then check again.",
   },
   "bridge-not-running": {
     icon: <PlugZap />,

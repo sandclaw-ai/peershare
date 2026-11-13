@@ -24,7 +24,23 @@ import { u } from "../lib/url.ts";
       <tr>
         <td>Your browser blocked local network access</td>
         <td>You (or a policy) said no to the browser's question</td>
-        <td>Allow "Local network access" in the site settings (left of the address bar)</td>
+        <td>
+          In the site settings (the icon left of the address bar, or
+          <code>chrome://settings/content/siteDetails?site=https%3A%2F%2Fpeershare.sandclaw.ai</code>)
+          set every local network setting to "Allow". Newer Chrome has two: one for this device
+          (the proxy) and one for your local network. Then reload the page.
+        </td>
+      </tr>
+      <tr>
+        <td>Your browser hasn't allowed local network access yet</td>
+        <td>
+          The browser's question is still open: it was dismissed, or never shown because nothing
+          answered
+        </td>
+        <td>
+          Check that the proxy (or service) is running, test again, and choose "Allow" when asked;
+          if nothing asks, allow it in the site settings as above
+        </td>
       </tr>
       <tr>
         <td>Unreachable, on a local service</td>

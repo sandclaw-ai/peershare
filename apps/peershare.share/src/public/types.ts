@@ -19,8 +19,12 @@ export interface SharedService {
   isDefault: boolean;
   /** The last Probe, or `checking` while one runs. */
   health?: Health | "checking" | "disabled";
-  /** `permission-needed`: the browser refused this page the local network (Chromium's Local Network Access). */
-  cause?: ProbeCause | "permission-needed";
+  /**
+   * Chromium's Local Network Access, for the address the Probe reached:
+   * `permission-needed` it was refused; `permission-unanswered` the browser's
+   * question is still open (dismissed, or never asked because nothing answered).
+   */
+  cause?: ProbeCause | "permission-needed" | "permission-unanswered";
   warnings?: ProbeWarning[];
 }
 

@@ -35,6 +35,7 @@ import {
   type UpstreamKind,
   upstreamKindsSlot,
 } from "./extension-points.js";
+import { type AddressSpace, addressSpaceOf, localNetworkPermission } from "./local-network.js";
 import type { MeshInit } from "./mesh.js";
 import { type AppRuntime, all, type Feature } from "./suite.js";
 import type { LocalNetworkPermission, SharerStore } from "./types.js";
@@ -45,8 +46,8 @@ export interface PeerShareInit {
   bridge?: () => { base: string; token: string } | undefined;
   /** How to reach a mesh; without it PeerShare edits Services but cannot share them. */
   mesh?: MeshInit;
-  /** Reads the browser's Local Network Access permission; the default asks `navigator.permissions`. */
-  localNetworkPermission?: () => Promise<LocalNetworkPermission>;
+  /** Reads the browser's Local Network Access permission for a space; the default asks `navigator.permissions`. */
+  localNetworkPermission?: (space: AddressSpace) => Promise<LocalNetworkPermission>;
 }
 
 export function peershare(init: PeerShareInit): Feature {
@@ -62,11 +63,17 @@ export function peershare(init: PeerShareInit): Feature {
       // The managers report changes; the model turns them into snapshots for views.
       let changed: () => void = () => {};
       const notify = () => changed();
+      const permission = init.localNetworkPermission ?? localNetworkPermission;
       const sharer = new SharerManager(
         init.store,
         () => kinds,
         notify,
-        init.localNetworkPermission ?? localNetworkPermission,
+        async (service) => {
+          // What the Probe reached: the Bridge for a Bridged Service (nothing, unpaired), else the Service.
+          const reached =
+            service.kind === "direct" ? service.target : (init.bridge?.()?.base ?? undefined);
+          return reached == null ? "unsupported" : permission(addressSpaceOf(reached));
+        },
       );
       const sharing =
         init.mesh == null
@@ -242,17 +249,4 @@ export function handle<P, R>(
     stop();
     rt.handled.remove(decl.key);
   };
-}
-
-/**
- * Chromium's Local Network Access permission. Older builds and other browsers
- * do not know the name: `unsupported`, nothing to ask for.
- */
-export async function localNetworkPermission(): Promise<LocalNetworkPermission> {
-  try {
-    return (await navigator.permissions.query({ name: "local-network-access" as PermissionName }))
-      .state;
-  } catch {
-    return "unsupported";
-  }
 }

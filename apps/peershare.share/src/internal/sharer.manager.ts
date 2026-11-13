@@ -30,8 +30,10 @@ export class SharerManager {
     private readonly store: SharerStore,
     private readonly kinds: () => ReadonlyMap<string, UpstreamKind>,
     private readonly notify: () => void = () => {},
-    private readonly localNetworkPermission: () => Promise<LocalNetworkPermission> = async () =>
-      "unsupported",
+    /** The browser's Local Network Access permission for the address a Service's Probe reaches. */
+    private readonly permissionFor: (
+      service: SharedService,
+    ) => Promise<LocalNetworkPermission> = async () => "unsupported",
   ) {
     this.ready = store.load().then((saved) => {
       if (saved != null) this.state = saved;
@@ -60,20 +62,31 @@ export class SharerManager {
     const live = this.kinds().get(service.kind)?.socket != null;
     await this.update(id, {
       health: report.health,
-      cause: await this.causeOf(report),
+      cause: await this.causeOf(service, report),
       warnings: live ? report.warnings.filter((w) => w !== "ws-needed") : report.warnings,
     });
   }
 
   /**
    * Chromium's Local Network Access check fails a refused call exactly like a
-   * stopped Bridge: the proxy may even answer, but the page never sees it. Only
-   * the permission tells them apart. `denied` alone: `prompt` is also what a
-   * Sharer who never paired a Bridge has, and the Bridge is the problem then.
+   * stopped Bridge or Service: the proxy may even answer, but the page never
+   * sees it. Only the permission tells them apart. A failure that could be
+   * the browser's — the Bridge, or a Direct Service — is restated when the
+   * permission for the address it reached is refused or still unanswered.
    */
-  private async causeOf(report: ProbeReport): Promise<SharedService["cause"]> {
-    if (report.cause !== "bridge-down") return report.cause;
-    return (await this.localNetworkPermission()) === "denied" ? "permission-needed" : report.cause;
+  private async causeOf(
+    service: SharedService,
+    report: ProbeReport,
+  ): Promise<SharedService["cause"]> {
+    const browsersDoing =
+      report.cause === "bridge-down" ||
+      (service.kind === "direct" &&
+        (report.cause === "service-down" || report.cause === "cors-missing"));
+    if (!browsersDoing) return report.cause;
+    const permission = await this.permissionFor(service);
+    if (permission === "denied") return "permission-needed";
+    if (permission === "prompt") return "permission-unanswered";
+    return report.cause;
   }
 
   private async update(id: string, patch: Partial<SharedService>): Promise<void> {
