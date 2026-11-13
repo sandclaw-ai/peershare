@@ -1,0 +1,28 @@
+{
+  "name": "@statewalker/peershare.chrome-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SandClaw.ai PeerShare Proxy: a Chrome extension that lets the PeerShare page reach local services, instead of the proxy script.",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "zip": "node build.mjs --zip",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test:browser": "node build.mjs && vitest run --config vitest.browser.config.ts"
+  },
+  "dependencies": {
+    "@statewalker/httpeers-share": "catalog:",
+    "@statewalker/peershare.share": "workspace:^",
+    "@statewalker/webrun-http-proxy": "catalog:"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/node": "catalog:",
+    "playwright": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

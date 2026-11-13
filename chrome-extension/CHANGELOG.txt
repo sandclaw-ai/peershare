@@ -1,0 +1,14 @@
+SandClaw.ai PeerShare Proxy (Chrome extension) — changes
+=========================================================
+
+0.1.0 — 2026-11-13
+
+  First release: the PeerShare proxy's job, done by a browser extension
+  instead of a script.
+  - Relays the PeerShare page's requests to services on this computer and
+    private networks (localhost, 10/8, 172.16/12, 192.168/16, 100.64/10,
+    IPv6 unique-local); refuses everything else, and .local names.
+  - Answers only https://peershare.sandclaw.ai and pages on localhost and
+    127.0.0.1.
+  - HTTP only: no WebSockets, no per-guest cookie jars; redirects are
+    followed.

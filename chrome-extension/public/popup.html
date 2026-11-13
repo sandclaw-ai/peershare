@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SandClaw.ai PeerShare Proxy</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon-32.png" width="32" height="32" alt="" />
+      <div>
+        <p class="eyebrow">🦀 SandClaw.ai</p>
+        <h1>PeerShare Proxy <span id="version" class="version"></span></h1>
+      </div>
+    </header>
+
+    <p class="status"><span class="dot" aria-hidden="true"></span> Ready</p>
+    <p>
+      PeerShare uses this extension to reach services on this computer and your local network.
+      No proxy script needed.
+    </p>
+
+    <a class="button" href="https://peershare.sandclaw.ai/" target="_blank" rel="noreferrer"
+      >Open PeerShare</a
+    >
+
+    <p class="fine">
+      It answers only peershare.sandclaw.ai and pages on this computer, and reaches only this
+      computer and private networks, never the internet.
+      <a href="https://peershare.sandclaw.ai/help/local-proxy#extension" target="_blank" rel="noreferrer"
+        >How the extension stays safe</a
+      >
+    </p>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

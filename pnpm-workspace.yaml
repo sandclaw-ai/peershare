@@ -1,5 +1,6 @@
 packages:
   - "apps/*"
+  - "chrome-extension"
 
 catalog:
   "@changesets/cli": ^3.0.3
