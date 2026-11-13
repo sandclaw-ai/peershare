@@ -9,6 +9,7 @@ import {
   type AppRuntime,
   CloseSession,
   EditService,
+  GetDiagnostics,
   Invite,
   Join,
   ListSharedServices,
@@ -144,6 +145,7 @@ export function SharerScreen({ proxy }: SharerScreenProps = {}) {
         await call(Invite, undefined);
         setInviteOpen(true);
       }}
+      diagnostics={() => call(GetDiagnostics, undefined)}
       onAdd={(draft, kind) => void call(AddService, { ...draft, kind })}
       onEdit={(id, draft, kind) => void call(EditService, { id, draft: { ...draft, kind } })}
       onToggle={(id, enabled) => void call(ToggleService, { id, enabled })}
@@ -173,6 +175,8 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
   // an unreachable Sharer. The Guest's state stays "no-link" then, so without
   // this the page would show the Join button again and nothing else.
   const [refused, setRefused] = useState<GuestStage>();
+  // The refuser's own words for the last failed join (`GuestState.problem`).
+  const [problem, setProblem] = useState<string>();
   const [declined, setDeclined] = useState(false);
   const [closed, setClosed] = useState(false);
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
@@ -232,10 +236,13 @@ export function GuestScreen({ link, sharerName, frameFor }: GuestScreenProps) {
         stage={stage}
         connecting={guest.connecting}
         shareHref={shareHref}
+        problem={problem ?? guest.problem}
+        diagnostics={() => call(GetDiagnostics, undefined)}
         onJoin={async () => {
           setJoining(true);
           const answer = await call(Join, { link });
           setRefused(answer.stage === "joined" ? undefined : (answer.stage as GuestStage));
+          setProblem(answer.stage === "joined" ? undefined : answer.problem);
           setJoining(false);
         }}
         onDecline={() => setDeclined(true)}

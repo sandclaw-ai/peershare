@@ -21,7 +21,8 @@ import {
   openTunnel,
   type TunnelSocket,
 } from "@statewalker/httpeers-share";
-import type { GuestConnecting, GuestState } from "../public/commands.js";
+import type { GuestConnecting, GuestStage, GuestState } from "../public/commands.js";
+import { type DiagnosticsLog, describeError, noLog } from "../public/diagnostics.js";
 import type { GuestIdentity, MeshInit } from "../public/mesh.js";
 import { PEERSHARE_RULES } from "./rules.js";
 
@@ -51,6 +52,27 @@ function noLongerAMember(error: unknown): boolean {
   return error.reason === "not-a-member" || error.reason === "invitation-refused";
 }
 
+/**
+ * What a failed Join or Resume means, as precisely as the error says.
+ *
+ * The hub's own refusals arrive as `MemberJoinError("invitation-refused")`
+ * with its answer quoted in the message (`{"error":"invitation not-found"}`):
+ * used, expired and unknown Invites each get their own stage, and any other
+ * refusal is `join-failed` with the hub's words. Only an error that never got
+ * an answer from the hub (no reservation at the relay, a dial that failed)
+ * means the Sharer's computer is not answering.
+ */
+export function guestOutcome(error: unknown): { stage: GuestStage; problem: string } {
+  const problem = describeError(error);
+  if (error instanceof MemberJoinError) {
+    const stage = joinOutcome(error);
+    if (stage === "invite-used" || stage === "invite-expired") return { stage, problem };
+    if (/invitation not-found/.test(problem)) return { stage: "invite-unknown", problem };
+    return { stage: "join-failed", problem };
+  }
+  return { stage: "machine-offline", problem };
+}
+
 export class GuestManager {
   private member: MemberHandle | undefined;
   private state_: GuestState = { stage: "no-link" };
@@ -58,6 +80,7 @@ export class GuestManager {
   constructor(
     private readonly mesh: MeshInit,
     private readonly notify: () => void = () => {},
+    private readonly log: DiagnosticsLog = noLog,
   ) {}
 
   private get current(): GuestState {
@@ -95,6 +118,13 @@ export class GuestManager {
             sharerName: invite.sharerName,
             relayAddrs: invite.relayAddrs,
           };
+    this.log.info("join: invite opened", {
+      sharer: invite.sharerPeerId,
+      relays: invite.relayAddrs,
+      // Enough to tell invites apart in a log, not enough to use one.
+      invitation: `${invite.invitationId.slice(0, 6)}…`,
+      knownSharer: identity !== undefined && saved?.sharerPeerId === invite.sharerPeerId,
+    });
     return this.enter(identity, invite.invitationId, saved?.privateKey === identity.privateKey);
   }
 
@@ -102,6 +132,7 @@ export class GuestManager {
   async resume(): Promise<GuestState> {
     const identity = await this.mesh.guestStore.load();
     if (identity == null) return this.state();
+    this.log.info("resume: with the saved identity", { sharer: identity.sharerPeerId });
     return this.enter(identity, undefined, true);
   }
 
@@ -115,11 +146,26 @@ export class GuestManager {
     const url = new URL(request.url);
     const body =
       request.method === "GET" || request.method === "HEAD" ? null : await request.arrayBuffer();
-    return this.fetch(`/s/${serviceId}${url.pathname}${url.search}`, {
-      method: request.method,
-      headers: request.headers,
-      body,
-    });
+    const what = `${request.method} ${serviceId}${url.pathname}`;
+    try {
+      const res = await this.fetch(`/s/${serviceId}${url.pathname}${url.search}`, {
+        method: request.method,
+        headers: request.headers,
+        body,
+      });
+      // Only failures: a page load is dozens of requests.
+      if (res.status >= 500) {
+        const marker = res.headers.get("x-peershare-bridge") ?? res.headers.get("x-webrun-proxy");
+        this.log.warn(
+          "service: request failed",
+          `${what} → ${res.status}${marker ? ` (${marker})` : ""}`,
+        );
+      }
+      return res;
+    } catch (error) {
+      this.log.error("service: request failed", error, what);
+      throw error;
+    }
   }
 
   /** A live connection to a Service (M9): a WebSocket inside one request over the mesh. */
@@ -139,6 +185,7 @@ export class GuestManager {
   async closeSession(): Promise<GuestState> {
     // Tell the Sharer first, so it stops listing this Guest. An offline Sharer
     // cannot hear it; the Guest leaves anyway and Dirk can still Revoke.
+    this.log.info("session: closed by the Guest");
     await this.fetch("/session/leave", { method: "POST" }).catch(() => {});
     await this.leave();
     await this.mesh.guestStore.clear();
@@ -174,22 +221,32 @@ export class GuestManager {
     saved: boolean,
   ): Promise<GuestState> {
     await this.leave();
+    const started = Date.now();
     try {
       this.member = await this.start(identity.privateKey, identity, invitationId);
     } catch (error) {
       this.connecting(undefined);
       const who = { sharerName: identity.sharerName, sharerPeerId: identity.sharerPeerId };
+      const doing = invitationId != null ? "join" : "resume";
       // A saved key the hub no longer knows: revoked while this page was closed (or the
       // Sharer's hub was reset). Its link, if any, is spent. Say so, and forget the key.
       if (saved && noLongerAMember(error)) {
+        this.log.error(`${doing}: no longer a member`, error);
         await this.mesh.guestStore.clear();
         this.current = { stage: "revoked", ...who };
         return this.state();
       }
       // A refused Invite leaves the Guest where it was; an offline Sharer
       // keeps the identity, so the Guest can come back (rung 10).
-      return { stage: joinOutcome(error), ...who };
+      const outcome = guestOutcome(error);
+      this.log.error(
+        `${doing}: failed → ${outcome.stage}`,
+        error,
+        `after ${Date.now() - started} ms`,
+      );
+      return { ...outcome, ...who };
     }
+    this.log.info("joined", `in ${Date.now() - started} ms`);
     await this.mesh.guestStore.save(identity);
     this.current = {
       stage: "joined",
@@ -210,11 +267,15 @@ export class GuestManager {
       privateKey,
       // What the page shows while it waits: a direct connection that cannot come up
       // costs seconds before the relay takes over.
-      onState: (step) => this.connecting(STEP[step]),
+      onState: (step) => {
+        this.log.info("join: step", step);
+        this.connecting(STEP[step]);
+      },
       // The hub answers a heartbeat with 403 once this Guest is no longer a member: the
       // Sharer revoked it. That is the Guest's notice, within a heartbeat (5 s), even if
       // it makes no request of its own.
       onPresenceRefused: (refusal) => {
+        this.log.warn("presence: refused by the hub", refusal.kind);
         if (refusal.kind === "not-a-member") void this.revoked();
       },
       ...(invitationId != null ? { invitationId } : {}),
@@ -226,6 +287,7 @@ export class GuestManager {
     // Heartbeats keep coming while it leaves: act on the first refusal only.
     if (this.revoking || this.member == null) return;
     this.revoking = true;
+    this.log.warn("session: revoked by the Sharer");
     try {
       const { sharerName, sharerPeerId } = this.current;
       await this.mesh.guestStore.clear();
@@ -289,9 +351,14 @@ export class GuestManager {
     const res = await member.fetch(new Request(`http://local/peers/${sharer}${path}`, init));
     // Left (or left and came back) meanwhile: this answer says nothing about the stage now.
     if (generation !== this.generation || member !== this.member) return res;
-    if (await isSharerOffline(res)) this.current = { ...this.current, stage: "machine-offline" };
-    else if (this.current.stage === "machine-offline")
+    if (await isSharerOffline(res)) {
+      if (this.current.stage !== "machine-offline")
+        this.log.warn("sharer: stopped answering", `${path} → ${res.status}`);
+      this.current = { ...this.current, stage: "machine-offline" };
+    } else if (this.current.stage === "machine-offline") {
+      this.log.info("sharer: answering again");
       this.current = { ...this.current, stage: "joined" };
+    }
     return res;
   }
 }

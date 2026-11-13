@@ -6,14 +6,16 @@
  */
 
 import type { ExtensionRelay } from "@statewalker/peershare.share";
-import { createRuntime, peershare, StartSharing } from "@statewalker/peershare.share";
+import { createRuntime, StartSharing, sharedAcrossTabs } from "@statewalker/peershare.share";
 import { browserMesh, findExtension, idbSharerStore } from "@statewalker/peershare.share/browser";
 import { PeerShareProvider, ProxyCard, SharerScreen } from "@statewalker/peershare.share-react";
 import { useEffect, useRef, useState } from "react";
 import { type BridgeDiagnosis, diagnoseBridge } from "./bridge-diagnosis.js";
 import type { PeerShareConfig } from "./config.js";
+import { pageLog } from "./diagnostics.js";
 import {
   loadProxySettings,
+  KEY as PROXY_SETTINGS_KEY,
   proxySupported,
   type ProxySettings as Settings,
   saveProxySettings,
@@ -46,7 +48,13 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
 
   const [rt] = useState(() => {
     const runtime = createRuntime();
-    peershare({
+    const log = pageLog("hub", () => ({
+      proxy: current.current.url,
+      extension: extension.current?.version ?? "none",
+    }));
+    // One hub for all of this browser's PeerShare tabs: the others show it and act on it.
+    sharedAcrossTabs({
+      log,
       store: idbSharerStore(),
       extension: () => extension.current,
       // Read per request; the first request through the proxy checks it.
@@ -69,6 +77,15 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
       extension.current = found;
       setExtensionVersion(found?.version);
     });
+    // Settings saved in another tab: whichever tab runs the hub uses them from now on.
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== PROXY_SETTINGS_KEY) return;
+      const next = loadProxySettings(window);
+      current.current = next;
+      setSettings(next);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const save = (next: Settings) => {

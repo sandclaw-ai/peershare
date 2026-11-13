@@ -10,6 +10,7 @@ import {
   serviceTable,
 } from "@statewalker/httpeers-share";
 import type { Upstream } from "@statewalker/webrun-http-proxy";
+import { type DiagnosticsLog, noLog } from "../public/diagnostics.js";
 import type { UpstreamKind } from "../public/extension-points.js";
 import type {
   LocalNetworkPermission,
@@ -34,6 +35,7 @@ export class SharerManager {
     private readonly permissionFor: (
       service: SharedService,
     ) => Promise<LocalNetworkPermission> = async () => "unsupported",
+    private readonly log: DiagnosticsLog = noLog,
   ) {
     this.ready = store.load().then((saved) => {
       if (saved != null) this.state = saved;
@@ -51,18 +53,28 @@ export class SharerManager {
     const direct = service.kind === "direct" ? { direct: service.target } : {};
     const report = await probe(this.upstreamOf(service), direct).catch(
       // An Upstream that throws instead of answering: never left "checking".
-      (): ProbeReport => ({
-        health: "down",
-        cause: service.kind === "direct" ? "service-down" : "bridge-down",
-        warnings: [],
-        ms: 0,
-      }),
+      (error): ProbeReport => {
+        this.log.error("probe: threw", error, service.id);
+        return {
+          health: "down",
+          cause: service.kind === "direct" ? "service-down" : "bridge-down",
+          warnings: [],
+          ms: 0,
+        };
+      },
     );
     // A kind that carries live connections (M9) makes "ws-needed" moot.
     const live = this.kinds().get(service.kind)?.socket != null;
+    const cause = await this.causeOf(service, report);
+    this.log[report.health === "down" ? "warn" : "info"](
+      "probe",
+      `${service.id} (${service.kind} ${service.target}) → ${report.health}${
+        cause != null ? `, ${cause}` : ""
+      } in ${report.ms} ms`,
+    );
     await this.update(id, {
       health: report.health,
-      cause: await this.causeOf(service, report),
+      cause,
       warnings: live ? report.warnings.filter((w) => w !== "ws-needed") : report.warnings,
     });
   }

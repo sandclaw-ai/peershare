@@ -18,6 +18,7 @@ import { browserMesh, idbSharerStore } from "@statewalker/peershare.share/browse
 import { GuestScreen, PeerShareProvider } from "@statewalker/peershare.share-react";
 import { useEffect, useState } from "react";
 import type { PeerShareConfig } from "./config.js";
+import { pageLog } from "./diagnostics.js";
 import { listenForSockets, type SessionFrame, withSocketShim } from "./socket-channel.js";
 import { APP_SERVICE_KEY, openSession } from "./vendor/session-shell/client.js";
 
@@ -33,6 +34,7 @@ export function GuestApp({ config }: { config: PeerShareConfig }) {
   const [rt] = useState(() => {
     const runtime = createRuntime();
     peershare({
+      log: pageLog("guest"),
       store: idbSharerStore(),
       mesh: browserMesh({
         relayAddrs: config.relayAddrs,

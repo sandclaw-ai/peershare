@@ -20,6 +20,7 @@ import {
 } from "@statewalker/httpeers-libp2p";
 import { encodeInvite, revokeGuest, stampGuest } from "@statewalker/httpeers-share";
 import type { GuestRecord, SharingState } from "../public/commands.js";
+import { type DiagnosticsLog, noLog } from "../public/diagnostics.js";
 import type { MeshInit } from "../public/mesh.js";
 import { INVITE_TTL_MS, PEERSHARE_RULES } from "./rules.js";
 
@@ -50,6 +51,7 @@ export class SharingManager {
     private readonly mount: FetchHandler,
     private readonly sharerName: () => string,
     private readonly notify: () => void = () => {},
+    private readonly log: DiagnosticsLog = noLog,
   ) {}
 
   /** The last Invite made, for the Invite dialog. */
@@ -64,6 +66,16 @@ export class SharingManager {
 
   async start(): Promise<SharingState> {
     if (this.running != null) return this.state();
+    this.log.info("sharing: starting", { relays: this.mesh.relayAddrs });
+    try {
+      return await this.startNow();
+    } catch (error) {
+      this.log.error("sharing: could not start", error);
+      throw error;
+    }
+  }
+
+  private async startNow(): Promise<SharingState> {
     const { platform, relayAddrs, sharerKey, hubStorage } = this.mesh;
     let privateKey = await sharerKey.load();
     if (privateKey == null) {
@@ -74,8 +86,13 @@ export class SharingManager {
     let isMember: (id: string) => boolean = () => false;
     const node = await platform.createSharerNode({ privateKey, isMember: () => isMember });
     const peerId = node.peerId.toString();
-    for (const addr of relayAddrs) await dialRelay(node, addr);
+    this.log.info("sharing: hub peer", peerId);
+    for (const addr of relayAddrs) {
+      await dialRelay(node, addr);
+      this.log.info("relay: connected", addr);
+    }
     await waitForCircuitReservation(node);
+    this.log.info("relay: reservation held: Guests can reach this hub");
 
     const signer = signerOf(privateKey);
     const hub = await createHub({
@@ -106,7 +123,7 @@ export class SharingManager {
 
     const peer = await servePeer({
       node,
-      mounts: hub.mounts,
+      mounts: this.logged(hub),
       access: withAccess({
         issuer: peerId,
         rules: PEERSHARE_RULES,
@@ -120,6 +137,7 @@ export class SharingManager {
     });
 
     let seen = "";
+    let before = new Map<string, boolean>();
     const watch = setInterval(() => {
       // Who is a member, and who of them is online: either changing redraws the Guests list.
       const now = hub
@@ -129,19 +147,69 @@ export class SharingManager {
         .join(",");
       if (now !== seen) {
         seen = now;
+        const after = new Map(hub.meshView().members.map((m) => [m.peerId, m.online] as const));
+        for (const [id, online] of after) {
+          if (id === peerId) continue;
+          if (!before.has(id)) this.log.info("guest: joined", id);
+          else if (before.get(id) !== online)
+            this.log.info(online ? "guest: online" : "guest: away", id);
+        }
+        for (const id of before.keys())
+          if (!after.has(id) && id !== peerId) this.log.info("guest: no longer a member", id);
+        before = after;
         this.notify();
       }
     }, MEMBERS_WATCH_MS);
     this.running = { node, hub, peer, watch };
     this.peerId = peerId;
+    this.log.info("sharing: on", `pending invites: ${hub.invitations.pending().length}`);
     this.notify();
     return this.state();
+  }
+
+  /**
+   * The hub's mounts, with every Invite redemption logged: who joined, or
+   * which Invite was refused and why. The one answer a Guest's page cannot
+   * explain on its own ("invitation not-found": made by another hub).
+   */
+  private logged(hub: Hub): Hub["mounts"] {
+    return {
+      match: (path) => {
+        const handler = hub.mounts.match(path);
+        if (handler == null || path !== "/.well-known/invite") return handler;
+        return async (request) => {
+          const id = await request
+            .clone()
+            .json()
+            .then((b: { id?: unknown }) => String(b.id ?? ""))
+            .catch(() => "");
+          const response = await handler(request);
+          const who = String(lookupPeer(request) ?? "unknown peer");
+          const invitation = `${id.slice(0, 6)}…`;
+          if (response.ok) this.log.info("invite: redeemed", `${invitation} by ${who}`);
+          else {
+            const answer = await response
+              .clone()
+              .text()
+              .catch(() => "");
+            this.log.warn(
+              "invite: refused",
+              `${invitation} from ${who} → ${response.status} ${answer}; this hub has ${
+                hub.invitations.pending().length
+              } pending`,
+            );
+          }
+          return response;
+        };
+      },
+    };
   }
 
   async stop(): Promise<SharingState> {
     const running = this.running;
     this.running = undefined;
     if (running != null) {
+      this.log.info("sharing: off");
       clearInterval(running.watch);
       for (const step of [
         () => running.peer.stop(),
@@ -168,6 +236,10 @@ export class SharingManager {
       sharerName: this.sharerName(),
     });
     this.lastInvite = { url, expiresAt };
+    this.log.info(
+      "invite: created",
+      `${id.slice(0, 6)}…, valid until ${new Date(expiresAt).toISOString()}`,
+    );
     this.notify();
     return this.lastInvite;
   }
@@ -199,6 +271,7 @@ export class SharingManager {
   private end(peerId: string, status: "left" | "revoked"): void {
     const hub = this.required().hub;
     const member = hub.members.list().find((m) => m.peerId === peerId);
+    this.log.info(status === "revoked" ? "guest: revoked" : "guest: left", peerId);
     revokeGuest(hub, peerId);
     for (const end of this.open.get(peerId) ?? []) end();
     if (member != null) {

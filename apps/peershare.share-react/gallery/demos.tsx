@@ -238,6 +238,24 @@ export interface GuestDemoProps {
   revoked?: boolean;
 }
 
+/** What the hub (or the network) said, as a failed join shows it. */
+const PROBLEMS: Partial<Record<string, string>> = {
+  "machine-offline": "Error: NO_RESERVATION ← Error: the relay holds no reservation for this peer",
+  "invite-unknown":
+    'MemberJoinError: the hub would not accept that invitation ← Error: join: invitation redemption failed (403 ): {"error":"invitation not-found"}',
+  "join-failed":
+    'MemberJoinError: the hub would not accept that invitation ← Error: join: invitation redemption failed (403 ): {"error":"invitation revoked"}',
+};
+
+const DIAGNOSTICS = `PeerShare diagnostics
+taken: 2026-11-13T16:11:15.400Z
+page: guest
+
+2026-11-13T16:11:14.390Z INFO  join: invite opened: {"sharer":"12D3KooWMchj…","invitation":"39a37b…"}
+2026-11-13T16:11:14.622Z INFO  join: step: connecting-relay
+2026-11-13T16:11:15.341Z INFO  join: step: joining
+2026-11-13T16:11:15.352Z ERROR join: failed → invite-unknown: MemberJoinError: …`;
+
 export function GuestDemo(props: GuestDemoProps) {
   const [stage, setStage] = useState(props.stage ?? "invite");
   const [selected, setSelected] = useState((props.tabs ?? viewerTabs)[0]?.id ?? "");
@@ -247,6 +265,8 @@ export function GuestDemo(props: GuestDemoProps) {
         sharerName="Dirk"
         stage={stage}
         connecting={stage === "joining" ? "direct" : undefined}
+        problem={PROBLEMS[stage]}
+        diagnostics={async () => DIAGNOSTICS}
         onJoin={() => {
           setStage("joining");
           setTimeout(() => setStage(props.answer ?? "joined"), 1200);

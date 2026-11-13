@@ -2,6 +2,7 @@
  * PeerShare's component kit: presentational, controlled, shadcn/ui on Tailwind. Each scenario's
  * screen is a composition of these; `gallery/` shows them, scenario by scenario.
  */
+export * from "./diagnostics.js";
 export * from "./guest.js";
 export * from "./help-tip.js";
 export * from "./people.js";

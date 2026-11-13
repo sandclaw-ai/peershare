@@ -18,7 +18,7 @@ export interface ScenarioInit {
   screenshots?: string;
 }
 
-async function person(browser: Browser): Promise<{ tab: Page; errors: string[] }> {
+export async function person(browser: Browser): Promise<{ tab: Page; errors: string[] }> {
   const context = await browser.newContext({ ignoreHTTPSErrors: true });
   await context.grantPermissions(["local-network-access"]);
   const tab = await context.newPage();
@@ -27,7 +27,7 @@ async function person(browser: Browser): Promise<{ tab: Page; errors: string[] }
   return { tab, errors };
 }
 
-async function viewerFrame(tab: Page, sessionUrl: RegExp): Promise<Frame> {
+export async function viewerFrame(tab: Page, sessionUrl: RegExp): Promise<Frame> {
   for (let i = 0; i < 300; i++) {
     const frame = tab
       .frames()

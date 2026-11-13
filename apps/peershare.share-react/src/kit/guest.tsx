@@ -27,10 +27,12 @@ import {
   MonitorX,
   PauseCircle,
   RefreshCw,
+  ShieldAlert,
   Sparkles,
   WifiOff,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { DiagnosticsButton } from "./diagnostics.js";
 import { HelpTip } from "./help-tip.js";
 import { Alert, AlertDescription } from "./primitives.js";
 import {
@@ -51,6 +53,8 @@ export type GuestStage =
   | "invite-used"
   | "invite-expired"
   | "machine-offline"
+  | "invite-unknown"
+  | "join-failed"
   | "declined"
   | "closed";
 
@@ -64,6 +68,34 @@ export interface GuestLandingProps {
   shareHref?: string;
   /** While `joining`: what the join is doing now (`GuestState.connecting`). */
   connecting?: "relay" | "direct" | "joining";
+  /** Why the last join did not get in, in the words of whoever refused (`GuestState.problem`). */
+  problem?: string;
+  /** `GetDiagnostics`: shown as "Copy diagnostics" wherever a join did not get in. */
+  diagnostics?: () => Promise<string>;
+}
+
+/** What went wrong, in the refuser's own words, and the page's log to send to whoever helps. */
+function Details({
+  problem,
+  diagnostics,
+}: {
+  problem?: string;
+  diagnostics?: () => Promise<string>;
+}) {
+  if (problem == null && diagnostics == null) return null;
+  return (
+    <div className="grid justify-items-center gap-1">
+      {problem != null && (
+        <details className="w-full text-left">
+          <summary className="text-muted-foreground cursor-pointer text-xs">What happened</summary>
+          <p className="bg-muted mt-1 rounded-md p-2 font-mono text-[11px] break-words">
+            {problem}
+          </p>
+        </details>
+      )}
+      {diagnostics != null && <DiagnosticsButton load={diagnostics} />}
+    </div>
+  );
 }
 
 /** What a join is doing, in words: a direct connection can take seconds before the relay steps in. */
@@ -124,13 +156,17 @@ export function GuestLanding({
   onDecline,
   shareHref,
   connecting,
+  problem,
+  diagnostics,
 }: GuestLandingProps) {
   const name = sharerName || "Someone";
+  const details = <Details problem={problem} diagnostics={diagnostics} />;
   if (stage === "invite-used")
     return (
       <Centered shareHref={shareHref}>
         <Outcome icon={<Link2Off />} tone="warn" title="This invite was already used">
           <p>Each invite admits one person. Ask {name} for a new link.</p>
+          {details}
         </Outcome>
       </Centered>
     );
@@ -139,6 +175,23 @@ export function GuestLanding({
       <Centered shareHref={shareHref}>
         <Outcome icon={<Clock />} tone="warn" title="This invite has expired">
           <p>Invites work for 24 hours. Ask {name} for a new link.</p>
+          {details}
+        </Outcome>
+      </Centered>
+    );
+  if (stage === "invite-unknown")
+    return (
+      <Centered shareHref={shareHref}>
+        <Outcome
+          icon={<Link2Off />}
+          tone="warn"
+          title={`${name}'s PeerShare doesn't know this invite`}
+        >
+          <p>
+            {name}'s computer answered, but not with this invite: it was made before PeerShare was
+            reset there, or in a PeerShare that has since been closed. Ask {name} for a new link.
+          </p>
+          {details}
         </Outcome>
       </Centered>
     );
@@ -164,6 +217,7 @@ export function GuestLanding({
 
   const joining = stage === "joining";
   const offline = stage === "machine-offline";
+  const failed = stage === "join-failed";
   return (
     <Centered shareHref={shareHref}>
       <Card className="grid w-full max-w-sm gap-5 p-6">
@@ -184,6 +238,16 @@ export function GuestLanding({
             </AlertDescription>
           </Alert>
         )}
+        {failed && (
+          <Alert variant="warning">
+            <ShieldAlert />
+            <AlertDescription>
+              {name}'s computer answered, but did not let you in. Try again, or ask {name} for a new
+              link.
+            </AlertDescription>
+          </Alert>
+        )}
+        {(offline || failed) && details}
         <ul className="text-muted-foreground grid gap-2 text-sm">
           <li className="flex items-center gap-2.5">
             <Sparkles className="size-4 shrink-0" /> Nothing to install: it opens in this browser.
@@ -208,7 +272,7 @@ export function GuestLanding({
               <>
                 <Loader2 className="animate-spin" /> Waiting for {name}…
               </>
-            ) : offline ? (
+            ) : offline || failed ? (
               <>
                 <RefreshCw /> Try again
               </>

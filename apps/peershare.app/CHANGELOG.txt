@@ -1,0 +1,43 @@
+PeerShare (peershare.sandclaw.ai) — changes
+===========================================
+
+The site: the Sharer's page (the hub), the Guest's invite page, and the help.
+The proxy script and the browser extension have their own changelogs:
+proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt.
+
+2026-11-13 — One hub across tabs; diagnostics
+
+  Fixed
+  - PeerShare open in several tabs ran one hub per tab, all with the same
+    identity. A Guest could reach a tab that had not made their invite and
+    was turned away as if the Sharer's computer were not answering. Now one
+    tab runs the hub and every other tab shows it and acts on it: the same
+    services, sharing state, guests and invites everywhere. When that tab
+    closes, another takes over and shares again.
+  - Proxy settings saved in one tab are used by the tab that runs the hub.
+
+  Added
+  - Guests are told what actually went wrong: "Dirk's PeerShare doesn't
+    know this invite", "Dirk's computer did not let you in" with the hub's
+    own words, and "isn't answering" only when nothing answered. Every
+    failure shows "What happened".
+  - A diagnostics log on every page, always on and kept across reloads:
+    join steps, the hub's answers, invites made and redeemed or refused,
+    guests coming and going, probe results, every error with its causes.
+    "Copy diagnostics" on the hub page and on a Guest's failed join;
+    peershareDiagnostics() in the browser console.
+
+2026-11-13 — Browser extension; local network advice
+
+  Added
+  - The PeerShare browser extension as an alternative to the proxy script:
+    the page finds it and uses it, and the proxy card says "Browser
+    extension connected". Download and install steps on the proxy card and
+    in the help (/extension/peershare-proxy-extension.zip).
+  - Services blocked by the browser's local network access say so, with
+    the steps to allow it (every permission Chrome has for it is read).
+
+  Changed
+  - Safety tips use an "i" pill instead of "?".
+
+2026-11-12 — First release on peershare.sandclaw.ai

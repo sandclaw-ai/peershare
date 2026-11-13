@@ -20,6 +20,7 @@ import {
   type ServiceDraft,
   type UpstreamKind,
 } from "../views/model.js";
+import { DiagnosticsButton } from "./diagnostics.js";
 import { HelpTip } from "./help-tip.js";
 import { GuestsCard, InviteDialog, KeepTabOpen } from "./people.js";
 import { Alert, AlertDescription, AlertTitle, Badge } from "./primitives.js";
@@ -70,6 +71,8 @@ export interface SharerPageProps {
   onRemove?: (id: string) => void;
   /** `RevokeGuest`. */
   onRevoke?: (peerId: string) => void;
+  /** `GetDiagnostics`: "Copy diagnostics", for when something does not work. */
+  diagnostics?: () => Promise<string>;
   /** Story states: open the add dialog, or the edit dialog of a service. */
   dialog?: { mode: "add" } | { mode: "edit"; id: string };
   now?: Date;
@@ -182,6 +185,12 @@ export function SharerPage(props: SharerPageProps) {
             onRevoke={props.onRevoke}
           />
           <KeepTabOpen />
+          {props.diagnostics != null && (
+            <div className="text-muted-foreground grid gap-1 px-1 text-xs">
+              <p>Something not working? Send this with your question:</p>
+              <DiagnosticsButton load={props.diagnostics} className="-ml-2" />
+            </div>
+          )}
         </aside>
       </main>
 

@@ -10,6 +10,7 @@ import {
   AddService,
   CloseSession,
   EditService,
+  GetDiagnostics,
   GetGuest,
   GetSharer,
   GetSharing,
@@ -27,6 +28,7 @@ import {
   StopSharing,
   ToggleService,
 } from "./commands.js";
+import { createLog, type DiagnosticsLog } from "./diagnostics.js";
 import { type ExtensionRelay, viaExtension } from "./extension.js";
 import {
   guestFetchSlot,
@@ -52,6 +54,8 @@ export interface PeerShareInit {
   extension?: () => ExtensionRelay | undefined;
   /** How to reach a mesh; without it PeerShare edits Services but cannot share them. */
   mesh?: MeshInit;
+  /** Where the page's diagnostics go (`createLog`); a memory-only log by default. */
+  log?: DiagnosticsLog;
   /** Reads the browser's Local Network Access permission for a space; the default asks `navigator.permissions`. */
   localNetworkPermission?: (space: AddressSpace) => Promise<LocalNetworkPermission>;
 }
@@ -69,6 +73,7 @@ export function peershare(init: PeerShareInit): Feature {
       // The managers report changes; the model turns them into snapshots for views.
       let changed: () => void = () => {};
       const notify = () => changed();
+      const log = init.log ?? createLog();
       const permission = init.localNetworkPermission ?? localNetworkPermission;
       const sharer = new SharerManager(
         init.store,
@@ -82,6 +87,7 @@ export function peershare(init: PeerShareInit): Feature {
             service.kind === "direct" ? service.target : (init.bridge?.()?.base ?? undefined);
           return reached == null ? "unsupported" : permission(addressSpaceOf(reached));
         },
+        log,
       );
       const sharing =
         init.mesh == null
@@ -91,8 +97,9 @@ export function peershare(init: PeerShareInit): Feature {
               sharer.mount(),
               () => sharer.snapshot().name || "The Sharer",
               notify,
+              log,
             );
-      const guest = init.mesh == null ? undefined : new GuestManager(init.mesh, notify);
+      const guest = init.mesh == null ? undefined : new GuestManager(init.mesh, notify, log);
       const model = new Model(() => ({
         sharer: sharer.snapshot(),
         sharing: sharing?.state() ?? { sharing: false },
@@ -154,6 +161,7 @@ export function peershare(init: PeerShareInit): Feature {
           GetSharer,
           on(() => sharer.snapshot()),
         ),
+        handle(rt, GetDiagnostics, () => log.text()),
         ...(sharing == null ? [] : meshCommands(rt, sharer, sharing)),
         ...(guest == null ? [] : guestCommands(rt, guest)),
       );

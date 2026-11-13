@@ -59,6 +59,10 @@ export type GuestStage =
   | "invite-used"
   | "invite-expired"
   | "machine-offline"
+  /** The Sharer's hub was reached and does not know this Invite (made in another tab, or reset). */
+  | "invite-unknown"
+  /** The hub was reached and refused for another reason: `GuestState.problem` says which. */
+  | "join-failed"
   /** The Sharer revoked this Guest: told by the hub's answer to its heartbeat. */
   | "revoked";
 
@@ -79,6 +83,8 @@ export interface GuestState {
    * Guest's watch sees it: a view re-reads `ListSharedServices` when it does.
    */
   catalogVersion?: number;
+  /** Why the last Join or Resume did not get in, in the words of whoever refused (the hub, the relay). */
+  problem?: string;
 }
 
 export const Join = required<{ link: string }, GuestState>("peershare:join");
@@ -91,3 +97,6 @@ export const ListSharedServices = required<
 >("peershare:list-shared-services");
 /** Leave, and forget the Guest's identity: coming back needs a new Invite. */
 export const CloseSession = required<void, GuestState>("peershare:close-session");
+
+/** The page's diagnostics log as text (`DiagnosticsLog.text()`), for "Copy diagnostics". */
+export const GetDiagnostics = required<void, string>("peershare:get-diagnostics");

@@ -420,6 +420,21 @@ export const scenarios: Scenario[] = [
         render: () => <GuestDemo stage="machine-offline" />,
       },
       {
+        id: "g2-invite-unknown",
+        title: "Dirk's PeerShare doesn't know this invite",
+        caption:
+          "His computer answered, but not with this invite (made before a reset, or by a PeerShare since closed). What happened, and the log to send, a click away.",
+        device: "phone",
+        render: () => <GuestDemo stage="invite-unknown" />,
+      },
+      {
+        id: "g2-join-failed",
+        title: "Dirk's computer did not let you in",
+        caption: "Any other refusal, in the hub's own words.",
+        device: "phone",
+        render: () => <GuestDemo stage="join-failed" />,
+      },
+      {
         id: "g2-declined",
         title: "Declined",
         caption: "Nothing was stored.",

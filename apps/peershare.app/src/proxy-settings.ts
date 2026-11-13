@@ -15,7 +15,8 @@ export interface ProxySettings {
 
 export const DEFAULT_PROXY: ProxySettings = { url: "http://127.0.0.1:9090", key: "" };
 
-const KEY = "peershare:proxy";
+/** Where the proxy settings live: the tabs of one browser share them. */
+export const KEY = "peershare:proxy";
 
 interface Page {
   localStorage: Pick<Storage, "getItem" | "setItem">;
