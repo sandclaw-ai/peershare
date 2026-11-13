@@ -1,11 +1,12 @@
 /**
- * `buildProxy(outDir, site)`: writes the proxy's two files into `outDir`.
+ * `buildProxy(outDir, site)`: writes the proxy's files into `outDir`.
  *
  *   peershare-proxy.mjs   the proxy, one ESM file with every dependency inlined
  *                         (only `node:*` stays external), for Node, Bun and Deno
  *   peershare-proxy.sh    its launcher, pointed at `https://<site>`
+ *   CHANGELOG.txt         what changed in each proxy version
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { build } from "vite";
@@ -37,4 +38,5 @@ export async function buildProxy(outDir, site) {
     join(outDir, "peershare-proxy.sh"),
     readFileSync(join(app, "proxy/peershare-proxy.sh"), "utf8").replaceAll("@SITE@", site),
   );
+  copyFileSync(join(app, "proxy/CHANGELOG.txt"), join(outDir, "CHANGELOG.txt"));
 }

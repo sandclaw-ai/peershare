@@ -1,11 +1,13 @@
 /** The downloadable proxy: today's Bridge, behind a command line. */
 
 import { execFile } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
+import { gzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DEFAULT_ORIGINS, parseProxyArgs, startProxy } from "../proxy/proxy.ts";
+import { DEFAULT_ORIGINS, PROXY_VERSION, parseProxyArgs, startProxy } from "../proxy/proxy.ts";
 
 const TARGET = "x-peershare-target";
 const TOKEN = "x-peershare-bridge-token";
@@ -22,6 +24,13 @@ beforeAll(async () => {
   };
 });
 afterAll(() => app?.close());
+
+describe("PROXY_VERSION", () => {
+  it("is the newest release in CHANGELOG.txt", () => {
+    const changelog = readFileSync(resolve(import.meta.dirname, "../proxy/CHANGELOG.txt"), "utf8");
+    expect(changelog.match(/^(\d+\.\d+\.\d+) — /m)?.[1]).toBe(PROXY_VERSION);
+  });
+});
 
 describe("parseProxyArgs", () => {
   it("defaults to port 9090, no key, the hub and local pages", () => {
@@ -53,6 +62,33 @@ describe("parseProxyArgs", () => {
 });
 
 describe("startProxy", () => {
+  it("relays a gzip-compressing Service with a body the browser can read", async () => {
+    const page = "<!doctype html><p>compressed</p>";
+    const gz = createServer((_req, res) => {
+      res.writeHead(200, { "content-type": "text/html", "content-encoding": "gzip" });
+      res.end(gzipSync(page));
+    });
+    await new Promise<void>((r) => gz.listen(0, "127.0.0.1", r));
+    const address = gz.address();
+    if (address == null || typeof address === "string") throw new Error("no address");
+    const proxy = await startProxy({ ...parseProxyArgs([]), port: 0 });
+    try {
+      const res = await fetch(`${proxy.origin}/`, {
+        headers: {
+          origin: "http://localhost:8080",
+          [TARGET]: `http://127.0.0.1:${address.port}`,
+          "accept-encoding": "gzip",
+        },
+      });
+      expect(res.headers.get("content-encoding")).toBeNull();
+      // Before the fix: "gzip" on a decoded body, and this read throws.
+      expect(await res.text()).toBe(page);
+    } finally {
+      await proxy.close();
+      await new Promise((r) => gz.close(r));
+    }
+  });
+
   it("relays for a local page with the defaults, and refuses another website", async () => {
     const proxy = await startProxy({ ...parseProxyArgs([]), port: 0 });
     try {

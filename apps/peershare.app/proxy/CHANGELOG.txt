@@ -1,0 +1,22 @@
+PeerShare Proxy — changes
+=========================
+
+0.1.1 — 2026-11-13
+
+  Fixed
+  - Services that compress their responses (gzip, br, deflate) were relayed
+    with their Content-Encoding header but an already decoded body. Browsers
+    then failed to read every such page ("Failed to fetch"), and the
+    PeerShare hub showed the service as "checking" forever.
+
+  Changed
+  - Start-up output: the version, labels in one column, one allowed page
+    per line, and the key (only when --key is given).
+
+0.1.0 — 2026-11-12
+
+  First versioned release: the Bridge on 127.0.0.1 (default port 9090),
+  launched with
+    curl -fsSL https://peershare.sandclaw.ai/proxy/peershare-proxy.sh | sh
+  Options: --port, --key, --origin (repeatable), --no-cookie-jars.
+  Runs under Node, Bun or Deno.

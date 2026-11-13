@@ -37,6 +37,7 @@ import { webSockets } from "@libp2p/websockets";
 import { createBridge, listenLoopback } from "@statewalker/httpeers-share/bridge";
 import { createLibp2p } from "libp2p";
 import { WebSocketServer } from "ws";
+import { withDecodedBodies } from "../proxy/proxy.ts";
 
 const { values } = parseArgs({
   options: {
@@ -207,7 +208,9 @@ const sessions = await listenLocal(async (req, res) => {
 // --- the Bridge: a new Pairing token on every launch, never stored
 const token = randomBytes(32).toString("base64url");
 const bridge = await listenLoopback(
-  createBridge({ token, allowedOrigins: [pageOrigin], cookieJars: !values["no-cookie-jars"] }),
+  withDecodedBodies(
+    createBridge({ token, allowedOrigins: [pageOrigin], cookieJars: !values["no-cookie-jars"] }),
+  ),
   Number(values["bridge-port"]),
 );
 
