@@ -18,7 +18,7 @@ export interface HelpTipProps {
 }
 
 /**
- * A light "?" pill (an outline Badge) next to an element that matters for safety. It opens a
+ * A light "i" pill (an outline Badge) next to an element that matters for safety. It opens a
  * Popover with how that part is kept safe and a link to the help site.
  * - Hovering with a mouse opens it as a preview: focus stays where it was, and it closes when
  *   the pointer leaves.
@@ -78,7 +78,7 @@ export function HelpTip({ title, children, help, side = "bottom", className }: H
               }
             }}
           >
-            ?
+            i
           </button>
         </Badge>
       </PopoverTrigger>

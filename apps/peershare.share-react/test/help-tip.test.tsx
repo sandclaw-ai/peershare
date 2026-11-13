@@ -19,7 +19,7 @@ const shown = () => screen.queryByText("This link lets one person join, once.") 
 describe("HelpTip", () => {
   it("is a small ? pill that opens how this part is kept safe, with a link to the help", async () => {
     render(tip());
-    expect(pill().textContent).toBe("?");
+    expect(pill().textContent).toBe("i");
     await act(async () => fireEvent.click(pill()));
     expect(shown()).toBe(true);
     const more = screen.getByRole("link", { name: /Learn more about invites/ });
