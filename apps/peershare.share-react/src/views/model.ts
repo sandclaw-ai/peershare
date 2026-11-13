@@ -6,7 +6,7 @@ import { checkServiceTarget, type TargetRefusal } from "@statewalker/httpeers-sh
 
 export type UpstreamKind = "bridged" | "direct";
 export type Health = "ok" | "slow" | "down" | "disabled" | "checking";
-export type Warning = "ws-needed" | "cookies-set" | "cors-missing";
+export type Warning = "ws-needed" | "cookies-set" | "cors-missing" | "permission-needed";
 
 export interface Service {
   id: string;

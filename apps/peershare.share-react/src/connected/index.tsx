@@ -81,7 +81,7 @@ function useCall() {
 /** The logic's Service, as the screens draw it. */
 function toView(s: PeerShareSnapshot["sharer"]["services"][number]): Service {
   const warnings: Service["warnings"] = [...(s.warnings ?? [])];
-  if (s.cause === "cors-missing") warnings.push("cors-missing");
+  if (s.cause === "cors-missing" || s.cause === "permission-needed") warnings.push(s.cause);
   return {
     id: s.id,
     name: s.name,

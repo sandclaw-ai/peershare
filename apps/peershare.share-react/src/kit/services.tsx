@@ -27,6 +27,7 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  ShieldAlert,
   Star,
   Trash2,
   Unplug,
@@ -62,8 +63,9 @@ const PAGE_ORIGIN = "https://peershare.sandclaw.ai";
 
 function Advice({ service }: { service: Service }) {
   const notes: ReactNode[] = [];
-  // A missing CORS header also reads as "down": its own advice is the useful one.
-  if (service.health === "down" && !service.warnings.includes("cors-missing")) {
+  // A missing CORS header or a refused local network also reads as "down": its own advice is the useful one.
+  const explained = service.warnings.some((w) => w === "cors-missing" || w === "permission-needed");
+  if (service.health === "down" && !explained) {
     notes.push(
       <Alert key="down" variant="destructive">
         <Unplug />
@@ -101,6 +103,18 @@ function WarningNote({ warning }: { warning: Warning }) {
             Add <span className="text-foreground font-mono">{PAGE_ORIGIN}</span> to its CORS
             settings, or share it through the local proxy.
           </p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  if (warning === "permission-needed") {
+    return (
+      <Alert variant="warning">
+        <ShieldAlert />
+        <AlertTitle>Your browser blocked local network access</AlertTitle>
+        <AlertDescription>
+          The local proxy is reachable only once this site may use the local network. Allow “Local
+          network access” for this site (the icon left of the address bar), then test again.
         </AlertDescription>
       </Alert>
     );

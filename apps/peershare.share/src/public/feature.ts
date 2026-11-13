@@ -37,7 +37,7 @@ import {
 } from "./extension-points.js";
 import type { MeshInit } from "./mesh.js";
 import { type AppRuntime, all, type Feature } from "./suite.js";
-import type { SharerStore } from "./types.js";
+import type { LocalNetworkPermission, SharerStore } from "./types.js";
 
 export interface PeerShareInit {
   store: SharerStore;
@@ -45,6 +45,8 @@ export interface PeerShareInit {
   bridge?: () => { base: string; token: string } | undefined;
   /** How to reach a mesh; without it PeerShare edits Services but cannot share them. */
   mesh?: MeshInit;
+  /** Reads the browser's Local Network Access permission; the default asks `navigator.permissions`. */
+  localNetworkPermission?: () => Promise<LocalNetworkPermission>;
 }
 
 export function peershare(init: PeerShareInit): Feature {
@@ -60,7 +62,12 @@ export function peershare(init: PeerShareInit): Feature {
       // The managers report changes; the model turns them into snapshots for views.
       let changed: () => void = () => {};
       const notify = () => changed();
-      const sharer = new SharerManager(init.store, () => kinds, notify);
+      const sharer = new SharerManager(
+        init.store,
+        () => kinds,
+        notify,
+        init.localNetworkPermission ?? localNetworkPermission,
+      );
       const sharing =
         init.mesh == null
           ? undefined
@@ -235,4 +242,17 @@ export function handle<P, R>(
     stop();
     rt.handled.remove(decl.key);
   };
+}
+
+/**
+ * Chromium's Local Network Access permission. Older builds and other browsers
+ * do not know the name: `unsupported`, nothing to ask for.
+ */
+export async function localNetworkPermission(): Promise<LocalNetworkPermission> {
+  try {
+    return (await navigator.permissions.query({ name: "local-network-access" as PermissionName }))
+      .state;
+  } catch {
+    return "unsupported";
+  }
 }

@@ -19,9 +19,13 @@ export interface SharedService {
   isDefault: boolean;
   /** The last Probe, or `checking` while one runs. */
   health?: Health | "checking" | "disabled";
-  cause?: ProbeCause;
+  /** `permission-needed`: the browser refused this page the local network (Chromium's Local Network Access). */
+  cause?: ProbeCause | "permission-needed";
   warnings?: ProbeWarning[];
 }
+
+/** The browser's Local Network Access permission; `unsupported` where there is no such check. */
+export type LocalNetworkPermission = PermissionState | "unsupported";
 
 export interface SharerState {
   name: string;

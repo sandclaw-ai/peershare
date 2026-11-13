@@ -83,6 +83,42 @@ describe("M1 — Test again", () => {
   });
 });
 
+describe("M1 — Test again, with local network access refused", () => {
+  it("bridge-down reads as permission-needed when the browser denied the local network", async () => {
+    // The Bridge runs, but the browser keeps the page from it: Chromium fails that like a dead port.
+    const { call } = withPeerShare({
+      bridge: () => ({ base: "http://127.0.0.1:1", token: TOKEN }),
+      localNetworkPermission: async () => "denied",
+    });
+    await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
+
+    await call(ProbeService, { id: "dev" });
+    expect((await call(GetSharer, undefined)).services[0]).toMatchObject({
+      health: "down",
+      cause: "permission-needed",
+    });
+  });
+
+  it("stays bridge-down while the permission is only unasked: the Bridge is the problem then", async () => {
+    const { call } = withPeerShare({ localNetworkPermission: async () => "prompt" });
+    await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
+
+    await call(ProbeService, { id: "dev" });
+    expect((await call(GetSharer, undefined)).services[0]).toMatchObject({ cause: "bridge-down" });
+  });
+
+  it("a Service that answers is ok whatever the permission says", async () => {
+    const { call } = withPeerShare({
+      bridge: () => ({ base: bridge.origin, token: TOKEN }),
+      localNetworkPermission: async () => "denied",
+    });
+    await call(AddService, { name: "dev", kind: "bridged", target: app.origin });
+
+    await call(ProbeService, { id: "dev" });
+    expect((await call(GetSharer, undefined)).services[0]).toMatchObject({ health: "ok" });
+  });
+});
+
 describe("M1 — a new Service is tested at once", () => {
   it("add-service starts Test again in the background: Health is known without asking", async () => {
     const { call } = withPeerShare({ bridge: () => ({ base: bridge.origin, token: TOKEN }) });

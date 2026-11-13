@@ -3,10 +3,16 @@
  * mesh reads it through `mount()`; the store keeps it across reloads.
  */
 
-import { probe, type ServiceEntry, serviceTable } from "@statewalker/httpeers-share";
+import {
+  type ProbeReport,
+  probe,
+  type ServiceEntry,
+  serviceTable,
+} from "@statewalker/httpeers-share";
 import type { Upstream } from "@statewalker/webrun-http-proxy";
 import type { UpstreamKind } from "../public/extension-points.js";
 import type {
+  LocalNetworkPermission,
   Result,
   ServiceDraft,
   SharedService,
@@ -24,6 +30,8 @@ export class SharerManager {
     private readonly store: SharerStore,
     private readonly kinds: () => ReadonlyMap<string, UpstreamKind>,
     private readonly notify: () => void = () => {},
+    private readonly localNetworkPermission: () => Promise<LocalNetworkPermission> = async () =>
+      "unsupported",
   ) {
     this.ready = store.load().then((saved) => {
       if (saved != null) this.state = saved;
@@ -39,14 +47,33 @@ export class SharerManager {
       return this.update(id, { health: "disabled", cause: undefined, warnings: [] });
     await this.update(id, { health: "checking" });
     const direct = service.kind === "direct" ? { direct: service.target } : {};
-    const report = await probe(this.upstreamOf(service), direct);
+    const report = await probe(this.upstreamOf(service), direct).catch(
+      // An Upstream that throws instead of answering: never left "checking".
+      (): ProbeReport => ({
+        health: "down",
+        cause: service.kind === "direct" ? "service-down" : "bridge-down",
+        warnings: [],
+        ms: 0,
+      }),
+    );
     // A kind that carries live connections (M9) makes "ws-needed" moot.
     const live = this.kinds().get(service.kind)?.socket != null;
     await this.update(id, {
       health: report.health,
-      cause: report.cause,
+      cause: await this.causeOf(report),
       warnings: live ? report.warnings.filter((w) => w !== "ws-needed") : report.warnings,
     });
+  }
+
+  /**
+   * Chromium's Local Network Access check fails a refused call exactly like a
+   * stopped Bridge: the proxy may even answer, but the page never sees it. Only
+   * the permission tells them apart. `denied` alone: `prompt` is also what a
+   * Sharer who never paired a Bridge has, and the Bridge is the problem then.
+   */
+  private async causeOf(report: ProbeReport): Promise<SharedService["cause"]> {
+    if (report.cause !== "bridge-down") return report.cause;
+    return (await this.localNetworkPermission()) === "denied" ? "permission-needed" : report.cause;
   }
 
   private async update(id: string, patch: Partial<SharedService>): Promise<void> {
