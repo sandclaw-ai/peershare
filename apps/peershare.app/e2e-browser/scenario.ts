@@ -52,11 +52,11 @@ export async function dirkSharesClaudiaViews(init: ScenarioInit): Promise<void> 
   await dirk.tab.getByRole("button", { name: "Share service" }).click();
   await dirk.tab.getByRole("heading", { name: "fooService" }).waitFor();
   // Its Probe, through the proxy: the badge says it works.
-  await dirk.tab.getByText("Working").waitFor({ timeout: 30_000 });
+  await dirk.tab.getByText("Working", { exact: true }).waitFor({ timeout: 30_000 });
   // The service's menu: Test again runs the Probe again.
   await dirk.tab.getByRole("button", { name: "More for fooService" }).click();
   await dirk.tab.getByRole("menuitem", { name: "Test again" }).click();
-  await dirk.tab.getByText("Working").waitFor({ timeout: 30_000 });
+  await dirk.tab.getByText("Working", { exact: true }).waitFor({ timeout: 30_000 });
 
   // The header's Invite (the Guests card has one too).
   await dirk.tab.getByRole("button", { name: "Invite", exact: true }).first().click();
