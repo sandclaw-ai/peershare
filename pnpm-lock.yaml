@@ -43,26 +43,26 @@ catalogs:
       specifier: ^10.1.21
       version: 10.1.25
     '@statewalker/httpeers-access':
-      specifier: ^0.1.4
-      version: 0.1.4
+      specifier: ^0.1.5
+      version: 0.1.5
     '@statewalker/httpeers-core':
-      specifier: ^0.1.3
-      version: 0.1.3
-    '@statewalker/httpeers-hub':
       specifier: ^0.1.4
       version: 0.1.4
+    '@statewalker/httpeers-hub':
+      specifier: ^0.1.6
+      version: 0.1.6
     '@statewalker/httpeers-libp2p':
-      specifier: ^0.3.2
-      version: 0.3.2
+      specifier: ^0.7.0
+      version: 0.7.0
     '@statewalker/httpeers-member':
-      specifier: ^0.3.2
-      version: 0.3.2
+      specifier: ^0.7.0
+      version: 0.7.0
     '@statewalker/httpeers-qr':
       specifier: ^0.1.3
       version: 0.1.3
     '@statewalker/httpeers-share':
-      specifier: ^0.3.0
-      version: 0.3.0
+      specifier: ^0.7.0
+      version: 0.7.0
     '@statewalker/shared-commands':
       specifier: ^0.2.0
       version: 0.2.3
@@ -190,7 +190,7 @@ importers:
     dependencies:
       '@statewalker/httpeers-share':
         specifier: 'catalog:'
-        version: 0.3.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+        version: 0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/peershare.share':
         specifier: workspace:^
         version: link:../peershare.share
@@ -311,22 +311,22 @@ importers:
         version: 10.1.25
       '@statewalker/httpeers-access':
         specifier: 'catalog:'
-        version: 0.1.4
+        version: 0.1.5
       '@statewalker/httpeers-core':
         specifier: 'catalog:'
-        version: 0.1.3
+        version: 0.1.4
       '@statewalker/httpeers-hub':
         specifier: 'catalog:'
-        version: 0.1.4(@statewalker/webrun-files@0.10.2)
+        version: 0.1.6(@statewalker/webrun-files@0.10.2)
       '@statewalker/httpeers-libp2p':
         specifier: 'catalog:'
-        version: 0.3.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+        version: 0.7.0(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/httpeers-member':
         specifier: 'catalog:'
-        version: 0.3.2(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+        version: 0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/httpeers-share':
         specifier: 'catalog:'
-        version: 0.3.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+        version: 0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/shared-commands':
         specifier: 'catalog:'
         version: 0.2.3(@types/json-schema@7.0.15)(zod-to-json-schema@3.25.2(zod@4.6.7))(zod@4.6.7)
@@ -372,7 +372,7 @@ importers:
         version: 0.1.3
       '@statewalker/httpeers-share':
         specifier: 'catalog:'
-        version: 0.3.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+        version: 0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/peershare.share':
         specifier: workspace:^
         version: link:../peershare.share
@@ -439,7 +439,7 @@ importers:
     dependencies:
       '@statewalker/httpeers-share':
         specifier: 'catalog:'
-        version: 0.3.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+        version: 0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/peershare.share':
         specifier: workspace:^
         version: link:../apps/peershare.share
@@ -2338,28 +2338,28 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  '@statewalker/httpeers-access@0.1.4':
-    resolution: {integrity: sha512-7Gdp5ZfRwLEJftYtAkV3rEPyyAIAHEIjE2K0YmDRwthkBdt4ori62bMpng34zG2GtuZj6bHF5QX6R6vygfjccw==}
+  '@statewalker/httpeers-access@0.1.5':
+    resolution: {integrity: sha512-2bhBckKxGVFfxHVGkxHQcMJIg1VyBQdDa98y4gvLPMRY8bZjbzXZwyUvU5EUnAWjzWVnEdMYvPDEujR8SqnibA==}
 
-  '@statewalker/httpeers-bridge@0.2.1':
-    resolution: {integrity: sha512-VLqgj2l4JTU22hrjX+p5lQvhrORdpswt+6gYpUIFmmEw+L8IxFdvmaZuItn8dqUIOVLdvgTQFmrhscuWyN6i7A==}
+  '@statewalker/httpeers-bridge@0.4.0':
+    resolution: {integrity: sha512-loVPOS71zPqAnxvZ4LT5sxg/vVJLgSkdElJcQRPpNkmalfJdv8Oe1gsa3eQWiNBDAK/bzUQhM4JzwTOR2cc2Xw==}
 
-  '@statewalker/httpeers-core@0.1.3':
-    resolution: {integrity: sha512-C5M/KrTTvQQwW7v4RuyqEjwPTifEbmLO9evMFm1GbUh8zpJof6TXKM1uP65e13SMq93Qh3Lz2NlvHoxCgOfn/g==}
+  '@statewalker/httpeers-core@0.1.4':
+    resolution: {integrity: sha512-PsZBkw4nem/JECkbNuzJfroH4M+N1Ohgz3LpwCyAkJcBkUrwtp1H4L9RrfvFe7OHKGjsR+sjhxLTGfjcF5BISA==}
 
-  '@statewalker/httpeers-hub@0.1.4':
-    resolution: {integrity: sha512-mfNBdysO9v2UDEXeG1fGc/8JzZ66m4vNmfMGNtsK823kgLL5qH9p0tPdKg9sTOfbDltff+gJo11IlC0OxPlZGQ==}
+  '@statewalker/httpeers-hub@0.1.6':
+    resolution: {integrity: sha512-z/PRDe0n05NICN68Jxd8SuFQ2xR+ovJ2wTScMEMfCwl5+tR7oioK581w5EdjK+aTU/y40BcrQmpJqB7Qdl8jQw==}
     peerDependencies:
-      '@statewalker/webrun-files': ^0.9.0 || ^0.10.0
+      '@statewalker/webrun-files': ^0.9.0 || ^0.10.0 || ^0.12.0
     peerDependenciesMeta:
       '@statewalker/webrun-files':
         optional: true
 
-  '@statewalker/httpeers-libp2p@0.3.2':
-    resolution: {integrity: sha512-0GoehZaKWjo7CebHvvDwYXXAef5GB+PiAngYg4kb4JzYorA2RzYafmVNy/1OR6YdUcGd0z+oaTHWnlxJ7uHkaw==}
+  '@statewalker/httpeers-libp2p@0.7.0':
+    resolution: {integrity: sha512-TE81TEjTuUNoH6Olhwx3eXvgW4bUG+Qz2RnmBZBJbyiWB5V4VTTx/xTnyOjsRk1TAHcoIhscfKXqNCG1pDdqAw==}
 
-  '@statewalker/httpeers-member@0.3.2':
-    resolution: {integrity: sha512-E7qZf721L90BqZo+c4LwgS7EwI9dqOnYW3YNoz6d56hBxa/705UQKunelo96JYy6L3e9vyMxFq9u0HghzKC8oA==}
+  '@statewalker/httpeers-member@0.7.0':
+    resolution: {integrity: sha512-S7gwd2rbzGSFUbHAnBR12VVBtiVWppr+01CIZd6rARsJouh51leWPCeiew36X19BCrZd7s1QUm0Uegc7mtCXOw==}
     peerDependencies:
       '@chainsafe/libp2p-noise': ^17.0.0
       '@chainsafe/libp2p-yamux': ^8.0.1
@@ -2368,7 +2368,7 @@ packages:
       '@libp2p/tcp': ^11.0.28
       '@libp2p/webrtc': ^7.0.2
       '@libp2p/websockets': ^10.1.21
-      '@statewalker/webrun-http-browser': ^0.7.1
+      '@statewalker/webrun-http-browser': ^0.7.1 || ^0.13.0 || ^0.16.0 || ^0.17.1
       idb-keyval: ^6.3.0
       libp2p: ^3.5.1
     peerDependenciesMeta:
@@ -2401,8 +2401,8 @@ packages:
       html5-qrcode:
         optional: true
 
-  '@statewalker/httpeers-share@0.3.0':
-    resolution: {integrity: sha512-PtGUIUK8LF1xJM1ms78Lna09dXr8oWtMQ5/diUwGZjjUkezU2MBkgOCKJgPhyyArwO1jObX8zMRoyoFbJJi6Gg==}
+  '@statewalker/httpeers-share@0.7.0':
+    resolution: {integrity: sha512-hXvLBLZGWJw4S/gIcjqn2Dtk6y7Z2J3YncJ/elKcpuDOGlc94khBbDrEl9SuHENQXLrwx3GYGioHjxszOzaYCA==}
 
   '@statewalker/shared-adapters@0.1.2':
     resolution: {integrity: sha512-1PIsx05Jv+9GMM6MtzVsU2Kp4nh+hxNfN/hX4sJZgY/CUjzJPWzFlGZc/BH1suHvUz6hIfR9LGgTFSzHidAoJg==}
@@ -2455,17 +2455,20 @@ packages:
   '@statewalker/webrun-http-streams@0.3.0':
     resolution: {integrity: sha512-QuTbwbRhwhFtVaDP3q00RG9ReC3OLu/TSyhU2nlTAaF4HerUKrpLn6paUwL7DEYe42OWih0BPH4rVwEn6Yjbgw==}
 
-  '@statewalker/webrun-http-streams@0.3.2':
-    resolution: {integrity: sha512-hbpnb4TCHYTE8UoFbPE3BGjInPVGrRZzFdGazdfAHjABSDqJrvEzSr9WmqfI7tgp3ss+UnD3bEEBl9Za5mo37Q==}
+  '@statewalker/webrun-http-streams@0.8.2':
+    resolution: {integrity: sha512-bCEmDUSmXJmduNsn6eLj0Yv7HmfBNpNR3DUqA2Zndtd4Ct+WYVWlcxtblTQXH/eBRDoekRj8xyR1sJo5O3SRYw==}
+
+  '@statewalker/webrun-msgpack@0.14.2':
+    resolution: {integrity: sha512-5n5eRYVtEVK7L4Mm/xM5MkCUH4fbpOf0gVdirSGDXvl/YaI+UciglqcIlP1x9jtEd+a5HUW4RMaXddxtRsyjRg==}
+
+  '@statewalker/webrun-rpc@0.15.2':
+    resolution: {integrity: sha512-BfgZKmF5bdGpulZ1BSizM3R52m7Zq2iQR3/Iehc2wk37nqyGoeUmu76gbRaF9fBniADDnjqGSKekVISgKy/d4A==}
 
   '@statewalker/webrun-rpc@0.5.0':
     resolution: {integrity: sha512-giq6gU9eKDleyfi0f6XaVA0eIHFDdYIJYj2Pb9vPrOSEXtxF19qUTYRmFUR2lW1L6vWjknIHn7LxqQhAVdO9SQ==}
 
-  '@statewalker/webrun-rpc@0.5.1':
-    resolution: {integrity: sha512-DpnT0dJ0KpdL5QKqKTmN75CnGc1w24iHdZqYfJQLVpSKEIR/GjPb3Vzbzb4NIu9tCHsroW+Dq1CO84Jp6YCXzw==}
-
-  '@statewalker/webrun-streams-libp2p@0.1.7':
-    resolution: {integrity: sha512-CL4Pw/HjT3gy2suxN9XXvzhfujgFbGWI3au8QN7dPmuMxABoJqIjpoV5aAZCoxq82RIlifk+G1+A/Ox/7vv5mQ==}
+  '@statewalker/webrun-streams-libp2p@0.7.2':
+    resolution: {integrity: sha512-4Dhacc+DE6BLg6kVOu9BsHwl1UVqY9VdXf7ULkvPU9/IX88y2EDxL9dcA0fqeljbVmlJsbbPElz6XlNtISac6g==}
     peerDependencies:
       '@libp2p/interface': ^3.0.0
       '@multiformats/multiaddr': ^13.0.0
@@ -2477,8 +2480,8 @@ packages:
   '@statewalker/webrun-streams@0.2.2':
     resolution: {integrity: sha512-1MIkezOoKBh8M7lk7MORjzvN+qbG4UCJnaf3oSM26vqiFg0BLdUaGpVbH7hfrPiotBbAi7PlxUWFeej89RYNBg==}
 
-  '@statewalker/webrun-streams@0.2.3':
-    resolution: {integrity: sha512-v4+32VDLjt8HzAhjgd7K3bgiasQosU7FooXhLaTU2dQzYyNZ6NbNMOI/24SL0bdmTHkSU3bxktASn0hO3sCwng==}
+  '@statewalker/webrun-streams@0.6.2':
+    resolution: {integrity: sha512-MF3gqrjPi5wdgvgtWHd4IuTgjPr0vEU23Mugf4pL+nw3ufYFT58HgT8o86bPAyuvtM8KcDavyCE24iBhjqiMjg==}
 
   '@statewalker/workspace.core@0.5.1':
     resolution: {integrity: sha512-6XqPORDrxneXfladzGxjwc6RM6IQBPS5NxW0EPUhUBBVGKZzU3FzpBmU4Zqs8R4tjFxzq6DUKDl6rS96xr9HsA==}
@@ -6959,30 +6962,30 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  '@statewalker/httpeers-access@0.1.4':
+  '@statewalker/httpeers-access@0.1.5':
     dependencies:
-      '@statewalker/httpeers-core': 0.1.3
+      '@statewalker/httpeers-core': 0.1.4
       '@statewalker/webrun-biscuit': 0.2.3
       multiformats: 14.0.5
 
-  '@statewalker/httpeers-bridge@0.2.1':
+  '@statewalker/httpeers-bridge@0.4.0':
     dependencies:
-      '@statewalker/httpeers-core': 0.1.3
-      '@statewalker/webrun-http-streams': 0.3.2
-      '@statewalker/webrun-rpc': 0.5.1
-      '@statewalker/webrun-streams': 0.2.3
+      '@statewalker/httpeers-core': 0.1.4
+      '@statewalker/webrun-http-streams': 0.8.2
+      '@statewalker/webrun-rpc': 0.15.2
+      '@statewalker/webrun-streams': 0.6.2
 
-  '@statewalker/httpeers-core@0.1.3': {}
+  '@statewalker/httpeers-core@0.1.4': {}
 
-  '@statewalker/httpeers-hub@0.1.4(@statewalker/webrun-files@0.10.2)':
+  '@statewalker/httpeers-hub@0.1.6(@statewalker/webrun-files@0.10.2)':
     dependencies:
-      '@statewalker/httpeers-access': 0.1.4
-      '@statewalker/httpeers-core': 0.1.3
+      '@statewalker/httpeers-access': 0.1.5
+      '@statewalker/httpeers-core': 0.1.4
       hono: 4.13.13
     optionalDependencies:
       '@statewalker/webrun-files': 0.10.2
 
-  '@statewalker/httpeers-libp2p@0.3.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))':
+  '@statewalker/httpeers-libp2p@0.7.0(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@chainsafe/libp2p-noise': 17.0.0
       '@chainsafe/libp2p-yamux': 8.0.1
@@ -6996,26 +6999,29 @@ snapshots:
       '@libp2p/webrtc': 7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@libp2p/websockets': 10.1.25
       '@multiformats/multiaddr': 13.0.3
-      '@statewalker/httpeers-bridge': 0.2.1
-      '@statewalker/httpeers-core': 0.1.3
-      '@statewalker/webrun-http-streams': 0.3.2
-      '@statewalker/webrun-streams': 0.2.3
-      '@statewalker/webrun-streams-libp2p': 0.1.7(@libp2p/interface@3.4.0)(@multiformats/multiaddr@13.0.3)(libp2p@3.5.1)
+      '@statewalker/httpeers-bridge': 0.4.0
+      '@statewalker/httpeers-core': 0.1.4
+      '@statewalker/webrun-http-streams': 0.8.2
+      '@statewalker/webrun-msgpack': 0.14.2
+      '@statewalker/webrun-rpc': 0.15.2
+      '@statewalker/webrun-streams': 0.6.2
+      '@statewalker/webrun-streams-libp2p': 0.7.2(@libp2p/interface@3.4.0)(@multiformats/multiaddr@13.0.3)(libp2p@3.5.1)
       libp2p: 3.5.1
+      node-datachannel: 0.33.6
     transitivePeerDependencies:
       - bufferutil
       - react-native-webrtc
       - utf-8-validate
 
-  '@statewalker/httpeers-member@0.3.2(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))':
+  '@statewalker/httpeers-member@0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@libp2p/crypto': 5.2.0
       '@libp2p/interface': 3.4.0
       '@libp2p/peer-id': 6.0.18
       '@multiformats/multiaddr': 13.0.3
-      '@statewalker/httpeers-access': 0.1.4
-      '@statewalker/httpeers-core': 0.1.3
-      '@statewalker/httpeers-libp2p': 0.3.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+      '@statewalker/httpeers-access': 0.1.5
+      '@statewalker/httpeers-core': 0.1.4
+      '@statewalker/httpeers-libp2p': 0.7.0(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
     optionalDependencies:
       '@chainsafe/libp2p-noise': 17.0.0
       '@chainsafe/libp2p-yamux': 8.0.1
@@ -7037,12 +7043,12 @@ snapshots:
       jsqr: 1.4.0
       qrcode-generator: 2.0.4
 
-  '@statewalker/httpeers-share@0.3.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))':
+  '@statewalker/httpeers-share@0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-files@0.10.2)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))':
     dependencies:
       '@hono/node-server': 2.1.3(hono@4.13.13)
-      '@statewalker/httpeers-core': 0.1.3
-      '@statewalker/httpeers-hub': 0.1.4(@statewalker/webrun-files@0.10.2)
-      '@statewalker/httpeers-member': 0.3.2(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
+      '@statewalker/httpeers-core': 0.1.4
+      '@statewalker/httpeers-hub': 0.1.6(@statewalker/webrun-files@0.10.2)
+      '@statewalker/httpeers-member': 0.7.0(@chainsafe/libp2p-noise@17.0.0)(@chainsafe/libp2p-yamux@8.0.1)(@libp2p/circuit-relay-v2@4.2.17)(@libp2p/identify@4.1.18)(@libp2p/tcp@11.0.32)(@libp2p/webrtc@7.0.2(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0))))(@libp2p/websockets@10.1.25)(@statewalker/webrun-http-browser@0.7.0)(idb-keyval@6.3.0)(libp2p@3.5.1)(react-native-webrtc@124.0.8(react-native@0.88.1(@babel/core@7.29.7)(@types/react@19.3.0)(react@19.3.0)))
       '@statewalker/webrun-http-proxy': 0.2.3
       hono: 4.13.13
       ws: 8.22.0
@@ -7144,29 +7150,35 @@ snapshots:
     dependencies:
       '@statewalker/webrun-streams': 0.2.2
 
-  '@statewalker/webrun-http-streams@0.3.2':
+  '@statewalker/webrun-http-streams@0.8.2':
     dependencies:
-      '@statewalker/webrun-streams': 0.2.3
+      '@statewalker/webrun-streams': 0.6.2
+
+  '@statewalker/webrun-msgpack@0.14.2':
+    dependencies:
+      '@statewalker/webrun-rpc': 0.15.2
+
+  '@statewalker/webrun-rpc@0.15.2':
+    dependencies:
+      '@statewalker/webrun-streams': 0.6.2
 
   '@statewalker/webrun-rpc@0.5.0':
     dependencies:
       '@statewalker/webrun-streams': 0.2.2
 
-  '@statewalker/webrun-rpc@0.5.1':
-    dependencies:
-      '@statewalker/webrun-streams': 0.2.3
-
-  '@statewalker/webrun-streams-libp2p@0.1.7(@libp2p/interface@3.4.0)(@multiformats/multiaddr@13.0.3)(libp2p@3.5.1)':
+  '@statewalker/webrun-streams-libp2p@0.7.2(@libp2p/interface@3.4.0)(@multiformats/multiaddr@13.0.3)(libp2p@3.5.1)':
     dependencies:
       '@libp2p/interface': 3.4.0
       '@multiformats/multiaddr': 13.0.3
-      '@statewalker/webrun-streams': 0.2.3
+      '@statewalker/webrun-msgpack': 0.14.2
+      '@statewalker/webrun-rpc': 0.15.2
+      '@statewalker/webrun-streams': 0.6.2
     optionalDependencies:
       libp2p: 3.5.1
 
   '@statewalker/webrun-streams@0.2.2': {}
 
-  '@statewalker/webrun-streams@0.2.3': {}
+  '@statewalker/webrun-streams@0.6.2': {}
 
   '@statewalker/workspace.core@0.5.1(@types/json-schema@7.0.15)(zod-to-json-schema@3.25.2(zod@4.6.7))(zod@4.6.7)':
     dependencies:
