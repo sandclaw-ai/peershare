@@ -13,6 +13,8 @@ export type Warning =
   | "permission-needed"
   | "permission-unanswered"
   | "framing-refused"
+  /** Its page registers a ServiceWorker of its own: it cannot run in a Guest's session. */
+  | "service-worker"
   /** The browser extension refused the target: its "Allow any website" switch is off. */
   | "extension-refused";
 

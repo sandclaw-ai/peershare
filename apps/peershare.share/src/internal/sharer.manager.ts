@@ -4,7 +4,9 @@
  */
 
 import {
+  BRIDGE_GUEST_HEADER,
   BRIDGE_MARKER,
+  PROBE_GUEST,
   type ProbeReport,
   probe,
   type ServiceEntry,
@@ -22,6 +24,7 @@ import type {
   SharerState,
   SharerStore,
 } from "../public/types.js";
+import { registersServiceWorker } from "./service-worker.js";
 
 export class SharerManager {
   private state: SharerState = { name: "", services: [] };
@@ -57,11 +60,15 @@ export class SharerManager {
     let framingRefused = false;
     // A Bridge that refuses the target answers 403, which the Probe counts as an app that answers.
     let targetRefused = false;
+    // Its page, when it is one: does it register a ServiceWorker of its own?
+    let page: Promise<string> | undefined;
     const upstream = this.upstreamOf(service);
     const tapped: Upstream = async (request) => {
       const response = await upstream(request);
       framingRefused = refusesFraming(response.headers);
       targetRefused = response.headers.get(BRIDGE_MARKER) === "target-forbidden";
+      if ((response.headers.get("content-type") ?? "").includes("text/html"))
+        page = response.clone().text();
       return response;
     };
     const report = await probe(tapped, direct).catch(
@@ -83,6 +90,8 @@ export class SharerManager {
       );
       return this.update(id, { health: "down", cause: "extension-refused", warnings: [] });
     }
+    const ownWorker =
+      report.health !== "down" && page != null && (await this.registersWorker(upstream, page));
     // A kind that carries live connections (M9) makes "ws-needed" moot.
     const live = this.kinds().get(service.kind)?.socket != null;
     const cause = await this.causeOf(service, report);
@@ -103,8 +112,22 @@ export class SharerManager {
         ...(live ? report.warnings.filter((w) => w !== "ws-needed") : report.warnings),
         // Allowed by the Sharer, it is shown anyway: nothing to warn about.
         ...(framingRefused && service.allowFraming !== true ? ["framing-refused" as const] : []),
+        ...(ownWorker ? ["service-worker" as const] : []),
       ],
     });
+  }
+
+  /** The page's scripts, read as the Probe reads the page: through the Upstream Guests use. */
+  private async registersWorker(upstream: Upstream, page: Promise<string>): Promise<boolean> {
+    const html = await page.catch(() => "");
+    return registersServiceWorker(html, async (path) => {
+      const res = await upstream(
+        new Request(`http://probe.peershare${path}`, {
+          headers: { [BRIDGE_GUEST_HEADER]: PROBE_GUEST },
+        }),
+      );
+      return res.ok ? res.text() : undefined;
+    }).catch(() => false);
   }
 
   /**

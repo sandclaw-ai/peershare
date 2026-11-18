@@ -166,6 +166,21 @@ function WarningNote({ warning, kind }: { warning: Warning; kind: Service["kind"
       </Alert>
     );
   }
+  if (warning === "service-worker") {
+    return (
+      <Alert variant="warning">
+        <AlertTriangle />
+        <AlertTitle>It installs a service worker, which won't run for guests</AlertTitle>
+        <AlertDescription>
+          <p>
+            Its page registers a service worker (for offline use, caching or an in-browser demo).
+            Your guests' browsers can't install it through PeerShare, so whatever needs it fails for
+            them. The rest of the app works.
+          </p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
   if (warning === "framing-refused") {
     return (
       <Alert variant="warning">

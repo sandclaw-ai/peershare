@@ -6,6 +6,20 @@ The proxy script and the browser extension have their own changelogs:
 proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt. The version is
 package.json's; the page's diagnostics name it, with the git commit.
 
+0.5.1 — 2026-11-18 — Apps with their own service worker
+
+  Added
+  - "Test again" warns when a service's page registers a service worker of
+    its own (in its inline scripts or the first 8 scripts it loads from its
+    own site): guests' browsers can't install it through PeerShare, so
+    whatever needs it (offline use, an in-browser demo) fails for them.
+
+  Changed
+  - Session hosts serve the empty-session page to navigations only; any
+    other request they get (a script, a service worker's script, a fetch)
+    is a 404, so the browser's error says "404" instead of "unsupported
+    MIME type ('text/html')".
+
 0.5.0 — 2026-11-18 — Any URL, through the browser extension
 
   Added

@@ -35,8 +35,11 @@ export interface SharedService {
    * URL, its "Allow any website" switch is off.
    */
   cause?: ProbeCause | "permission-needed" | "permission-unanswered" | "extension-refused";
-  /** `framing-refused`: it forbids being framed, so Guests' browsers will not show it (see `allowFraming`). */
-  warnings?: (ProbeWarning | "framing-refused")[];
+  /**
+   * `framing-refused`: it forbids being framed, so Guests' browsers will not show it (see `allowFraming`).
+   * `service-worker`: its page registers a ServiceWorker of its own, which cannot run for Guests.
+   */
+  warnings?: (ProbeWarning | "framing-refused" | "service-worker")[];
 }
 
 /** The browser's Local Network Access permission; `unsupported` where there is no such check. */
