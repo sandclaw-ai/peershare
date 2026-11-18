@@ -43,6 +43,19 @@ server {
     }
 }
 
+# What may get the empty-session page: navigations. A request the session's worker should have
+# answered but that reached the network anyway -- above all a shared app's own
+# `serviceWorker.register()`, whose script fetch skips every worker -- gets a 404, not that page
+# as 200 text/html, which browsers report as a puzzling "unsupported MIME type". No
+# Sec-Fetch-Dest at all (curl, older browsers) is treated as a navigation, as before.
+map $http_sec_fetch_dest $session_page_allowed {
+    default 0;
+    "" 1;
+    document 1;
+    iframe 1;
+    frame 1;
+}
+
 # The session zone: every <name>.SESSION_ZONE serves the same shell; the name only makes an
 # origin. Only pages on PARENT_ZONE or one label under it may frame a session (the worker
 # stamps the same list on the responses it makes itself: session-shell/policy.ts).
@@ -68,10 +81,13 @@ server {
         try_files $uri =404;
     }
     # With a session connected, the worker answers everything else; without one, the network
-    # shows the empty-session page.
+    # shows the empty-session page -- to navigations only (see the map above).
     location / {
         add_header Content-Security-Policy $frame_ancestors always;
         add_header Cache-Control "no-cache" always;
+        if ($session_page_allowed = 0) {
+            return 404;
+        }
         try_files /index.html =404;
     }
 }
