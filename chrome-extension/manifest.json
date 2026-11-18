@@ -30,5 +30,6 @@
       "run_at": "document_start"
     }
   ],
+  "permissions": ["storage"],
   "host_permissions": ["http://*/*", "https://*/*"]
 }

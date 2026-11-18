@@ -208,6 +208,7 @@ export function SharerPage(props: SharerPageProps) {
                 target: editing.target,
                 isDefault: editing.isDefault,
                 allowFraming: editing.allowFraming === true,
+                anyUrl: editing.kind === "anywhere",
               }
             : undefined
         }

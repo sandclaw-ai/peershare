@@ -85,13 +85,14 @@ function toView(s: PeerShareSnapshot["sharer"]["services"][number]): Service {
   if (
     s.cause === "cors-missing" ||
     s.cause === "permission-needed" ||
-    s.cause === "permission-unanswered"
+    s.cause === "permission-unanswered" ||
+    s.cause === "extension-refused"
   )
     warnings.push(s.cause);
   return {
     id: s.id,
     name: s.name,
-    kind: s.kind === "direct" ? "direct" : "bridged",
+    kind: s.kind === "direct" || s.kind === "anywhere" ? s.kind : "bridged",
     target: s.target,
     enabled: s.enabled,
     isDefault: s.isDefault,

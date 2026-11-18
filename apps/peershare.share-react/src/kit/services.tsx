@@ -26,6 +26,7 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
+  Puzzle,
   RefreshCw,
   ShieldAlert,
   Star,
@@ -66,7 +67,11 @@ function Advice({ service }: { service: Service }) {
   const notes: ReactNode[] = [];
   // A missing CORS header or a refused local network also reads as "down": its own advice is the useful one.
   const explained = service.warnings.some(
-    (w) => w === "cors-missing" || w === "permission-needed" || w === "permission-unanswered",
+    (w) =>
+      w === "cors-missing" ||
+      w === "permission-needed" ||
+      w === "permission-unanswered" ||
+      w === "extension-refused",
   );
   if (service.health === "down" && !explained) {
     notes.push(
@@ -76,7 +81,9 @@ function Advice({ service }: { service: Service }) {
         <AlertDescription>
           {service.kind === "bridged"
             ? "Check that it is running, and that the local proxy is running and connected, then test again."
-            : "Check the address and that the service is online, then test again."}
+            : service.kind === "anywhere"
+              ? "Check the address, and that the PeerShare browser extension is installed and on, then test again."
+              : "Check the address and that the service is online, then test again."}
         </AlertDescription>
       </Alert>,
     );
@@ -140,6 +147,21 @@ function WarningNote({ warning, kind }: { warning: Warning; kind: Service["kind"
             </li>
           </ol>
           <PermissionSteps kind={kind} />
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  if (warning === "extension-refused") {
+    return (
+      <Alert variant="warning">
+        <Puzzle />
+        <AlertTitle>The browser extension won't reach it</AlertTitle>
+        <AlertDescription>
+          <p>
+            The PeerShare extension reaches only this computer and your local network until you
+            allow more. Click its icon in the toolbar, open “Advanced” and turn on “Allow any
+            website”, then test again.
+          </p>
         </AlertDescription>
       </Alert>
     );
@@ -328,6 +350,10 @@ const kindLine: Record<UpstreamKind, { icon: ReactNode; text: string }> = {
     icon: <Globe />,
     text: "A remote service: reached directly, so it must allow calls from PeerShare.",
   },
+  anywhere: {
+    icon: <Puzzle />,
+    text: "Any website: reached through the browser extension, without CORS.",
+  },
 };
 
 export interface ServiceFormProps {
@@ -471,6 +497,28 @@ export function ServiceForm({
           checked={onlyOne || draft.isDefault}
           disabled={onlyOne}
           onCheckedChange={(on) => setDraft({ ...draft, isDefault: on })}
+        />
+      </Label>
+      <Label
+        className={cn(
+          "flex items-center justify-between gap-3 rounded-lg border p-3 font-normal",
+          draft.anyUrl === true && "border-warning/50 bg-warning/5",
+        )}
+      >
+        <span className="grid gap-1.5">
+          <Badge className="bg-destructive w-fit text-white">ADVANCED</Badge>
+          <span className="text-sm font-medium">Any URL, through the browser extension</span>
+          <span className="text-muted-foreground text-xs">
+            Shares any web address, also a public website that doesn't allow calls from PeerShare.
+            Your browser extension fetches it for your guests, from your computer and your internet
+            connection, but without your cookies or logins. Works only with the PeerShare browser
+            extension, and only after you turn on “Allow any website” in its popup. No live
+            connections (WebSockets).
+          </span>
+        </span>
+        <Switch
+          checked={draft.anyUrl === true}
+          onCheckedChange={(on) => setDraft({ ...draft, anyUrl: on })}
         />
       </Label>
       <Label

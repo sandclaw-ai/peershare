@@ -59,6 +59,28 @@ describe("validateDraft — which way a Service is reached", () => {
   });
 });
 
+describe("validateDraft — any URL, through the browser extension", () => {
+  it.each([
+    "https://docs.example.com",
+    "http://docs.example.com",
+    "http://8.8.8.8",
+    "http://localhost:5173",
+  ])("%s → through the extension, when the Sharer asks for it", (target) => {
+    expect(validateDraft({ ...draft(target), anyUrl: true }, existing)).toEqual({
+      ok: true,
+      kind: "anywhere",
+      target,
+    });
+  });
+
+  it("still needs http(s)", () => {
+    expect(validateDraft({ ...draft("ftp://files.example.com"), anyUrl: true }, existing)).toEqual({
+      ok: false,
+      errors: { target: "Start the address with http:// or https://." },
+    });
+  });
+});
+
 describe("validateDraft — the name", () => {
   it("needs one", () => {
     expect(validateDraft(draft("http://localhost:1", "  "), existing)).toEqual({

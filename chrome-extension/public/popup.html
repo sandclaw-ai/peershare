@@ -24,7 +24,24 @@
       >Open PeerShare</a
     >
 
-    <p class="fine">
+    <details class="advanced" id="advanced">
+      <summary>Advanced</summary>
+      <label class="option" id="any-website-option">
+        <input type="checkbox" id="any-website" />
+        <span>
+          <strong>Allow any website</strong> <span class="risky">RISKY</span>
+          <span class="hint">
+            Also reach websites on the internet, for services in PeerShare set to “Any URL, through
+            the browser extension”. Guests then load those sites from your browser and your
+            internet connection, without your cookies or logins. While this is on, PeerShare and
+            pages served from this computer can read any public website through this extension,
+            even sites that don't allow it (CORS).
+          </span>
+        </span>
+      </label>
+    </details>
+
+    <p class="fine" id="reach">
       It answers only peershare.sandclaw.ai and pages on this computer, and reaches only this
       computer and private networks, never the internet.
       <a href="https://peershare.sandclaw.ai/help/local-proxy#extension" target="_blank" rel="noreferrer"

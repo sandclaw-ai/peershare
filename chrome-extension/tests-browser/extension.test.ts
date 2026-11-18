@@ -35,6 +35,12 @@ beforeAll(async () => {
     res.end("<!doctype html><title>page</title>");
   });
   service = await serve((req, res) => {
+    if (req.method === "POST") {
+      const chunks: Buffer[] = [];
+      req.on("data", (c) => chunks.push(c));
+      req.on("end", () => res.end(`posted ${Buffer.concat(chunks)}`));
+      return;
+    }
     res.writeHead(200, { "content-type": "text/plain", "content-encoding": "gzip" });
     res.end(gzipSync(`service at ${req.url}`));
   });
@@ -52,11 +58,15 @@ afterAll(async () => {
 });
 
 /** The page's side of the protocol, by hand (`findExtension` does the same). */
-async function askThroughExtension(path: string, target: string | null) {
+async function askThroughExtension(
+  path: string,
+  target: string | null,
+  send: { method: string; body?: string } = { method: "GET" },
+) {
   const tab = await context.newPage();
   await tab.goto(page);
   return tab.evaluate(
-    async ({ path, target }) => {
+    async ({ path, target, send }) => {
       const channel = "sandclaw-peershare-proxy";
       const port = await new Promise<{ port: MessagePort; version: string }>((resolve, reject) => {
         const id = crypto.randomUUID();
@@ -79,7 +89,11 @@ async function askThroughExtension(path: string, target: string | null) {
         error?: string;
       }>((resolve) => {
         port.port.onmessage = (e) => resolve(e.data);
-        port.port.postMessage({ id: 0, request: { method: "GET", path, headers } });
+        const body = send.body == null ? undefined : new TextEncoder().encode(send.body).buffer;
+        port.port.postMessage(
+          { id: 0, request: { method: send.method, path, headers, body } },
+          body == null ? [] : [body],
+        );
       });
       if (answer.response == null) return { error: answer.error, version: port.version };
       return {
@@ -89,7 +103,7 @@ async function askThroughExtension(path: string, target: string | null) {
         text: new TextDecoder().decode(answer.response.body),
       };
     },
-    { path, target },
+    { path, target, send },
   );
 }
 
@@ -111,6 +125,15 @@ describe("the extension in Chromium", () => {
     expect(answer).toMatchObject({ status: 200, text: "service at /hello?x=1" });
     expect(answer.headers?.["x-peershare-bridge"]).toBe("relayed");
     expect(answer.headers?.["content-encoding"]).toBeUndefined();
+  });
+
+  // Chromium streams a request body only over HTTP/2 or later; a local Service speaks HTTP/1.1.
+  it("relays a POST with its body to an HTTP/1.1 Service", async () => {
+    const answer = await askThroughExtension("/action/click", service, {
+      method: "POST",
+      body: '{"id":"r"}',
+    });
+    expect(answer).toMatchObject({ status: 200, text: 'posted {"id":"r"}' });
   });
 
   it("refuses a public target", async () => {

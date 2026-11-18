@@ -31,8 +31,10 @@ export interface SharedService {
    * Chromium's Local Network Access, for the address the Probe reached:
    * `permission-needed` it was refused; `permission-unanswered` the browser's
    * question is still open (dismissed, or never asked because nothing answered).
+   * `extension-refused`: the browser extension refused the target: for a public
+   * URL, its "Allow any website" switch is off.
    */
-  cause?: ProbeCause | "permission-needed" | "permission-unanswered";
+  cause?: ProbeCause | "permission-needed" | "permission-unanswered" | "extension-refused";
   /** `framing-refused`: it forbids being framed, so Guests' browsers will not show it (see `allowFraming`). */
   warnings?: (ProbeWarning | "framing-refused")[];
 }

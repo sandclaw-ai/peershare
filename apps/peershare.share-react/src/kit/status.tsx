@@ -1,7 +1,7 @@
 /** Small status pieces every PeerShare screen shares: health, kind, presence, the brand mark. */
 
 import { Avatar, AvatarFallback, Button, cn } from "@statewalker/ui.view.shadcn";
-import { CircleHelp, CircleOff, Globe, Laptop, Loader2, Share2 } from "lucide-react";
+import { CircleHelp, CircleOff, Globe, Laptop, Loader2, Puzzle, Share2 } from "lucide-react";
 import type { Health, UpstreamKind } from "../views/model.js";
 import { HELP_URL } from "./help-tip.js";
 import { Badge } from "./primitives.js";
@@ -41,6 +41,12 @@ export function HealthBadge({ value }: { value: Health }) {
 }
 
 export function KindBadge({ kind }: { kind: UpstreamKind }) {
+  if (kind === "anywhere")
+    return (
+      <Badge variant="outline" title="Any website, reached through the browser extension">
+        <Puzzle /> Extension
+      </Badge>
+    );
   return kind === "bridged" ? (
     <Badge
       variant="outline"

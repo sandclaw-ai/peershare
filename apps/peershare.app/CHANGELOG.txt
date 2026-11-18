@@ -6,6 +6,17 @@ The proxy script and the browser extension have their own changelogs:
 proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt. The version is
 package.json's; the page's diagnostics name it, with the git commit.
 
+0.5.0 — 2026-11-18 — Any URL, through the browser extension
+
+  Added
+  - An advanced, per-service switch, off by default: "Any URL, through the
+    browser extension". It shares any http(s) address, public websites
+    that don't allow calls from PeerShare (CORS) included, relayed by the
+    browser extension 0.2.0 or later without the Sharer's cookies. The
+    extension must allow it as well ("Allow any website" in its popup);
+    until then the service card says so. HTTP only, no WebSockets.
+    Such services carry an "Extension" badge.
+
 0.4.0 — 2026-11-13 — Versions in the diagnostics; apps that forbid embedding
 
   Added

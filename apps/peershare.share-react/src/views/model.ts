@@ -4,7 +4,7 @@ import { checkServiceTarget, type TargetRefusal } from "@statewalker/httpeers-sh
  * Words as in `apps/peershare-protos/GLOSSARY.md`.
  */
 
-export type UpstreamKind = "bridged" | "direct";
+export type UpstreamKind = "bridged" | "direct" | "anywhere";
 export type Health = "ok" | "slow" | "down" | "disabled" | "checking";
 export type Warning =
   | "ws-needed"
@@ -12,7 +12,9 @@ export type Warning =
   | "cors-missing"
   | "permission-needed"
   | "permission-unanswered"
-  | "framing-refused";
+  | "framing-refused"
+  /** The browser extension refused the target: its "Allow any website" switch is off. */
+  | "extension-refused";
 
 export interface Service {
   id: string;
@@ -74,6 +76,11 @@ export interface ServiceDraft {
   isDefault: boolean;
   /** Show it to guests although it forbids being framed (off by default: see the help's security#framing). */
   allowFraming?: boolean;
+  /**
+   * Any http(s) URL, public sites included, relayed by the browser extension (kind
+   * `anywhere`). Off by default; the extension must allow it too, in its popup.
+   */
+  anyUrl?: boolean;
 }
 
 export type DraftCheck =
@@ -110,6 +117,8 @@ export function validateDraft(
 
   const host = new URL(target).hostname.replace(/^\[|\]$/g, "").toLowerCase();
   if (host === "0.0.0.0") return refuse("Use localhost or the machine's own address, not 0.0.0.0.");
+  // Chosen by the Sharer: any http(s) address, through the extension.
+  if (draft.anyUrl === true) return { ok: true, kind: "anywhere", target };
   // The rule itself is httpeers-share's (decision 4.1), the one the logic applies.
   if (checkServiceTarget("bridged", target).ok) return { ok: true, kind: "bridged", target };
   const direct = checkServiceTarget("direct", target);

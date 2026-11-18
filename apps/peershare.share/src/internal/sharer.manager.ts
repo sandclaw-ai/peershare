@@ -4,6 +4,7 @@
  */
 
 import {
+  BRIDGE_MARKER,
   type ProbeReport,
   probe,
   type ServiceEntry,
@@ -54,10 +55,13 @@ export class SharerManager {
     const direct = service.kind === "direct" ? { direct: service.target } : {};
     // The Service's own answer, as it comes: does it forbid being framed?
     let framingRefused = false;
+    // A Bridge that refuses the target answers 403, which the Probe counts as an app that answers.
+    let targetRefused = false;
     const upstream = this.upstreamOf(service);
     const tapped: Upstream = async (request) => {
       const response = await upstream(request);
       framingRefused = refusesFraming(response.headers);
+      targetRefused = response.headers.get(BRIDGE_MARKER) === "target-forbidden";
       return response;
     };
     const report = await probe(tapped, direct).catch(
@@ -72,6 +76,13 @@ export class SharerManager {
         };
       },
     );
+    if (targetRefused) {
+      this.log.warn(
+        "probe",
+        `${service.id} (${service.kind} ${service.target}) → refused by the Bridge`,
+      );
+      return this.update(id, { health: "down", cause: "extension-refused", warnings: [] });
+    }
     // A kind that carries live connections (M9) makes "ws-needed" moot.
     const live = this.kinds().get(service.kind)?.socket != null;
     const cause = await this.causeOf(service, report);

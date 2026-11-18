@@ -63,7 +63,12 @@ const call = (path: string, target: string | null, init: RequestInit = {}) =>
 describe("relay", () => {
   it("answers a page asking whether it is there, like the local proxy", async () => {
     const res = await call("/", null);
-    expect(await res.json()).toEqual({ bridge: "peershare", via: "extension", version: VERSION });
+    expect(await res.json()).toEqual({
+      bridge: "peershare",
+      via: "extension",
+      version: VERSION,
+      anyWebsite: false,
+    });
   });
 
   it("relays to a local Service, marked relayed, the Bridge's headers consumed", async () => {
@@ -106,10 +111,55 @@ describe("relay", () => {
     },
   );
 
+  it("says how to reach a public site: the popup's switch", async () => {
+    const res = await call("/", "https://example.com");
+    expect(await res.text()).toContain("Allow any website");
+  });
+
   it("says target-unreachable when nothing answers there", async () => {
     const res = await call("/", "http://127.0.0.1:1");
     expect(res.status).toBe(502);
     expect(res.headers.get("x-peershare-bridge")).toBe("target-unreachable");
+  });
+});
+
+describe('with "Allow any website" on', () => {
+  const seen: string[] = [];
+  const fetchImpl: typeof fetch = async (input, init) => {
+    const request = new Request(input, init);
+    seen.push(`${request.method} ${request.url} ${request.credentials}`);
+    return new Response(`public ${new URL(request.url).pathname}`);
+  };
+  const anywhere = (path: string, target: string, init: RequestInit = {}) =>
+    relay(
+      new Request(`http://peershare-extension.invalid${path}`, {
+        ...init,
+        headers: { [BRIDGE_TARGET_HEADER]: target },
+      }),
+      { version: VERSION, anyWebsite: true, fetchImpl },
+    );
+
+  it("relays to a public site, without cookies", async () => {
+    const res = await anywhere("/about", "https://example.com");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe("public /about");
+    expect(seen.at(-1)).toBe("GET https://example.com/about omit");
+  });
+
+  it.each(["file:///etc/passwd", "ftp://example.com", "not a url"])(
+    "still refuses %s: http(s) only",
+    async (target) => {
+      const res = await anywhere("/", target);
+      expect(res.status).toBe(403);
+    },
+  );
+
+  it("tells the page it is on", async () => {
+    const res = await relay(new Request("http://peershare-extension.invalid/"), {
+      version: VERSION,
+      anyWebsite: true,
+    });
+    expect(await res.json()).toMatchObject({ anyWebsite: true });
   });
 });
 

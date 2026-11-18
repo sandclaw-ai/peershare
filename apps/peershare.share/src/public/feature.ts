@@ -81,6 +81,7 @@ export function peershare(init: PeerShareInit): Feature {
         notify,
         async (service) => {
           // The extension's own requests are not the page's: no permission applies.
+          if (service.kind === ANYWHERE) return "unsupported";
           if (service.kind !== "direct" && init.extension?.() != null) return "unsupported";
           // What the Probe reached: the Bridge for a Bridged Service (nothing, unpaired), else the Service.
           const reached =
@@ -207,7 +208,15 @@ function guestCommands(rt: AppRuntime, guest: GuestManager): Array<() => void> {
   ];
 }
 
-/** The two kinds v1 ships (decision 4.1). */
+/**
+ * Any http(s) URL, public sites included, relayed by the browser extension.
+ * Opt-in twice: the Sharer picks it per Service, and the extension relays a
+ * public URL only once its user turned on "Allow any website" in its popup
+ * (else it refuses with `target-forbidden`, which the Probe reports).
+ */
+export const ANYWHERE = "anywhere";
+
+/** The kinds PeerShare ships: v1's two (decision 4.1), and "anywhere". */
 function builtInKinds(init: PeerShareInit): UpstreamKind[] {
   return [
     {
@@ -257,6 +266,25 @@ function builtInKinds(init: PeerShareInit): UpstreamKind[] {
       // WebSockets are not subject to CORS: the Sharer's tab opens the site's own.
       socket: (target, path, protocols) =>
         new WebSocket(`${target.replace(/^http/, "ws").replace(/\/$/, "")}${path}`, protocols),
+    },
+    {
+      id: ANYWHERE,
+      label: "Any website, through the browser extension",
+      check: (target) =>
+        /^https?:\/\//i.test(target) && URL.canParse(target)
+          ? { ok: true }
+          : { ok: false, reason: "not-http" },
+      // No `socket`: the extension relays HTTP only.
+      create: (target) => async (request) => {
+        const extension = init.extension?.();
+        if (extension == null) {
+          return new Response("This service needs the PeerShare browser extension.", {
+            status: 502,
+            headers: { [BRIDGE_MARKER]: "bridge-unreachable" },
+          });
+        }
+        return viaExtension(extension, target)(request);
+      },
     },
   ];
 }

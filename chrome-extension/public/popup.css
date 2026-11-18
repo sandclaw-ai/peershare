@@ -6,6 +6,8 @@
   --primary: #18181b;
   --primary-foreground: #fafafa;
   --success: #16a34a;
+  --warning: #d97706;
+  --destructive: #dc2626;
   color-scheme: light;
 }
 
@@ -18,6 +20,8 @@
     --primary: #fafafa;
     --primary-foreground: #18181b;
     --success: #4ade80;
+    --warning: #fbbf24;
+    --destructive: #ef4444;
     color-scheme: dark;
   }
 }
@@ -109,4 +113,49 @@ p {
 
 .fine a {
   color: inherit;
+}
+
+.advanced {
+  margin-bottom: 12px;
+}
+
+.advanced summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.option {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.option input {
+  margin-top: 3px;
+}
+
+.option.on {
+  border-color: var(--warning);
+}
+
+.option .hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.risky {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--destructive);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
 }

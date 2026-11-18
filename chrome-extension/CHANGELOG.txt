@@ -1,6 +1,22 @@
 SandClaw.ai PeerShare Proxy (Chrome extension) — changes
 =========================================================
 
+0.2.0 — 2026-11-18
+
+  Added
+  - "Allow any website" (popup, Advanced; off by default, marked RISKY):
+    relays to any http(s) URL, not only this computer and private
+    networks, for PeerShare services set to "Any URL, through the browser
+    extension". Still without cookies. Only the popup can turn it on; a
+    refused public URL now says where the switch is.
+  - Tells the page whether "Allow any website" is on.
+
+  Fixed
+  - POST, PUT and PATCH requests to a local service failed with an empty
+    502: the body was sent on as a stream, which Chrome only does over
+    HTTP/2, and local services speak HTTP/1.1. The body now goes on whole.
+  - A 502 for an unreachable service now says why in its body.
+
 0.1.1 — 2026-11-13
 
   Added
