@@ -416,7 +416,9 @@ export function ServiceForm({
   const [submitted, setSubmitted] = useState<DraftCheck>();
   // What the address alone says, while typing: the kind, or nothing yet.
   const live = draft.target.trim() === "" ? undefined : validateDraft({ ...draft, name: "x" }, []);
-  const errors = submitted != null && !submitted.ok ? submitted.errors : {};
+  // Shown once Save was tried, then kept current: fixing the draft clears them.
+  const current = submitted == null ? undefined : validateDraft(draft, services, self?.id);
+  const errors = current != null && !current.ok ? current.errors : {};
   return (
     <form
       noValidate
@@ -602,7 +604,8 @@ export function ServiceDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      {/* Taller than a short window once both advanced switches show: scroll inside it. */}
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {editing ? `Edit ${form.self?.name ?? "service"}` : "Share a service"}
