@@ -6,6 +6,27 @@ The proxy script and the browser extension have their own changelogs:
 proxy/CHANGELOG.txt and chrome-extension/CHANGELOG.txt. The version is
 package.json's; the page's diagnostics name it, with the git commit.
 
+0.6.0 — 2026-11-20 — Services at *.localhost names
+
+  Added
+  - Services at *.localhost names (http://shop.dev.localhost), as a
+    reverse proxy that routes by host name serves them, can be shared
+    through the local proxy: with a cookie jar per guest, so guests can
+    log in, and with live connections. The proxy relays only if the name
+    points at this computer (httpeers-share 0.8). The browser extension
+    0.3.0 relays them too.
+  - The page's version, under "Copy diagnostics".
+
+  Changed
+  - The service form no longer says "A remote service must use https://"
+    for a *.localhost address: it is local.
+
+  Fixed
+  - The service dialog scrolls when it is taller than the window; Save
+    was out of reach with both advanced switches shown.
+  - A field's error goes away once the draft is fixed (it stayed until
+    the next Save).
+
 0.5.1 — 2026-11-18 — Apps with their own service worker
 
   Added

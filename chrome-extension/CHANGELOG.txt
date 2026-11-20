@@ -1,6 +1,13 @@
 SandClaw.ai PeerShare Proxy (Chrome extension) — changes
 =========================================================
 
+0.3.0 — 2026-11-20
+
+  Added
+  - Relays to *.localhost names (such as http://shop.dev.localhost)
+    without "Allow any website": Chrome always points them at this
+    computer, so they are as local as localhost itself.
+
 0.2.0 — 2026-11-18
 
   Added
