@@ -73,6 +73,8 @@ export interface SharerPageProps {
   onRevoke?: (peerId: string) => void;
   /** `GetDiagnostics`: "Copy diagnostics", for when something does not work. */
   diagnostics?: () => Promise<string>;
+  /** This page's build ("0.5.1"), shown beside "Copy diagnostics". */
+  version?: string;
   /** Story states: open the add dialog, or the edit dialog of a service. */
   dialog?: { mode: "add" } | { mode: "edit"; id: string };
   now?: Date;
@@ -189,6 +191,7 @@ export function SharerPage(props: SharerPageProps) {
             <div className="text-muted-foreground grid gap-1 px-1 text-xs">
               <p>Something not working? Send this with your question:</p>
               <DiagnosticsButton load={props.diagnostics} className="-ml-2" />
+              {props.version != null && <p>PeerShare {props.version}</p>}
             </div>
           )}
         </aside>

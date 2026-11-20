@@ -105,10 +105,12 @@ function toView(s: PeerShareSnapshot["sharer"]["services"][number]): Service {
 export interface SharerScreenProps {
   /** The local proxy's card (`ProxyCard`): the page that knows the proxy draws it. */
   proxy?: ReactNode;
+  /** This page's build, shown beside "Copy diagnostics". */
+  version?: string;
 }
 
 /** The Sharer's page (scenarios S1–S7). */
-export function SharerScreen({ proxy }: SharerScreenProps = {}) {
+export function SharerScreen({ proxy, version }: SharerScreenProps = {}) {
   const snapshot = usePeerShare();
   const call = useCall();
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -148,6 +150,7 @@ export function SharerScreen({ proxy }: SharerScreenProps = {}) {
         setInviteOpen(true);
       }}
       diagnostics={() => call(GetDiagnostics, undefined)}
+      {...(version != null ? { version } : {})}
       onAdd={(draft, kind) => void call(AddService, { ...draft, kind })}
       onEdit={(id, draft, kind) => void call(EditService, { id, draft: { ...draft, kind } })}
       onToggle={(id, enabled) => void call(ToggleService, { id, enabled })}

@@ -114,6 +114,7 @@ export function SharerApp({ config }: { config: PeerShareConfig }) {
   return (
     <PeerShareProvider rt={rt}>
       <SharerScreen
+        version={BUILD.version}
         proxy={
           <ProxyCard
             status={extensionVersion != null ? "extension" : (diagnosis ?? "unchecked")}
