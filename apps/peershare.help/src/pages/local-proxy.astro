@@ -59,7 +59,9 @@ import Docs from "../layouts/Docs.astro";
     </li>
     <li>
       It reaches <code>localhost</code>, private addresses (<code>192.168.…</code>,
-      <code>10.…</code>), Tailscale addresses (<code>100.x</code>), and <code>.local</code> names.
+      <code>10.…</code>), Tailscale addresses (<code>100.x</code>), <code>.local</code> names, and
+      <code>*.localhost</code> names (such as <code>http://shop.dev.localhost</code>) that point
+      at this computer.
       A public address is refused.
     </li>
     <li>
@@ -117,7 +119,8 @@ import Docs from "../layouts/Docs.astro";
     </li>
     <li>
       <strong><code>.local</code> names are refused</strong>: the extension cannot look up where
-      they point. Use the device's address, or the proxy.
+      they point. Use the device's address, or the proxy. (<code>*.localhost</code> names work:
+      Chrome always points them at your computer.)
     </li>
   </ul>
 

@@ -495,7 +495,8 @@ export function ServiceForm({
           </p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            A local address like http://localhost:3000, or a remote https:// address.
+            A local address like http://localhost:3000 or http://app.localhost, or a remote https://
+            address.
           </p>
         )}
       </div>

@@ -92,7 +92,8 @@ export type DraftCheck =
 /**
  * The v1 target policy, and which way the Service will be reached:
  * - **bridged** — this machine or its LAN (loopback, private and Tailscale
- *   addresses, `.local` names), through the Bridge, the CORS proxy on localhost;
+ *   addresses, `.local` and `*.localhost` names), through the Bridge, the CORS
+ *   proxy on localhost;
  * - **direct** — a remote service on `https://` and a domain name, which must
  *   send CORS headers itself (only the Probe can tell whether it does).
  * The same addresses the Bridge accepts (rung 02), so the form never offers

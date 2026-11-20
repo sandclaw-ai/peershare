@@ -10,7 +10,7 @@ import {
   viaExtension,
 } from "@statewalker/peershare.share/extension";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { pageAllowed, relay } from "../src/relay.js";
+import { pageAllowed, relay, targetAllowed } from "../src/relay.js";
 import { requestFromJson, requestToJson, responseFromJson, responseToJson } from "../src/wire.js";
 
 const VERSION = "9.9.9";
@@ -160,6 +160,20 @@ describe('with "Allow any website" on', () => {
       anyWebsite: true,
     });
     expect(await res.json()).toMatchObject({ anyWebsite: true });
+  });
+});
+
+describe("targetAllowed", () => {
+  it.each([
+    ["http://localhost:5173", false, true],
+    ["http://shop.dev.localhost", false, true], // Chrome pins *.localhost to loopback
+    ["http://192.168.1.20:8000", false, true],
+    ["http://nas.local", false, false], // the extension cannot see where it points
+    ["http://dev.localhost.example.com", false, false],
+    ["https://example.com", false, false],
+    ["https://example.com", true, true],
+  ] as const)("%s (any website: %s) → %s", (target, anyWebsite, allowed) => {
+    expect(targetAllowed(target, anyWebsite)).toBe(allowed);
   });
 });
 

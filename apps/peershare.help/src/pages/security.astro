@@ -140,7 +140,8 @@ import { u } from "../lib/url.ts";
     </li>
     <li>
       it reaches only this computer and your local network: <code>localhost</code>, private
-      addresses, Tailscale addresses (<code>100.x</code>), <code>.local</code> names;
+      addresses, Tailscale addresses (<code>100.x</code>), <code>.local</code> names, and
+      <code>*.localhost</code> names that point at this computer;
     </li>
     <li>a public address is refused, so it is never a gateway to the internet for your guests;</li>
     <li>your browser itself asks you before the page may reach it (local network access).</li>

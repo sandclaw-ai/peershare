@@ -32,6 +32,7 @@ describe("validateDraft — which way a Service is reached", () => {
     "http://10.0.0.5",
     "http://100.101.102.103:8080",
     "http://nas.local:5000",
+    "http://shop.backstart.localhost/tenant/maps", // RFC 6761: loopback, resolved by the Bridge
   ])("%s → through the Bridge", (target) => {
     expect(validateDraft(draft(target), existing)).toEqual({ ok: true, kind: "bridged", target });
   });

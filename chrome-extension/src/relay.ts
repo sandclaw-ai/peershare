@@ -4,8 +4,9 @@
  *
  * The same rules as the local proxy (`@statewalker/httpeers-share/bridge`):
  * - only this computer and private networks (`checkTarget`); names other than
- *   `localhost` are refused, since the extension cannot resolve `.local`
- *   names to check where they point. Unless its user turned on "Allow any
+ *   `localhost` and `*.localhost` are refused, since the extension cannot
+ *   resolve `.local` names to check where they point (`*.localhost` needs no
+ *   check: Chrome answers it with loopback itself, RFC 6761). Unless its user turned on "Allow any
  *   website" in the popup (`anyWebsite`, off by default): then any http(s)
  *   URL, still without cookies;
  * - the Bridge's own headers are consumed here, never passed to the Service;
@@ -97,7 +98,10 @@ export async function relay(request: Request, init: RelayInit): Promise<Response
 
 /** This computer and private networks; any http(s) URL once the user allowed it. */
 export function targetAllowed(target: string, anyWebsite: boolean): boolean {
-  if (checkTarget(target) === "allowed") return true;
+  const verdict = checkTarget(target);
+  if (verdict === "allowed") return true;
+  // `*.localhost`: Chrome resolves it to loopback without asking DNS, so it is this computer.
+  if (typeof verdict === "object" && verdict.require === "loopback") return true;
   if (!anyWebsite) return false;
   try {
     const url = new URL(target);
